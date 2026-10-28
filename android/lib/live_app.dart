@@ -147,15 +147,64 @@ class _LiveHomeState extends State<LiveHome> {
       ...items.map((n) => ListTile(leading: avatar(value(n, 'actor_display_name', value(n, 'actor_username', 'U'))), title: Text(value(n, 'actor_display_name', value(n, 'actor_username', 'کاربر')) + ' • ' + value(n, 'type', 'تعامل جدید')), subtitle: Text(value(n, 'created_at'), style: const TextStyle(color: cMuted)))),
     ]);
   });
-  Widget conversations() => FutureBuilder<List<Map<String, dynamic>>>(future: widget.api.conversations(), builder: (context, s) {
-    if (s.connectionState == ConnectionState.waiting) return const Center(child: CircularProgressIndicator(color: cBlue));
-    if (s.hasError) return Center(child: Text(s.error.toString()));
-    final items = s.data ?? [];
-    return ListView(children: [const Padding(padding: EdgeInsets.all(18), child: Text('پیام‌ها', style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold))),
-      if (items.isEmpty) const Center(child: Padding(padding: EdgeInsets.all(24), child: Text('هنوز گفت‌وگویی نداری.'))),
-      ...items.map((c) => ListTile(leading: avatar('M'), title: Text('گفت‌وگو #' + value(c, 'id')), subtitle: Text(value(c, 'last_message', 'گفت‌وگوی جدید')), onTap: () => toast('نمای پیام‌ها در مرحله بعدی تکمیل می‌شود.'))),
-    ]);
-  });
+  Future<void> startConversation() async {
+    final controller = TextEditingController();
+    final username = await showDialog<String>(context: context, builder: (ctx) => AlertDialog(
+      title: const Text('پیام جدید'),
+      content: TextField(controller: controller, autocorrect: false, decoration: const InputDecoration(labelText: 'نام کاربری گیرنده')),
+      actions: [
+        TextButton(onPressed: () => Navigator.pop(ctx), child: const Text('انصراف')),
+        FilledButton(onPressed: () => Navigator.pop(ctx, controller.text.trim()), child: const Text('ادامه')),
+      ],
+    ));
+    controller.dispose();
+    if (username == null || username.isEmpty || !mounted) return;
+    try {
+      final user = await widget.api.userByUsername(username.replaceFirst('@', ''));
+      final id = int.parse(user['id'].toString());
+      final conversationId = await widget.api.createConversation(id);
+      if (!mounted) return;
+      await Navigator.of(context).push(MaterialPageRoute<void>(builder: (_) => ChatPage(
+        api: widget.api,
+        conversationId: conversationId,
+        title: user['display_name']?.toString() ?? user['username']?.toString() ?? username,
+      )));
+      if (mounted) setState(() {});
+    } on ApiException catch (e) {
+      if (mounted) toast(e.message);
+    } on FormatException {
+      if (mounted) toast('پاسخ سرور معتبر نیست.');
+    }
+  }
+
+  Widget conversations() => FutureBuilder<List<Map<String, dynamic>>>(
+    future: widget.api.conversations(),
+    builder: (context, s) {
+      if (s.connectionState == ConnectionState.waiting) return const Center(child: CircularProgressIndicator(color: cBlue));
+      if (s.hasError) return Center(child: Text(s.error.toString(), textAlign: TextAlign.center));
+      final items = s.data ?? [];
+      return ListView(children: [
+        Padding(padding: const EdgeInsets.fromLTRB(18, 18, 8, 12), child: Row(children: [
+          const Expanded(child: Text('پیام‌ها', style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold))),
+          IconButton(onPressed: startConversation, icon: const Icon(Icons.edit_square, color: cBlue), tooltip: 'پیام جدید'),
+        ])),
+        if (items.isEmpty) const Center(child: Padding(padding: EdgeInsets.all(24), child: Text('هنوز گفت‌وگویی نداری. برای شروع روی پیام جدید بزن.'))),
+        ...items.map((c) => ListTile(
+          leading: avatar('M'),
+          title: Text('گفت‌وگو #' + value(c, 'id')),
+          subtitle: Text(value(c, 'last_message', 'گفت‌وگوی جدید'), maxLines: 1, overflow: TextOverflow.ellipsis),
+          trailing: const Icon(Icons.chevron_right, color: cMuted),
+          onTap: () async {
+            final id = int.tryParse(value(c, 'id'));
+            if (id == null) return;
+            await Navigator.of(context).push(MaterialPageRoute<void>(builder: (_) => ChatPage(api: widget.api, conversationId: id, title: 'گفت‌وگو #' + id.toString())));
+            if (mounted) setState(() {});
+          },
+        )),
+      ]);
+    },
+  );
+
   Widget profile() {
     final u = me; if (u == null) return Center(child: Text(error ?? 'در حال بارگذاری پروفایل...'));
     return ListView(padding: const EdgeInsets.all(20), children: [
@@ -181,6 +230,97 @@ class _LiveHomeState extends State<LiveHome> {
     );
   }
 }
+class ChatPage extends StatefulWidget {
+  const ChatPage({super.key, required this.api, required this.conversationId, required this.title});
+  final BinerApi api;
+  final int conversationId;
+  final String title;
+  @override State<ChatPage> createState() => _ChatPageState();
+}
+
+class _ChatPageState extends State<ChatPage> {
+  final controller = TextEditingController();
+  final scroll = ScrollController();
+  final items = <Map<String, dynamic>>[];
+  bool loading = true, sending = false;
+  String? error;
+
+  @override void initState() {
+    super.initState();
+    loadMessages();
+  }
+
+  @override void dispose() {
+    controller.dispose();
+    scroll.dispose();
+    super.dispose();
+  }
+
+  Future<void> loadMessages() async {
+    setState(() { loading = true; error = null; });
+    try {
+      await widget.api.markConversationRead(widget.conversationId);
+      final result = await widget.api.messages(widget.conversationId);
+      if (!mounted) return;
+      setState(() { items..clear()..addAll(result); loading = false; });
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (scroll.hasClients) scroll.jumpTo(scroll.position.maxScrollExtent);
+      });
+    } on ApiException catch (e) {
+      if (mounted) setState(() { error = e.message; loading = false; });
+    }
+  }
+
+  Future<void> send() async {
+    final text = controller.text.trim();
+    if (text.isEmpty || sending) return;
+    controller.clear();
+    setState(() => sending = true);
+    try {
+      final item = await widget.api.sendMessage(widget.conversationId, text);
+      if (!mounted) return;
+      setState(() => items.add(item));
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (scroll.hasClients) scroll.animateTo(scroll.position.maxScrollExtent, duration: const Duration(milliseconds: 220), curve: Curves.easeOut);
+      });
+    } on ApiException catch (e) {
+      if (mounted) { controller.text = text; ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(e.message))); }
+    } finally {
+      if (mounted) setState(() => sending = false);
+    }
+  }
+
+  @override Widget build(BuildContext context) => Scaffold(
+    appBar: AppBar(title: Text(widget.title), backgroundColor: cBg, actions: [IconButton(onPressed: loadMessages, icon: const Icon(Icons.refresh))]),
+    body: Column(children: [
+      Expanded(child: loading && items.isEmpty
+        ? const Center(child: CircularProgressIndicator(color: cBlue))
+        : error != null && items.isEmpty
+          ? Center(child: Padding(padding: const EdgeInsets.all(24), child: Column(mainAxisSize: MainAxisSize.min, children: [Text(error!, textAlign: TextAlign.center), const SizedBox(height: 10), OutlinedButton(onPressed: loadMessages, child: const Text('تلاش دوباره'))]))
+          : ListView.builder(controller: scroll, padding: const EdgeInsets.all(14), itemCount: items.length, itemBuilder: (context, index) {
+              final item = items[index];
+              final mine = item['sender_id']?.toString() == '0' ? false : item['sender_id']?.toString() == (item['current_user_id']?.toString() ?? '');
+              return Align(alignment: mine ? Alignment.centerRight : Alignment.centerLeft, child: Container(
+                constraints: BoxConstraints(maxWidth: MediaQuery.of(context).size.width * .78),
+                margin: const EdgeInsets.symmetric(vertical: 4),
+                padding: const EdgeInsets.symmetric(horizontal: 13, vertical: 10),
+                decoration: BoxDecoration(color: mine ? const Color(0xFF103B5B) : cPanel, borderRadius: BorderRadius.circular(16), border: Border.all(color: cLine)),
+                child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+                  Text(item['body']?.toString() ?? '', style: const TextStyle(fontSize: 15)),
+                  const SizedBox(height: 4),
+                  Text(item['created_at']?.toString() ?? '', style: const TextStyle(color: cMuted, fontSize: 10)),
+                ]),
+              ));
+            })),
+      SafeArea(top: false, child: Padding(padding: const EdgeInsets.fromLTRB(10, 8, 10, 8), child: Row(crossAxisAlignment: CrossAxisAlignment.end, children: [
+        Expanded(child: TextField(controller: controller, minLines: 1, maxLines: 5, textInputAction: TextInputAction.newline, decoration: InputDecoration(hintText: 'پیامت را بنویس...', filled: true, fillColor: cPanel, border: OutlineInputBorder(borderRadius: BorderRadius.circular(22), borderSide: BorderSide.none)))),
+        const SizedBox(width: 8),
+        IconButton.filled(onPressed: sending ? null : send, icon: sending ? const SizedBox(width: 18, height: 18, child: CircularProgressIndicator(strokeWidth: 2)) : const Icon(Icons.send_rounded), style: IconButton.styleFrom(backgroundColor: cBlue)),
+      ]))),
+    ]),
+  );
+}
+
 class Brand extends StatelessWidget {
   const Brand({super.key});
   @override Widget build(BuildContext context) => RichText(text: const TextSpan(style: TextStyle(fontSize: 21, fontWeight: FontWeight.w800, color: Colors.white), children: [TextSpan(text: 'Biner'), TextSpan(text: 'Mention', style: TextStyle(color: cBlue))]));
