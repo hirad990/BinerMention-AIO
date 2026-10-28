@@ -1,3 +1,4 @@
+import 'dart:io';
 import 'package:flutter/material.dart';
 import 'api_client.dart';
 import 'package:image_picker/image_picker.dart';
@@ -504,24 +505,55 @@ class _LiveHomeState extends State<LiveHome> {
     final name = TextEditingController(text: value(user, 'display_name'));
     final bio = TextEditingController(text: value(user, 'bio'));
     final website = TextEditingController(text: value(user, 'website'));
+    XFile? avatarFile;
     final confirmed = await showDialog<bool>(
       context: context,
-      builder: (ctx) => AlertDialog(
-        title: const Text('ویرایش پروفایل'),
-        content: SingleChildScrollView(child: Column(mainAxisSize: MainAxisSize.min, children: [
-          TextField(controller: name, maxLength: 80, decoration: const InputDecoration(labelText: 'نام نمایشی')),
-          TextField(controller: bio, maxLength: 280, maxLines: 3, decoration: const InputDecoration(labelText: 'معرفی کوتاه')),
-          TextField(controller: website, keyboardType: TextInputType.url, decoration: const InputDecoration(labelText: 'وب‌سایت')),
-        ])),
-        actions: [
-          TextButton(onPressed: () => Navigator.pop(ctx, false), child: const Text('انصراف')),
-          FilledButton(onPressed: () => Navigator.pop(ctx, true), child: const Text('ذخیره')),
-        ],
+      builder: (ctx) => StatefulBuilder(
+        builder: (ctx, dialogSetState) => AlertDialog(
+          backgroundColor: cPanel,
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(26), side: const BorderSide(color: cLine)),
+          title: const Text('شخصی‌سازی پروفایل'),
+          content: SingleChildScrollView(child: Column(mainAxisSize: MainAxisSize.min, children: [
+            Container(
+              padding: const EdgeInsets.all(3),
+              decoration: const BoxDecoration(shape: BoxShape.circle, gradient: LinearGradient(colors: [cBlue, Color(0xFF855DFF)])),
+              child: CircleAvatar(
+                radius: 38, backgroundColor: cBg,
+                backgroundImage: avatarFile != null ? FileImage(File(avatarFile!.path)) : (value(user, 'avatar_url').startsWith('https://') ? NetworkImage(value(user, 'avatar_url')) : null) as ImageProvider?,
+                child: avatarFile == null && !value(user, 'avatar_url').startsWith('https://') ? const Icon(Icons.person, size: 34, color: cBlue) : null,
+              ),
+            ),
+            const SizedBox(height: 8),
+            TextButton.icon(
+              onPressed: () async {
+                final picked = await ImagePicker().pickImage(source: ImageSource.gallery, imageQuality: 88, maxWidth: 1200);
+                if (picked != null) dialogSetState(() => avatarFile = picked);
+              },
+              icon: const Icon(Icons.add_a_photo_outlined),
+              label: Text(avatarFile == null ? 'انتخاب عکس پروفایل' : 'تغییر عکس انتخاب‌شده'),
+            ),
+            TextField(controller: name, maxLength: 80, decoration: const InputDecoration(labelText: 'نام نمایشی', prefixIcon: Icon(Icons.badge_outlined))),
+            TextField(controller: bio, maxLength: 280, maxLines: 3, decoration: const InputDecoration(labelText: 'بیوگرافی', prefixIcon: Icon(Icons.edit_note))),
+            TextField(controller: website, keyboardType: TextInputType.url, decoration: const InputDecoration(labelText: 'وب‌سایت یا لینک شخصی', prefixIcon: Icon(Icons.link))),
+          ])),
+          actions: [
+            TextButton(onPressed: () => Navigator.pop(ctx, false), child: const Text('انصراف')),
+            FilledButton(onPressed: () => Navigator.pop(ctx, true), child: const Text('ذخیره تغییرات')),
+          ],
+        ),
       ),
     );
     if (confirmed == true && mounted) {
       try {
-        final updated = await widget.api.updateProfile(displayName: name.text.trim(), bio: bio.text.trim(), website: website.text.trim());
+        int? avatarId;
+        if (avatarFile != null) {
+          final uploaded = await widget.api.uploadMedia(avatarFile!);
+          avatarId = int.tryParse(uploaded['id'].toString());
+          if (avatarId == null) throw const ApiException('شناسهٔ عکس از سرور دریافت نشد.');
+        }
+        final updated = await widget.api.updateProfile(
+          displayName: name.text.trim(), bio: bio.text.trim(), website: website.text.trim(), avatarMediaId: avatarId,
+        );
         if (mounted) setState(() => me = updated);
         if (mounted) toast('پروفایل ذخیره شد.');
       } on ApiException catch (e) {
