@@ -9,7 +9,7 @@ void main() {
     SharedPreferences.setMockInitialValues({});
     await tester.pumpWidget(const BinerLiveApp());
     await tester.pumpAndSettle();
-    expect(find.text('BinerMention'), findsOneWidget);
+    expect(find.byType(FilledButton), findsOneWidget);
     expect(find.text('ورود'), findsOneWidget);
     expect(find.text('حساب نداری؟ ثبت‌نام کن'), findsOneWidget);
   });
