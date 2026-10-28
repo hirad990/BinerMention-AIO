@@ -231,6 +231,14 @@ class BinerApi {
         .toList();
   }
 
+  Future<List<Map<String, dynamic>>> searchUsers(String query) async {
+    final result = await _request('GET', 'v1/search/users', query: {'q': query.trim()}, authenticated: false);
+    return (result['users'] as List? ?? const [])
+        .whereType<Map>()
+        .map((item) => Map<String, dynamic>.from(item))
+        .toList();
+  }
+
   Future<Map<String, dynamic>> userByUsername(String username) async =>
       Map<String, dynamic>.from((await _request('GET', 'v1/users/${Uri.encodeComponent(username)}', authenticated: false))['user'] as Map);
 
