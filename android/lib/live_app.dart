@@ -424,7 +424,7 @@ class _LiveHomeState extends State<LiveHome> {
               Text('@' + value(user, 'username'), style: const TextStyle(color: cMuted)),
               if (value(user, 'bio').isNotEmpty) Padding(padding: const EdgeInsets.only(top: 10), child: Text(value(user, 'bio'))),
               const SizedBox(height: 10),
-              Text('\${value(user, 'followers_count', '0')} دنبال‌کننده • \${value(user, 'following_count', '0')} دنبال‌شونده'),
+              Text('${value(user, 'followers_count', '0')} دنبال‌کننده • ${value(user, 'following_count', '0')} دنبال‌شونده'),
               if (value(user, 'website').isNotEmpty) Text(value(user, 'website'), style: const TextStyle(color: cBlue)),
             ]),
             actions: [
