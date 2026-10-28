@@ -135,6 +135,8 @@ class BinerApi {
   Future<void> logout() async {
     try {
       if (isAuthenticated) await _request('POST', 'v1/auth/logout');
+    } catch (_) {
+      // Local sign-out must still work when the server is unreachable.
     } finally {
       _token = null;
       await (await _prefs).remove(_tokenKey);
