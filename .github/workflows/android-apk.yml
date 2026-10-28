@@ -1,0 +1,50 @@
+name: Android APK
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'android/**'
+      - '.github/workflows/android-apk.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  build-apk:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          channel: stable
+          cache: true
+
+      - name: Generate Android Flutter scaffold
+        run: flutter create --platforms=android --org ir.binercraft --project-name binerm_mention "$RUNNER_TEMP/binerm_mention"
+
+      - name: Inject BinerMention source
+        run: |
+          cp android/pubspec.yaml "$RUNNER_TEMP/binerm_mention/pubspec.yaml"
+          rm -rf "$RUNNER_TEMP/binerm_mention/lib"
+          cp -R android/lib "$RUNNER_TEMP/binerm_mention/lib"
+
+      - name: Resolve packages
+        working-directory: ${{ runner.temp }}/binerm_mention
+        run: flutter pub get
+
+      - name: Build release APK
+        working-directory: ${{ runner.temp }}/binerm_mention
+        run: flutter build apk --release
+
+      - name: Upload APK artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: BinerMention-Android-release
+          path: ${{ runner.temp }}/binerm_mention/build/app/outputs/flutter-apk/app-release.apk
+          if-no-files-found: error
+          retention-days: 14
