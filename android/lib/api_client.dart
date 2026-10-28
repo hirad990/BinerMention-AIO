@@ -1,6 +1,7 @@
 import 'dart:convert';
 
 import 'package:http/http.dart' as http;
+import 'package:image_picker/image_picker.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 class ApiException implements Exception {
@@ -153,8 +154,52 @@ class BinerApi {
         .toList();
   }
 
-  Future<Map<String, dynamic>> createPost(String text) async =>
-      Map<String, dynamic>.from((await _request('POST', 'v1/posts', body: {'body': text}))['post'] as Map);
+  Future<Map<String, dynamic>> createPost(String text, {int? mediaId, int? replyToId}) async {
+    final body = <String, dynamic>{'body': text};
+    if (mediaId != null) body['media_id'] = mediaId;
+    if (replyToId != null) body['reply_to_id'] = replyToId;
+    return Map<String, dynamic>.from((await _request('POST', 'v1/posts', body: body))['post'] as Map);
+  }
+
+  Future<Map<String, dynamic>> updateProfile({
+    required String displayName,
+    required String bio,
+    required String website,
+  }) async => Map<String, dynamic>.from((await _request('PATCH', 'v1/me', body: {
+        'display_name': displayName,
+        'bio': bio,
+        'website': website,
+      }))['user'] as Map);
+
+  Future<void> followUser(int userId, bool follow) async {
+    await _request(follow ? 'POST' : 'DELETE', 'v1/users/$userId/follow');
+  }
+
+  Future<Map<String, dynamic>> uploadMedia(XFile file) async {
+    if (!isAuthenticated) throw const ApiException('برای بارگذاری فایل وارد حساب شو.');
+    try {
+      final request = http.MultipartRequest('POST', _uri('v1/media'));
+      request.headers['Accept'] = 'application/json';
+      request.headers['Authorization'] = 'Bearer $_token';
+      request.files.add(http.MultipartFile.fromBytes(
+        'file',
+        await file.readAsBytes(),
+        filename: file.name,
+      ));
+      final streamed = await _client.send(request).timeout(const Duration(seconds: 45));
+      final response = await http.Response.fromStream(streamed);
+      final decoded = jsonDecode(utf8.decode(response.bodyBytes));
+      if (decoded is! Map<String, dynamic>) throw const FormatException();
+      if (response.statusCode < 200 || response.statusCode >= 300 || decoded['ok'] == false) {
+        throw ApiException(decoded['message']?.toString() ?? 'بارگذاری فایل انجام نشد.', statusCode: response.statusCode);
+      }
+      return Map<String, dynamic>.from(decoded['media'] as Map);
+    } on ApiException {
+      rethrow;
+    } catch (_) {
+      throw const ApiException('بارگذاری فایل ناموفق بود؛ اتصال و محدودیت آپلود سرور را بررسی کن.');
+    }
+  }
 
   Future<void> togglePostAction(int postId, String action, bool active) async {
     if (action != 'like' && action != 'repost') throw const ApiException('Unsupported post action.');
