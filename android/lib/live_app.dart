@@ -297,13 +297,13 @@ class _LiveHomeState extends State<LiveHome> {
     final name = value(p, 'display_name', value(p, 'username', 'کاربر'));
     final body = value(p, 'body');
     final liked = p['liked'] == true, reposted = p['reposted'] == true;
-    return Container(padding: const EdgeInsets.all(15), margin: const EdgeInsets.fromLTRB(10, 5, 10, 7), decoration: BoxDecoration(border: Border.all(color: cLine), borderRadius: BorderRadius.circular(22), color: cGlass, boxShadow: [BoxShadow(color: cBlue.withValues(alpha: .035), blurRadius: 18)]), child: Row(crossAxisAlignment: CrossAxisAlignment.start, children: [
+    return Container(padding: const EdgeInsets.fromLTRB(14, 14, 14, 8), margin: const EdgeInsets.symmetric(horizontal: 8), decoration: const BoxDecoration(color: Color(0x99101826), border: Border(bottom: BorderSide(color: Color(0x332D4058)))), child: Row(crossAxisAlignment: CrossAxisAlignment.start, children: [
       avatar(name, p, 21), const SizedBox(width: 10), Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
         Row(children: [
           Expanded(child: Wrap(crossAxisAlignment: WrapCrossAlignment.center, spacing: 3, children: [
-            Text(name, style: const TextStyle(fontWeight: FontWeight.bold)),
+            Text(name, style: const TextStyle(fontWeight: FontWeight.w800, fontSize: 14)),
             blueTick(p),
-            Text('@' + value(p, 'username', 'user'), style: const TextStyle(color: cMuted, fontSize: 12)),
+            Text('@' + value(p, 'username', 'user'), style: const TextStyle(color: Color(0xFF8496AC), fontSize: 12)),
           ])),
           if (value(p, 'user_id') == value(me ?? {}, 'id'))
             PopupMenuButton<String>(
@@ -320,13 +320,13 @@ class _LiveHomeState extends State<LiveHome> {
               ],
             ),
         ]),
-        if (body.isNotEmpty) Padding(padding: const EdgeInsets.only(top: 7), child: Text(body, style: const TextStyle(height: 1.5))),
+        if (body.isNotEmpty) Padding(padding: const EdgeInsets.only(top: 8, right: 2), child: Text(body, style: const TextStyle(fontSize: 15, height: 1.48, letterSpacing: .05))),
         if (value(p, 'media_url').startsWith('https://')) Padding(padding: const EdgeInsets.only(top: 10), child: ClipRRect(borderRadius: BorderRadius.circular(14), child: Image.network(value(p, 'media_url'), fit: BoxFit.cover, errorBuilder: (_, __, ___) => const SizedBox.shrink()))),
         const SizedBox(height: 10),
         Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [
-          TextButton.icon(onPressed: () => showReplies(p), icon: const Icon(Icons.chat_bubble_outline, size: 17), label: Text(fmt(p['replies_count'] ?? 0))),
-          TextButton.icon(onPressed: () => toggle(p, 'repost'), icon: Icon(Icons.repeat, size: 17, color: reposted ? cBlue : cMuted), label: Text(fmt(p['reposts_count'] ?? 0))),
-          TextButton.icon(onPressed: () => toggle(p, 'like'), icon: Icon(liked ? Icons.favorite : Icons.favorite_border, size: 17, color: liked ? Colors.pinkAccent : cMuted), label: Text(fmt(p['likes_count'] ?? 0))),
+          TextButton.icon(style: TextButton.styleFrom(foregroundColor: cMuted, visualDensity: VisualDensity.compact, padding: const EdgeInsets.symmetric(horizontal: 7)), onPressed: () => showReplies(p), icon: const Icon(Icons.chat_bubble_outline, size: 17), label: Text(fmt(p['replies_count'] ?? 0))),
+          TextButton.icon(style: TextButton.styleFrom(foregroundColor: reposted ? const Color(0xFF00BA7C) : cMuted, visualDensity: VisualDensity.compact, padding: const EdgeInsets.symmetric(horizontal: 7)), onPressed: () => toggle(p, 'repost'), icon: const Icon(Icons.repeat, size: 17), label: Text(fmt(p['reposts_count'] ?? 0))),
+          TextButton.icon(style: TextButton.styleFrom(foregroundColor: liked ? const Color(0xFFF91880) : cMuted, visualDensity: VisualDensity.compact, padding: const EdgeInsets.symmetric(horizontal: 7)), onPressed: () => toggle(p, 'like'), icon: Icon(liked ? Icons.favorite : Icons.favorite_border, size: 17), label: Text(fmt(p['likes_count'] ?? 0))),
         ]),
       ])),
     ]));
