@@ -33,8 +33,8 @@ class _BinerLiveAppState extends State<BinerLiveApp> {
       splashFactory: InkSparkle.splashFactory,
       pageTransitionsTheme: const PageTransitionsTheme(builders: {
         TargetPlatform.android: ZoomPageTransitionsBuilder(),
-        TargetPlatform.iOS: CupertinoPageTransitionsBuilder(),
-        TargetPlatform.macOS: CupertinoPageTransitionsBuilder(),
+        TargetPlatform.iOS: FadeForwardsPageTransitionsBuilder(),
+        TargetPlatform.macOS: FadeForwardsPageTransitionsBuilder(),
         TargetPlatform.windows: FadeForwardsPageTransitionsBuilder(),
         TargetPlatform.linux: FadeForwardsPageTransitionsBuilder(),
       }),
@@ -246,8 +246,9 @@ class _LiveHomeState extends State<LiveHome> {
   }
   Widget blueTick(Map<String, dynamic> user) {
     final raw = user['BlueTick'];
-    final verified = raw == true || raw == 1 || raw?.toString().toLowerCase() == 'true';
-    return verified ? const Padding(padding: EdgeInsets.only(left: 4), child: Icon(Icons.verified_rounded, color: Color(0xFF35B7FF), size: 16)) : const SizedBox.shrink();
+    final normalized = raw?.toString().trim().toLowerCase();
+    final verified = raw == true || raw == 1 || normalized == 'true' || normalized == '1' || normalized == 'yes';
+    return verified ? const Padding(padding: EdgeInsets.only(left: 4), child: Tooltip(message: 'حساب تأییدشده', child: Icon(Icons.verified_rounded, color: Color(0xFF1D9BF0), size: 16))) : const SizedBox.shrink();
   }
   Future<void> showReplies(Map<String, dynamic> post) async {
     final id = int.tryParse(value(post, 'id'));
