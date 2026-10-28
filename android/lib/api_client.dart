@@ -144,10 +144,11 @@ class BinerApi {
     }
   }
 
-  Future<List<Map<String, dynamic>>> posts({int limit = 20, int? beforeId, bool following = false}) async {
+  Future<List<Map<String, dynamic>>> posts({int limit = 20, int? beforeId, bool following = false, int? replyToId}) async {
     final query = <String, String>{'limit': '$limit'};
     if (following) query['feed'] = 'following';
     if (beforeId != null) query['before_id'] = '$beforeId';
+    if (replyToId != null) query['reply_to_id'] = '$replyToId';
     final result = await _request('GET', 'v1/posts', query: query);
     return (result['posts'] as List? ?? const [])
         .whereType<Map>()
