@@ -131,13 +131,51 @@ class _LiveHomeState extends State<LiveHome> {
       ])),
     ]));
   }
-  Widget home() => Column(children: [
-    const Padding(padding: EdgeInsets.all(16), child: Align(alignment: Alignment.centerLeft, child: Brand())),
-    const Divider(height: 1, color: cLine),
-    Expanded(child: loading && posts.isEmpty ? const Center(child: CircularProgressIndicator(color: cBlue)) : error != null && posts.isEmpty
-      ? Center(child: Padding(padding: const EdgeInsets.all(24), child: Column(mainAxisSize: MainAxisSize.min, children: [Text(error!, textAlign: TextAlign.center), const SizedBox(height: 12), OutlinedButton(onPressed: refresh, child: const Text('تلاش دوباره'))]))
-      : RefreshIndicator(onRefresh: refresh, child: posts.isEmpty ? ListView(children: const [SizedBox(height: 100), Center(child: Text('هنوز پستی وجود ندارد.'))]) : ListView.builder(itemCount: posts.length, itemBuilder: (_, i) => card(posts[i])))),
-  ]);
+  Widget home() => Column(
+    children: [
+      const Padding(padding: EdgeInsets.all(16), child: Align(alignment: Alignment.centerLeft, child: Brand())),
+      const Divider(height: 1, color: cLine),
+      Expanded(child: feedBody()),
+    ],
+  );
+
+  Widget feedBody() {
+    if (loading && posts.isEmpty) {
+      return const Center(child: CircularProgressIndicator(color: cBlue));
+    }
+    if (error != null && posts.isEmpty) {
+      return Center(
+        child: Padding(
+          padding: const EdgeInsets.all(24),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Text(error!, textAlign: TextAlign.center),
+              const SizedBox(height: 12),
+              OutlinedButton(onPressed: refresh, child: const Text('تلاش دوباره')),
+            ],
+          ),
+        ),
+      );
+    }
+    if (posts.isEmpty) {
+      return RefreshIndicator(
+        onRefresh: refresh,
+        child: ListView(children: const [
+          SizedBox(height: 100),
+          Center(child: Text('هنوز پستی وجود ندارد.')),
+        ]),
+      );
+    }
+    return RefreshIndicator(
+      onRefresh: refresh,
+      child: ListView.builder(
+        itemCount: posts.length,
+        itemBuilder: (_, i) => card(posts[i]),
+      ),
+    );
+  }
+
   Widget notifications() => FutureBuilder<List<Map<String, dynamic>>>(future: widget.api.notifications(), builder: (context, s) {
     if (s.connectionState == ConnectionState.waiting) return const Center(child: CircularProgressIndicator(color: cBlue));
     if (s.hasError) return Center(child: Text(s.error.toString()));
