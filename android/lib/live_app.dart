@@ -160,13 +160,16 @@ class _LiveHomeState extends State<LiveHome> {
     controller.dispose();
     if (username == null || username.isEmpty || !mounted) return;
     try {
+      final currentUser = me ?? await widget.api.me();
       final user = await widget.api.userByUsername(username.replaceFirst('@', ''));
       final id = int.parse(user['id'].toString());
       final conversationId = await widget.api.createConversation(id);
       if (!mounted) return;
+      setState(() => me = currentUser);
       await Navigator.of(context).push(MaterialPageRoute<void>(builder: (_) => ChatPage(
         api: widget.api,
         conversationId: conversationId,
+        currentUserId: int.parse(currentUser['id'].toString()),
         title: user['display_name']?.toString() ?? user['username']?.toString() ?? username,
       )));
       if (mounted) setState(() {});
@@ -197,7 +200,19 @@ class _LiveHomeState extends State<LiveHome> {
           onTap: () async {
             final id = int.tryParse(value(c, 'id'));
             if (id == null) return;
-            await Navigator.of(context).push(MaterialPageRoute<void>(builder: (_) => ChatPage(api: widget.api, conversationId: id, title: 'گفت‌وگو #' + id.toString())));
+            try {
+              final currentUser = me ?? await widget.api.me();
+              if (!mounted) return;
+              setState(() => me = currentUser);
+              await Navigator.of(context).push(MaterialPageRoute<void>(builder: (_) => ChatPage(
+                api: widget.api,
+                conversationId: id,
+                currentUserId: int.parse(currentUser['id'].toString()),
+                title: 'گفت‌وگو #' + id.toString(),
+              )));
+            } on ApiException catch (e) {
+              if (mounted) toast(e.message);
+            }
             if (mounted) setState(() {});
           },
         )),
@@ -234,6 +249,7 @@ class ChatPage extends StatefulWidget {
   const ChatPage({super.key, required this.api, required this.conversationId, required this.title});
   final BinerApi api;
   final int conversationId;
+  final int currentUserId;
   final String title;
   @override State<ChatPage> createState() => _ChatPageState();
 }
@@ -299,7 +315,7 @@ class _ChatPageState extends State<ChatPage> {
           ? Center(child: Padding(padding: const EdgeInsets.all(24), child: Column(mainAxisSize: MainAxisSize.min, children: [Text(error!, textAlign: TextAlign.center), const SizedBox(height: 10), OutlinedButton(onPressed: loadMessages, child: const Text('تلاش دوباره'))]))
           : ListView.builder(controller: scroll, padding: const EdgeInsets.all(14), itemCount: items.length, itemBuilder: (context, index) {
               final item = items[index];
-              final mine = item['sender_id']?.toString() == '0' ? false : item['sender_id']?.toString() == (item['current_user_id']?.toString() ?? '');
+              final mine = item['sender_id']?.toString() == widget.currentUserId.toString();
               return Align(alignment: mine ? Alignment.centerRight : Alignment.centerLeft, child: Container(
                 constraints: BoxConstraints(maxWidth: MediaQuery.of(context).size.width * .78),
                 margin: const EdgeInsets.symmetric(vertical: 4),
