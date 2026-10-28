@@ -30,7 +30,7 @@ All paths below are relative to the API root. Protected routes require `Authoriz
 - `GET /`, `GET /health`, `GET /v1/health` — API/database health
 - `POST /v1/auth/register` — username, email, password, optional display_name
 - `POST /v1/auth/login` — identity (username or email) and password
-- `POST /v1/auth/logout`
+- `POST /v1/auth/logout`, `GET /v1/auth/sessions`, `DELETE /v1/auth/sessions/{id}`
 - `GET /v1/me`, `PATCH /v1/me`
 - `GET /v1/users/{username}`, `GET /v1/users/{id}/posts`
 - `GET /v1/posts`, `POST /v1/posts`, `GET /v1/posts/{id}`, `PATCH /v1/posts/{id}`, `DELETE /v1/posts/{id}`
