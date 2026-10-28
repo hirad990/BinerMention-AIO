@@ -57,12 +57,16 @@ class BinerApi {
       switch (method) {
         case 'GET':
           response = await _client.get(uri, headers: headers).timeout(const Duration(seconds: 20));
+          break;
         case 'POST':
           response = await _client.post(uri, headers: headers, body: jsonEncode(body ?? const {})).timeout(const Duration(seconds: 20));
+          break;
         case 'PATCH':
           response = await _client.patch(uri, headers: headers, body: jsonEncode(body ?? const {})).timeout(const Duration(seconds: 20));
+          break;
         case 'DELETE':
           response = await _client.delete(uri, headers: headers).timeout(const Duration(seconds: 20));
+          break;
         default:
           throw const ApiException('Unsupported request method.');
       }
