@@ -44,9 +44,10 @@ jobs:
           rm -rf "$RUNNER_TEMP/binerm_mention/lib" "$RUNNER_TEMP/binerm_mention/test"
           cp -R android/lib "$RUNNER_TEMP/binerm_mention/lib"
           if [ -d android/test ]; then cp -R android/test "$RUNNER_TEMP/binerm_mention/test"; fi
-          python3 - <<'PY'
+          MANIFEST_PATH="$RUNNER_TEMP/binerm_mention/android/app/src/main/AndroidManifest.xml" python3 - <<'PY'
+          import os
           from pathlib import Path
-          manifest = Path("$RUNNER_TEMP/binerm_mention/android/app/src/main/AndroidManifest.xml")
+          manifest = Path(os.environ["MANIFEST_PATH"])
           content = manifest.read_text()
           permission = '<uses-permission android:name="android.permission.INTERNET"/>'
           if permission not in content:
