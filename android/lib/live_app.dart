@@ -96,7 +96,7 @@ class _LiveHomeState extends State<LiveHome> {
         Align(alignment: Alignment.centerLeft, child: FilledButton(onPressed: () => Navigator.pop(ctx, controller.text.trim()), child: const Text('انتشار'))),
       ]),
     ));
-    final body = controller.text.trim(); controller.dispose();
+    controller.dispose();
     if (text == null || text.isEmpty || !mounted) return;
     setState(() => posting = true);
     try { final item = await widget.api.createPost(text); if (mounted) setState(() => posts.insert(0, item)); }
