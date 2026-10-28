@@ -144,8 +144,9 @@ class BinerApi {
     }
   }
 
-  Future<List<Map<String, dynamic>>> posts({int limit = 20, int? beforeId}) async {
+  Future<List<Map<String, dynamic>>> posts({int limit = 20, int? beforeId, bool following = false}) async {
     final query = <String, String>{'limit': '$limit'};
+    if (following) query['feed'] = 'following';
     if (beforeId != null) query['before_id'] = '$beforeId';
     final result = await _request('GET', 'v1/posts', query: query);
     return (result['posts'] as List? ?? const [])
@@ -199,6 +200,13 @@ class BinerApi {
     } catch (_) {
       throw const ApiException('بارگذاری فایل ناموفق بود؛ اتصال و محدودیت آپلود سرور را بررسی کن.');
     }
+  }
+
+  Future<Map<String, dynamic>> updatePost(int postId, String text) async =>
+      Map<String, dynamic>.from((await _request('PATCH', 'v1/posts/$postId', body: {'body': text}))['post'] as Map);
+
+  Future<void> deletePost(int postId) async {
+    await _request('DELETE', 'v1/posts/$postId');
   }
 
   Future<void> togglePostAction(int postId, String action, bool active) async {
