@@ -415,69 +415,120 @@ class _LiveHomeState extends State<LiveHome> {
 
   Future<void> searchUser() async {
     final controller = TextEditingController();
-    final username = await showDialog<String>(
+    Future<List<Map<String, dynamic>>>? results;
+    final selected = await showModalBottomSheet<Map<String, dynamic>>(
       context: context,
-      builder: (ctx) => AlertDialog(
-        title: const Text('جست‌وجوی کاربر'),
-        content: TextField(
-          controller: controller,
-          autofocus: true,
-          autocorrect: false,
-          decoration: const InputDecoration(prefixText: '@', hintText: 'نام کاربری'),
-          onSubmitted: (_) => Navigator.pop(ctx, controller.text.trim()),
+      isScrollControlled: true,
+      useSafeArea: true,
+      backgroundColor: Colors.transparent,
+      builder: (ctx) => StatefulBuilder(
+        builder: (ctx, sheetSetState) => Container(
+          height: MediaQuery.of(ctx).size.height * .78,
+          padding: EdgeInsets.fromLTRB(18, 12, 18, MediaQuery.of(ctx).viewInsets.bottom + 16),
+          decoration: BoxDecoration(
+            color: const Color(0xF20B1422),
+            borderRadius: const BorderRadius.vertical(top: Radius.circular(30)),
+            border: Border.all(color: cLine),
+          ),
+          child: Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
+            Center(child: Container(width: 42, height: 4, decoration: BoxDecoration(color: cMuted.withValues(alpha: .5), borderRadius: BorderRadius.circular(4)))),
+            const SizedBox(height: 16),
+            const Text('کشف آدم‌های جدید', style: TextStyle(fontSize: 22, fontWeight: FontWeight.w800)),
+            const SizedBox(height: 12),
+            TextField(
+              controller: controller,
+              autofocus: true,
+              autocorrect: false,
+              onChanged: (q) => sheetSetState(() {
+                results = q.trim().replaceFirst(RegExp(r'^@'), '').length >= 2 ? widget.api.searchUsers(q.trim()) : null;
+              }),
+              decoration: InputDecoration(
+                hintText: 'نام کاربری یا نام نمایشی…',
+                prefixIcon: const Icon(Icons.search_rounded, color: cBlue),
+                filled: true, fillColor: cGlass,
+                border: OutlineInputBorder(borderRadius: BorderRadius.circular(18), borderSide: const BorderSide(color: cLine)),
+                enabledBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(18), borderSide: const BorderSide(color: cLine)),
+              ),
+            ),
+            const SizedBox(height: 12),
+            Expanded(
+              child: results == null
+                ? const Center(child: Text('برای شروع، حداقل ۲ حرف بنویس.', style: TextStyle(color: cMuted)))
+                : FutureBuilder<List<Map<String, dynamic>>>(
+                    future: results,
+                    builder: (context, snap) {
+                      if (snap.connectionState == ConnectionState.waiting) return const Center(child: CircularProgressIndicator(color: cBlue));
+                      if (snap.hasError) return Center(child: Text(snap.error.toString(), textAlign: TextAlign.center));
+                      final users = snap.data ?? [];
+                      if (users.isEmpty) return const Center(child: Text('کاربری پیدا نشد.'));
+                      return ListView.separated(
+                        itemCount: users.length,
+                        separatorBuilder: (_, __) => const Divider(color: cLine, height: 1),
+                        itemBuilder: (_, i) {
+                          final user = users[i];
+                          final display = value(user, 'display_name', value(user, 'username', 'کاربر'));
+                          return ListTile(
+                            contentPadding: const EdgeInsets.symmetric(horizontal: 2, vertical: 4),
+                            leading: avatar(display, user, 24),
+                            title: Row(children: [
+                              Flexible(child: Text(display, maxLines: 1, overflow: TextOverflow.ellipsis, style: const TextStyle(fontWeight: FontWeight.bold))),
+                              blueTick(user),
+                            ]),
+                            subtitle: Text('@' + value(user, 'username') + (value(user, 'bio').isNotEmpty ? ' · ' + value(user, 'bio') : ''), maxLines: 2, overflow: TextOverflow.ellipsis, style: const TextStyle(color: cMuted)),
+                            trailing: const Icon(Icons.arrow_outward_rounded, color: cBlue, size: 18),
+                            onTap: () => Navigator.pop(ctx, user),
+                          );
+                        },
+                      );
+                    },
+                  ),
+            ),
+          ]),
         ),
-        actions: [
-          TextButton(onPressed: () => Navigator.pop(ctx), child: const Text('انصراف')),
-          FilledButton(onPressed: () => Navigator.pop(ctx, controller.text.trim()), child: const Text('جست‌وجو')),
-        ],
       ),
     );
-    if (username == null || username.trim().isEmpty || !mounted) {
-      controller.dispose();
-      return;
-    }
-    try {
-      final user = await widget.api.userByUsername(username.trim().replaceFirst('@', ''));
-      if (!mounted) return;
-      final selfId = int.tryParse(value(me ?? {}, 'id', '-1')) ?? -1;
-      final userId = int.tryParse(user['id'].toString()) ?? -1;
-      var following = user['is_following'] == true;
-      await showDialog<void>(
-        context: context,
-        builder: (ctx) => StatefulBuilder(
-          builder: (ctx, dialogSetState) => AlertDialog(
-            title: Row(mainAxisSize: MainAxisSize.min, children: [Flexible(child: Text(value(user, 'display_name', value(user, 'username', 'کاربر'))),), blueTick(user)]),
-            content: Column(mainAxisSize: MainAxisSize.min, crossAxisAlignment: CrossAxisAlignment.start, children: [
-              Row(children: [Text('@' + value(user, 'username'), style: const TextStyle(color: cMuted)), blueTick(user)]),
-              if (value(user, 'bio').isNotEmpty) Padding(padding: const EdgeInsets.only(top: 10), child: Text(value(user, 'bio'))),
-              const SizedBox(height: 10),
-              Text('${value(user, 'followers_count', '0')} دنبال‌کننده • ${value(user, 'following_count', '0')} دنبال‌شونده'),
-              if (value(user, 'website').isNotEmpty) Text(value(user, 'website'), style: const TextStyle(color: cBlue)),
-            ]),
-            actions: [
-              TextButton(onPressed: () => Navigator.pop(ctx), child: const Text('بستن')),
-              if (selfId != userId && selfId >= 0)
-                FilledButton(
-                  onPressed: () async {
-                    try {
-                      await widget.api.followUser(userId, !following);
-                      dialogSetState(() => following = !following);
-                    } on ApiException catch (e) {
-                      if (mounted) toast(e.message);
-                    }
-                  },
-                  child: Text(following ? 'دنبال‌نکردن' : 'دنبال‌کردن'),
-                ),
-              if (selfId == userId) const Padding(padding: EdgeInsets.all(8), child: Text('این حساب خودت است.')),
-            ],
-          ),
+    controller.dispose();
+    if (selected == null || !mounted) return;
+    final user = selected;
+    final selfId = int.tryParse(value(me ?? {}, 'id', '-1')) ?? -1;
+    final userId = int.tryParse(user['id'].toString()) ?? -1;
+    var following = user['is_following'] == true;
+    await showDialog<void>(
+      context: context,
+      builder: (ctx) => StatefulBuilder(
+        builder: (ctx, dialogSetState) => AlertDialog(
+          backgroundColor: cPanel,
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(26), side: const BorderSide(color: cLine)),
+          title: Row(mainAxisSize: MainAxisSize.min, children: [
+            Flexible(child: Text(value(user, 'display_name', value(user, 'username', 'کاربر')))),
+            blueTick(user),
+          ]),
+          content: Column(mainAxisSize: MainAxisSize.min, crossAxisAlignment: CrossAxisAlignment.start, children: [
+            Row(children: [Text('@' + value(user, 'username'), style: const TextStyle(color: cMuted)), blueTick(user)]),
+            if (value(user, 'bio').isNotEmpty) Padding(padding: const EdgeInsets.only(top: 10), child: Text(value(user, 'bio'))),
+            const SizedBox(height: 10),
+            Text('${value(user, 'followers_count', '0')} دنبال‌کننده • ${value(user, 'following_count', '0')} دنبال‌شونده'),
+            if (value(user, 'website').isNotEmpty) Padding(padding: const EdgeInsets.only(top: 8), child: Text(value(user, 'website'), style: const TextStyle(color: cBlue))),
+          ]),
+          actions: [
+            TextButton(onPressed: () => Navigator.pop(ctx), child: const Text('بستن')),
+            if (selfId != userId && selfId >= 0)
+              FilledButton(
+                onPressed: () async {
+                  try {
+                    await widget.api.followUser(userId, !following);
+                    dialogSetState(() => following = !following);
+                  } on ApiException catch (e) {
+                    if (mounted) toast(e.message);
+                  }
+                },
+                child: Text(following ? 'دنبال‌نکردن' : 'دنبال‌کردن'),
+              ),
+            if (selfId == userId) const Padding(padding: EdgeInsets.all(8), child: Text('این حساب خودت است.')),
+          ],
         ),
-      );
-    } on ApiException catch (e) {
-      if (mounted) toast(e.message);
-    } finally {
-      controller.dispose();
-    }
+      ),
+    );
   }
 
   Widget profile() {
