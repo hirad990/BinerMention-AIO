@@ -1,4 +1,6 @@
 import 'dart:io';
+import 'dart:ui';
+import 'package:flutter/services.dart';
 import 'package:flutter/material.dart';
 import 'api_client.dart';
 import 'package:image_picker/image_picker.dart';
@@ -23,7 +25,27 @@ class _BinerLiveAppState extends State<BinerLiveApp> {
   @override void dispose() { api.dispose(); super.dispose(); }
   @override Widget build(BuildContext context) => MaterialApp(
     title: 'BinerMention', debugShowCheckedModeBanner: false,
-    theme: ThemeData(brightness: Brightness.dark, scaffoldBackgroundColor: cBg, colorScheme: const ColorScheme.dark(primary: cBlue, surface: cPanel), useMaterial3: true),
+    theme: ThemeData(
+      brightness: Brightness.dark,
+      scaffoldBackgroundColor: cBg,
+      colorScheme: const ColorScheme.dark(primary: cBlue, surface: Color(0xFF111C2D), secondary: Color(0xFF9B8CFF)),
+      useMaterial3: true,
+      splashFactory: InkSparkle.splashFactory,
+      pageTransitionsTheme: const PageTransitionsTheme(builders: {
+        TargetPlatform.android: ZoomPageTransitionsBuilder(),
+        TargetPlatform.iOS: CupertinoPageTransitionsBuilder(),
+        TargetPlatform.macOS: CupertinoPageTransitionsBuilder(),
+        TargetPlatform.windows: FadeForwardsPageTransitionsBuilder(),
+        TargetPlatform.linux: FadeForwardsPageTransitionsBuilder(),
+      }),
+      inputDecorationTheme: InputDecorationTheme(
+        filled: true, fillColor: const Color(0xAA111D30),
+        contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 13),
+        border: OutlineInputBorder(borderRadius: BorderRadius.circular(17), borderSide: const BorderSide(color: cLine)),
+        enabledBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(17), borderSide: const BorderSide(color: cLine)),
+        focusedBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(17), borderSide: const BorderSide(color: cBlue, width: 1.4)),
+      ),
+    ),
     home: !ready ? const Scaffold(body: Center(child: CircularProgressIndicator(color: cBlue))) : loggedIn ? LiveHome(api: api, logout: logout) : LiveAuth(api: api, onDone: signedIn),
   );
 }
