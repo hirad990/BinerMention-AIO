@@ -166,11 +166,12 @@ class BinerApi {
     required String displayName,
     required String bio,
     required String website,
-  }) async => Map<String, dynamic>.from((await _request('PATCH', 'v1/me', body: {
-        'display_name': displayName,
-        'bio': bio,
-        'website': website,
-      }))['user'] as Map);
+    int? avatarMediaId,
+  }) async {
+    final body = <String, dynamic>{'display_name': displayName, 'bio': bio, 'website': website};
+    if (avatarMediaId != null) body['avatar_media_id'] = avatarMediaId;
+    return Map<String, dynamic>.from((await _request('PATCH', 'v1/me', body: body))['user'] as Map);
+  }
 
   Future<void> followUser(int userId, bool follow) async {
     await _request(follow ? 'POST' : 'DELETE', 'v1/users/$userId/follow');
