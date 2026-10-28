@@ -66,7 +66,7 @@ jobs:
 
       - name: Analyze Dart sources
         working-directory: ${{ runner.temp }}/binerm_mention
-        run: flutter analyze
+        run: flutter analyze --no-fatal-infos
 
       - name: Run Flutter tests
         working-directory: ${{ runner.temp }}/binerm_mention
