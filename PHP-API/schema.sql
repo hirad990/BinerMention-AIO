@@ -8,6 +8,7 @@ CREATE TABLE IF NOT EXISTS users (
   password_hash VARCHAR(255) NOT NULL,
   display_name VARCHAR(80) NOT NULL,
   bio VARCHAR(280) NOT NULL DEFAULT '',
+  `BlueTick` TINYINT(1) NOT NULL DEFAULT 0,
   website VARCHAR(255) NULL,
   avatar_media_id BIGINT UNSIGNED NULL,
   is_active TINYINT(1) NOT NULL DEFAULT 1,
