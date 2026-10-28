@@ -177,5 +177,30 @@ class BinerApi {
         .toList();
   }
 
+  Future<Map<String, dynamic>> userByUsername(String username) async =>
+      Map<String, dynamic>.from((await _request('GET', 'v1/users/${Uri.encodeComponent(username)}', authenticated: false))['user'] as Map);
+
+  Future<int> createConversation(int userId) async {
+    final result = await _request('POST', 'v1/conversations', body: {'user_id': userId});
+    final id = int.tryParse(result['conversation_id'].toString());
+    if (id == null) throw const ApiException('سرور شناسه گفت‌وگو را برنگرداند.');
+    return id;
+  }
+
+  Future<List<Map<String, dynamic>>> messages(int conversationId) async {
+    final result = await _request('GET', 'v1/conversations/$conversationId/messages');
+    return (result['messages'] as List? ?? const [])
+        .whereType<Map>()
+        .map((item) => Map<String, dynamic>.from(item))
+        .toList();
+  }
+
+  Future<Map<String, dynamic>> sendMessage(int conversationId, String text) async =>
+      Map<String, dynamic>.from((await _request('POST', 'v1/conversations/$conversationId/messages', body: {'body': text}))['message'] as Map);
+
+  Future<void> markConversationRead(int conversationId) async {
+    await _request('POST', 'v1/conversations/$conversationId/read');
+  }
+
   void dispose() => _client.close();
 }
