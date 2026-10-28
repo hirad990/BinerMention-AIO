@@ -38,12 +38,22 @@ jobs:
       - name: Generate Android platform scaffold
         run: flutter create --platforms=android --org ir.binercraft --project-name binerm_mention "$RUNNER_TEMP/binerm_mention"
 
-      - name: Inject app source and tests
+      - name: Inject app source, tests and network permission
         run: |
           cp android/pubspec.yaml "$RUNNER_TEMP/binerm_mention/pubspec.yaml"
           rm -rf "$RUNNER_TEMP/binerm_mention/lib" "$RUNNER_TEMP/binerm_mention/test"
           cp -R android/lib "$RUNNER_TEMP/binerm_mention/lib"
           if [ -d android/test ]; then cp -R android/test "$RUNNER_TEMP/binerm_mention/test"; fi
+          python3 - <<'PY'
+          from pathlib import Path
+          manifest = Path("$RUNNER_TEMP/binerm_mention/android/app/src/main/AndroidManifest.xml")
+          content = manifest.read_text()
+          permission = '<uses-permission android:name="android.permission.INTERNET"/>'
+          if permission not in content:
+              content = content.replace('<application', permission + '\\n    <application', 1)
+          content = content.replace('android:label="binerm_mention"', 'android:label="BinerMention"')
+          manifest.write_text(content)
+          PY
 
       - name: Resolve dependencies
         working-directory: ${{ runner.temp }}/binerm_mention
