@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'api_client.dart';
+import 'package:image_picker/image_picker.dart';
 
 const cBg = Color(0xFF050A12), cPanel = Color(0xFF0A111E), cLine = Color(0xFF1E2A3D), cBlue = Color(0xFF00A8FE), cMuted = Color(0xFF8796AD);
 
@@ -86,23 +87,68 @@ class _LiveHomeState extends State<LiveHome> {
     finally { if (mounted) setState(() => loading = false); }
   }
   void toast(String s) => ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(s)));
-  Future<void> compose() async {
+  Future<void> compose({int? replyToId}) async {
     final controller = TextEditingController();
-    final text = await showModalBottomSheet<String>(context: context, isScrollControlled: true, useSafeArea: true, backgroundColor: cPanel, builder: (ctx) => Padding(
-      padding: EdgeInsets.fromLTRB(18, 18, 18, MediaQuery.of(ctx).viewInsets.bottom + 18),
-      child: Column(mainAxisSize: MainAxisSize.min, children: [
-        const Text('پست جدید', style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
-        TextField(controller: controller, autofocus: true, minLines: 3, maxLines: 5, maxLength: 280, decoration: const InputDecoration(hintText: 'چه خبر؟', border: InputBorder.none)),
-        Align(alignment: Alignment.centerLeft, child: FilledButton(onPressed: () => Navigator.pop(ctx, controller.text.trim()), child: const Text('انتشار'))),
-      ]),
-    ));
+    XFile? attachment;
+    final result = await showModalBottomSheet<Map<String, dynamic>>(
+      context: context,
+      isScrollControlled: true,
+      useSafeArea: true,
+      backgroundColor: cPanel,
+      builder: (ctx) => StatefulBuilder(
+        builder: (ctx, sheetSetState) => Padding(
+          padding: EdgeInsets.fromLTRB(18, 18, 18, MediaQuery.of(ctx).viewInsets.bottom + 18),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              Text(replyToId == null ? 'پست جدید' : 'پاسخ به پست #$replyToId',
+                  style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
+              TextField(controller: controller, autofocus: true, minLines: 3, maxLines: 5, maxLength: 280,
+                  decoration: const InputDecoration(hintText: 'چه خبر؟', border: InputBorder.none)),
+              if (attachment != null)
+                ListTile(leading: const Icon(Icons.image, color: cBlue), title: Text(attachment!.name, maxLines: 1, overflow: TextOverflow.ellipsis),
+                  trailing: IconButton(icon: const Icon(Icons.close), onPressed: () => sheetSetState(() => attachment = null))),
+              Row(children: [
+                IconButton(
+                  tooltip: 'افزودن تصویر',
+                  onPressed: () async {
+                    final picked = await ImagePicker().pickImage(source: ImageSource.gallery, imageQuality: 86, maxWidth: 2048);
+                    if (picked != null) sheetSetState(() => attachment = picked);
+                  },
+                  icon: const Icon(Icons.image_outlined, color: cBlue),
+                ),
+                const Spacer(),
+                FilledButton(onPressed: () => Navigator.pop(ctx, {'text': controller.text.trim(), 'attachment': attachment}),
+                    child: const Text('انتشار')),
+              ]),
+            ],
+          ),
+        ),
+      ),
+    );
     controller.dispose();
-    if (text == null || text.isEmpty || !mounted) return;
+    if (result == null || !mounted) return;
+    final text = (result['text'] as String? ?? '').trim();
+    final file = result['attachment'] as XFile?;
+    if (text.isEmpty && file == null) return;
     setState(() => posting = true);
-    try { final item = await widget.api.createPost(text); if (mounted) setState(() => posts.insert(0, item)); }
-    on ApiException catch (e) { if (mounted) toast(e.message); }
-    finally { if (mounted) setState(() => posting = false); }
+    try {
+      int? mediaId;
+      if (file != null) {
+        final media = await widget.api.uploadMedia(file);
+        mediaId = int.tryParse(media['id'].toString());
+      }
+      final item = await widget.api.createPost(text, mediaId: mediaId, replyToId: replyToId);
+      if (mounted) setState(() => posts.insert(0, item));
+      if (replyToId != null && mounted) toast('پاسخ منتشر شد.');
+    } on ApiException catch (e) {
+      if (mounted) toast(e.message);
+    } finally {
+      if (mounted) setState(() => posting = false);
+    }
   }
+
   Future<void> toggle(Map<String, dynamic> p, String actionName) async {
     final flag = actionName == 'like' ? 'liked' : 'reposted', count = actionName == 'like' ? 'likes_count' : 'reposts_count';
     final id = int.tryParse(p['id'].toString()); if (id == null) return;
@@ -124,7 +170,7 @@ class _LiveHomeState extends State<LiveHome> {
         if (body.isNotEmpty) Padding(padding: const EdgeInsets.only(top: 7), child: Text(body, style: const TextStyle(height: 1.5))),
         const SizedBox(height: 10),
         Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [
-          TextButton.icon(onPressed: () => toast('پاسخ‌ها هنوز به رابط کاربری متصل نشده‌اند.'), icon: const Icon(Icons.chat_bubble_outline, size: 17), label: Text(fmt(p['replies_count'] ?? 0))),
+          TextButton.icon(onPressed: () => compose(replyToId: int.tryParse(p['id'].toString())), icon: const Icon(Icons.chat_bubble_outline, size: 17), label: Text(fmt(p['replies_count'] ?? 0))),
           TextButton.icon(onPressed: () => toggle(p, 'repost'), icon: Icon(Icons.repeat, size: 17, color: reposted ? cBlue : cMuted), label: Text(fmt(p['reposts_count'] ?? 0))),
           TextButton.icon(onPressed: () => toggle(p, 'like'), icon: Icon(liked ? Icons.favorite : Icons.favorite_border, size: 17, color: liked ? Colors.pinkAccent : cMuted), label: Text(fmt(p['likes_count'] ?? 0))),
         ]),
@@ -266,9 +312,47 @@ class _LiveHomeState extends State<LiveHome> {
       Text(value(u, 'display_name', value(u, 'username', 'کاربر')), style: const TextStyle(fontSize: 22, fontWeight: FontWeight.bold)),
       Text('@' + value(u, 'username'), style: const TextStyle(color: cMuted)),
       if (value(u, 'bio').isNotEmpty) Padding(padding: const EdgeInsets.only(top: 12), child: Text(value(u, 'bio'))),
-      const SizedBox(height: 20), OutlinedButton.icon(onPressed: () async => widget.logout(), icon: const Icon(Icons.logout), label: const Text('خروج از حساب')),
+      const SizedBox(height: 20),
+      OutlinedButton.icon(
+        onPressed: () => editProfile(u),
+        icon: const Icon(Icons.edit_outlined),
+        label: const Text('ویرایش پروفایل'),
+      ),
+      const SizedBox(height: 8),
+      OutlinedButton.icon(onPressed: () async => widget.logout(), icon: const Icon(Icons.logout), label: const Text('خروج از حساب')),
     ]);
   }
+  Future<void> editProfile(Map<String, dynamic> user) async {
+    final name = TextEditingController(text: value(user, 'display_name'));
+    final bio = TextEditingController(text: value(user, 'bio'));
+    final website = TextEditingController(text: value(user, 'website'));
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: const Text('ویرایش پروفایل'),
+        content: SingleChildScrollView(child: Column(mainAxisSize: MainAxisSize.min, children: [
+          TextField(controller: name, maxLength: 80, decoration: const InputDecoration(labelText: 'نام نمایشی')),
+          TextField(controller: bio, maxLength: 280, maxLines: 3, decoration: const InputDecoration(labelText: 'معرفی کوتاه')),
+          TextField(controller: website, keyboardType: TextInputType.url, decoration: const InputDecoration(labelText: 'وب‌سایت')),
+        ])),
+        actions: [
+          TextButton(onPressed: () => Navigator.pop(ctx, false), child: const Text('انصراف')),
+          FilledButton(onPressed: () => Navigator.pop(ctx, true), child: const Text('ذخیره')),
+        ],
+      ),
+    );
+    if (confirmed == true && mounted) {
+      try {
+        final updated = await widget.api.updateProfile(displayName: name.text.trim(), bio: bio.text.trim(), website: website.text.trim());
+        if (mounted) setState(() => me = updated);
+        if (mounted) toast('پروفایل ذخیره شد.');
+      } on ApiException catch (e) {
+        if (mounted) toast(e.message);
+      }
+    }
+    name.dispose(); bio.dispose(); website.dispose();
+  }
+
   @override Widget build(BuildContext context) {
     final pages = [home(), ListView(children: [const Padding(padding: EdgeInsets.all(18), child: Text('کاوش', style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold))), ...posts.map(card)]), notifications(), conversations(), profile()];
     return Scaffold(body: SafeArea(child: IndexedStack(index: tab, children: pages)),
