@@ -708,6 +708,7 @@ class _ChatPageState extends State<ChatPage> {
   final items = <Map<String, dynamic>>[];
   bool loading = true, sending = false;
   String? error;
+  Map<String, dynamic>? replyingTo;
 
   @override void initState() {
     super.initState();
@@ -736,9 +737,13 @@ class _ChatPageState extends State<ChatPage> {
   }
 
   Future<void> send() async {
-    final text = controller.text.trim();
-    if (text.isEmpty || sending) return;
+    final raw = controller.text.trim();
+    if (raw.isEmpty || sending) return;
+    final reply = replyingTo;
+    final text = reply == null ? raw : '↪ پاسخ به ${reply['sender_name'] ?? 'کاربر'}: "${(reply['body'] ?? '').toString().replaceAll('\n', ' ')}"\n$raw';
     controller.clear();
+    FocusScope.of(context).unfocus();
+    setState(() => replyingTo = null);
     setState(() => sending = true);
     try {
       final item = await widget.api.sendMessage(widget.conversationId, text);
