@@ -77,8 +77,8 @@ class LiveHome extends StatefulWidget {
 class _LiveHomeState extends State<LiveHome> {
   int tab = 0; bool loading = true, posting = false; String? error;
   final posts = <Map<String, dynamic>>[]; Map<String, dynamic>? me;
-  @override void initState() { super.initState(); refresh(); profile(); }
-  Future<void> profile() async { try { final u = await widget.api.me(); if (mounted) setState(() => me = u); } on ApiException catch (e) { if (mounted) setState(() => error = e.message); } }
+  @override void initState() { super.initState(); refresh(); loadProfile(); }
+  Future<void> loadProfile() async { try { final u = await widget.api.me(); if (mounted) setState(() => me = u); } on ApiException catch (e) { if (mounted) setState(() => error = e.message); } }
   Future<void> refresh() async {
     setState(() { loading = true; error = null; });
     try { final data = await widget.api.posts(); if (mounted) setState(() { posts..clear()..addAll(data); }); }
@@ -284,7 +284,7 @@ class _LiveHomeState extends State<LiveHome> {
   }
 }
 class ChatPage extends StatefulWidget {
-  const ChatPage({super.key, required this.api, required this.conversationId, required this.title});
+  const ChatPage({super.key, required this.api, required this.conversationId, required this.currentUserId, required this.title});
   final BinerApi api;
   final int conversationId;
   final int currentUserId;
