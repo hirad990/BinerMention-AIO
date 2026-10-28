@@ -830,22 +830,26 @@ class _ChatPageState extends State<ChatPage> {
         final mine = item['sender_id']?.toString() == widget.currentUserId.toString();
         return Align(
           alignment: mine ? Alignment.centerRight : Alignment.centerLeft,
-          child: Container(
-            constraints: BoxConstraints(maxWidth: MediaQuery.of(context).size.width * .78),
+          child: GestureDetector(
+            onLongPress: () => messageActions(item),
+            child: Container(
+            constraints: BoxConstraints(maxWidth: MediaQuery.of(context).size.width * .80),
             margin: const EdgeInsets.symmetric(vertical: 4),
             padding: const EdgeInsets.symmetric(horizontal: 13, vertical: 10),
             decoration: BoxDecoration(
-              color: mine ? const Color(0xFF103B5B) : cPanel,
+              gradient: mine ? const LinearGradient(begin: Alignment.topLeft, end: Alignment.bottomRight, colors: [Color(0xDD174A70), Color(0xCC252B57)]) : const LinearGradient(begin: Alignment.topLeft, end: Alignment.bottomRight, colors: [Color(0xCC18263A), Color(0xAA101A2B)]),
               borderRadius: BorderRadius.circular(16),
-              border: Border.all(color: cLine),
+              border: Border.all(color: mine ? const Color(0x6639C5FF) : const Color(0x553B5270)),
+              boxShadow: [BoxShadow(color: (mine ? cBlue : Colors.black).withValues(alpha: .07), blurRadius: 16, offset: const Offset(0, 5))],
             ),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(item['body']?.toString() ?? '', style: const TextStyle(fontSize: 15)),
+                Text(item['body']?.toString() ?? '', style: const TextStyle(fontSize: 15, height: 1.42)),
                 const SizedBox(height: 4),
                 Text(item['created_at']?.toString() ?? '', style: const TextStyle(color: cMuted, fontSize: 10)),
               ],
+            ),
             ),
           ),
         );
