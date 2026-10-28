@@ -227,6 +227,49 @@ class _LiveHomeState extends State<LiveHome> {
     final verified = raw == true || raw == 1 || raw?.toString().toLowerCase() == 'true';
     return verified ? const Padding(padding: EdgeInsets.only(left: 4), child: Icon(Icons.verified_rounded, color: Color(0xFF35B7FF), size: 16)) : const SizedBox.shrink();
   }
+  Future<void> showReplies(Map<String, dynamic> post) async {
+    final id = int.tryParse(value(post, 'id'));
+    if (id == null) return;
+    await showModalBottomSheet<void>(
+      context: context,
+      isScrollControlled: true,
+      useSafeArea: true,
+      backgroundColor: Colors.transparent,
+      builder: (ctx) => Container(
+        height: MediaQuery.of(ctx).size.height * .76,
+        decoration: BoxDecoration(color: const Color(0xF20B1422), borderRadius: const BorderRadius.vertical(top: Radius.circular(28)), border: Border.all(color: cLine)),
+        child: Column(children: [
+          const SizedBox(height: 12),
+          Container(width: 42, height: 4, decoration: BoxDecoration(color: cMuted.withValues(alpha: .5), borderRadius: BorderRadius.circular(4))),
+          Padding(padding: const EdgeInsets.fromLTRB(18, 16, 18, 10), child: Row(children: [
+            const Expanded(child: Text('گفت‌وگوی پست', style: TextStyle(fontSize: 21, fontWeight: FontWeight.w800))),
+            Text(fmt(post['replies_count'] ?? 0) + ' پاسخ', style: const TextStyle(color: cMuted)),
+          ])),
+          Container(margin: const EdgeInsets.symmetric(horizontal: 12), decoration: BoxDecoration(color: cGlass, borderRadius: BorderRadius.circular(20), border: Border.all(color: cLine)), child: card(post)),
+          Expanded(
+            child: FutureBuilder<List<Map<String, dynamic>>>(
+              future: widget.api.posts(limit: 50, replyToId: id),
+              builder: (context, snap) {
+                if (snap.connectionState == ConnectionState.waiting) return const Center(child: CircularProgressIndicator(color: cBlue));
+                if (snap.hasError) return Center(child: Text(snap.error.toString(), textAlign: TextAlign.center));
+                final replies = snap.data ?? [];
+                if (replies.isEmpty) return const Center(child: Text('هنوز پاسخی نیست؛ اولین نفر باش.', style: TextStyle(color: cMuted)));
+                return ListView.builder(itemCount: replies.length, itemBuilder: (_, i) => card(replies[i]));
+              },
+            ),
+          ),
+          SafeArea(top: false, child: Padding(
+            padding: const EdgeInsets.fromLTRB(16, 8, 16, 12),
+            child: SizedBox(width: double.infinity, child: FilledButton.icon(
+              onPressed: () { Navigator.pop(ctx); compose(replyToId: id); },
+              icon: const Icon(Icons.reply_rounded), label: const Text('نوشتن پاسخ'),
+            )),
+          )),
+        ]),
+      ),
+    );
+  }
+
   Widget card(Map<String, dynamic> p) {
     final name = value(p, 'display_name', value(p, 'username', 'کاربر'));
     final body = value(p, 'body');
@@ -258,7 +301,7 @@ class _LiveHomeState extends State<LiveHome> {
         if (value(p, 'media_url').startsWith('https://')) Padding(padding: const EdgeInsets.only(top: 10), child: ClipRRect(borderRadius: BorderRadius.circular(14), child: Image.network(value(p, 'media_url'), fit: BoxFit.cover, errorBuilder: (_, __, ___) => const SizedBox.shrink()))),
         const SizedBox(height: 10),
         Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [
-          TextButton.icon(onPressed: () => compose(replyToId: int.tryParse(p['id'].toString())), icon: const Icon(Icons.chat_bubble_outline, size: 17), label: Text(fmt(p['replies_count'] ?? 0))),
+          TextButton.icon(onPressed: () => showReplies(p), icon: const Icon(Icons.chat_bubble_outline, size: 17), label: Text(fmt(p['replies_count'] ?? 0))),
           TextButton.icon(onPressed: () => toggle(p, 'repost'), icon: Icon(Icons.repeat, size: 17, color: reposted ? cBlue : cMuted), label: Text(fmt(p['reposts_count'] ?? 0))),
           TextButton.icon(onPressed: () => toggle(p, 'like'), icon: Icon(liked ? Icons.favorite : Icons.favorite_border, size: 17, color: liked ? Colors.pinkAccent : cMuted), label: Text(fmt(p['likes_count'] ?? 0))),
         ]),
