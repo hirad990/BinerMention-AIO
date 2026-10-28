@@ -304,6 +304,73 @@ class _LiveHomeState extends State<LiveHome> {
     },
   );
 
+  Future<void> searchUser() async {
+    final controller = TextEditingController();
+    final username = await showDialog<String>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: const Text('جست‌وجوی کاربر'),
+        content: TextField(
+          controller: controller,
+          autofocus: true,
+          autocorrect: false,
+          decoration: const InputDecoration(prefixText: '@', hintText: 'نام کاربری'),
+          onSubmitted: (_) => Navigator.pop(ctx, controller.text.trim()),
+        ),
+        actions: [
+          TextButton(onPressed: () => Navigator.pop(ctx), child: const Text('انصراف')),
+          FilledButton(onPressed: () => Navigator.pop(ctx, controller.text.trim()), child: const Text('جست‌وجو')),
+        ],
+      ),
+    );
+    if (username == null || username.trim().isEmpty || !mounted) {
+      controller.dispose();
+      return;
+    }
+    try {
+      final user = await widget.api.userByUsername(username.trim().replaceFirst('@', ''));
+      if (!mounted) return;
+      final selfId = int.tryParse(value(me ?? {}, 'id', '-1')) ?? -1;
+      final userId = int.tryParse(user['id'].toString()) ?? -1;
+      var following = user['is_following'] == true;
+      await showDialog<void>(
+        context: context,
+        builder: (ctx) => StatefulBuilder(
+          builder: (ctx, dialogSetState) => AlertDialog(
+            title: Text(value(user, 'display_name', value(user, 'username', 'کاربر'))),
+            content: Column(mainAxisSize: MainAxisSize.min, crossAxisAlignment: CrossAxisAlignment.start, children: [
+              Text('@' + value(user, 'username'), style: const TextStyle(color: cMuted)),
+              if (value(user, 'bio').isNotEmpty) Padding(padding: const EdgeInsets.only(top: 10), child: Text(value(user, 'bio'))),
+              const SizedBox(height: 10),
+              Text('\${value(user, 'followers_count', '0')} دنبال‌کننده • \${value(user, 'following_count', '0')} دنبال‌شونده'),
+              if (value(user, 'website').isNotEmpty) Text(value(user, 'website'), style: const TextStyle(color: cBlue)),
+            ]),
+            actions: [
+              TextButton(onPressed: () => Navigator.pop(ctx), child: const Text('بستن')),
+              if (selfId != userId && selfId >= 0)
+                FilledButton(
+                  onPressed: () async {
+                    try {
+                      await widget.api.followUser(userId, !following);
+                      dialogSetState(() => following = !following);
+                    } on ApiException catch (e) {
+                      if (mounted) toast(e.message);
+                    }
+                  },
+                  child: Text(following ? 'دنبال‌نکردن' : 'دنبال‌کردن'),
+                ),
+              if (selfId == userId) const Padding(padding: EdgeInsets.all(8), child: Text('این حساب خودت است.')),
+            ],
+          ),
+        ),
+      );
+    } on ApiException catch (e) {
+      if (mounted) toast(e.message);
+    } finally {
+      controller.dispose();
+    }
+  }
+
   Widget profile() {
     final u = me; if (u == null) return Center(child: Text(error ?? 'در حال بارگذاری پروفایل...'));
     return ListView(padding: const EdgeInsets.all(20), children: [
@@ -354,7 +421,7 @@ class _LiveHomeState extends State<LiveHome> {
   }
 
   @override Widget build(BuildContext context) {
-    final pages = [home(), ListView(children: [const Padding(padding: EdgeInsets.all(18), child: Text('کاوش', style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold))), ...posts.map(card)]), notifications(), conversations(), profile()];
+    final pages = [home(), ListView(children: [Padding(padding: const EdgeInsets.fromLTRB(18, 18, 8, 8), child: Row(children: [const Expanded(child: Text('کاوش', style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold))), IconButton(onPressed: searchUser, icon: const Icon(Icons.person_search, color: cBlue), tooltip: 'جست‌وجوی کاربر')])), Padding(padding: const EdgeInsets.symmetric(horizontal: 16), child: OutlinedButton.icon(onPressed: searchUser, icon: const Icon(Icons.search), label: const Text('جست‌وجو بر اساس نام کاربری'))), ...posts.map(card)]), notifications(), conversations(), profile()];
     return Scaffold(body: SafeArea(child: IndexedStack(index: tab, children: pages)),
       floatingActionButton: tab == 0 ? FloatingActionButton(onPressed: posting ? null : compose, backgroundColor: cBlue, child: const Icon(Icons.add)) : null,
       bottomNavigationBar: NavigationBar(height: 66, backgroundColor: cBg, indicatorColor: cBlue.withValues(alpha: .14), selectedIndex: tab, onDestinationSelected: (i) => setState(() => tab = i), destinations: const [
