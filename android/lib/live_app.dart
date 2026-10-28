@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'api_client.dart';
 import 'package:image_picker/image_picker.dart';
 
-const cBg = Color(0xFF050A12), cPanel = Color(0xFF0A111E), cLine = Color(0xFF1E2A3D), cBlue = Color(0xFF00A8FE), cMuted = Color(0xFF8796AD);
+const cBg = Color(0xFF050812), cPanel = Color(0xCC101B2C), cLine = Color(0x5537BFFF), cBlue = Color(0xFF39C5FF), cMuted = Color(0xFF91A6C3), cGlass = Color(0x99121F32);
 
 class BinerLiveApp extends StatefulWidget {
   const BinerLiveApp({super.key});
@@ -208,15 +208,36 @@ class _LiveHomeState extends State<LiveHome> {
   }
   String value(Map<String, dynamic> m, String k, [String fallback = '']) => m[k]?.toString() ?? fallback;
   String fmt(dynamic raw) { final n = int.tryParse(raw.toString()) ?? 0; if (n >= 1000) return (n / 1000).toStringAsFixed(1) + 'K'; return n.toString(); }
-  Widget avatar(String n) => CircleAvatar(backgroundColor: const Color(0xFF17334F), child: Text(n.isEmpty ? '?' : n[0].toUpperCase()));
+  Widget avatar(String n, [Map<String, dynamic>? user, double radius = 22]) {
+    final url = user?['avatar_url']?.toString() ?? '';
+    return Container(
+      padding: const EdgeInsets.all(2),
+      decoration: BoxDecoration(shape: BoxShape.circle, gradient: const LinearGradient(colors: [cBlue, Color(0xFF7A5CFF)]), boxShadow: [BoxShadow(color: cBlue.withValues(alpha: .16), blurRadius: 14)]),
+      child: CircleAvatar(
+        radius: radius,
+        backgroundColor: const Color(0xFF17334F),
+        backgroundImage: url.startsWith('https://') ? NetworkImage(url) : null,
+        child: url.startsWith('https://') ? null : Text(n.isEmpty ? '?' : n[0].toUpperCase(), style: const TextStyle(fontWeight: FontWeight.bold)),
+      ),
+    );
+  }
+  Widget blueTick(Map<String, dynamic> user) {
+    final raw = user['BlueTick'];
+    final verified = raw == true || raw == 1 || raw?.toString().toLowerCase() == 'true';
+    return verified ? const Padding(padding: EdgeInsets.only(left: 4), child: Icon(Icons.verified_rounded, color: Color(0xFF35B7FF), size: 16)) : const SizedBox.shrink();
+  }
   Widget card(Map<String, dynamic> p) {
     final name = value(p, 'display_name', value(p, 'username', 'کاربر'));
     final body = value(p, 'body');
     final liked = p['liked'] == true, reposted = p['reposted'] == true;
-    return Container(padding: const EdgeInsets.all(15), decoration: const BoxDecoration(border: Border(bottom: BorderSide(color: cLine)), color: cBg), child: Row(crossAxisAlignment: CrossAxisAlignment.start, children: [
-      avatar(name), const SizedBox(width: 10), Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+    return Container(padding: const EdgeInsets.all(15), margin: const EdgeInsets.fromLTRB(10, 5, 10, 7), decoration: BoxDecoration(border: Border.all(color: cLine), borderRadius: BorderRadius.circular(22), color: cGlass, boxShadow: [BoxShadow(color: cBlue.withValues(alpha: .035), blurRadius: 18)]), child: Row(crossAxisAlignment: CrossAxisAlignment.start, children: [
+      avatar(name, p, 21), const SizedBox(width: 10), Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
         Row(children: [
-          Expanded(child: Text(name + '  @' + value(p, 'username', 'user'), style: const TextStyle(fontWeight: FontWeight.bold))),
+          Expanded(child: Wrap(crossAxisAlignment: WrapCrossAlignment.center, spacing: 3, children: [
+            Text(name, style: const TextStyle(fontWeight: FontWeight.bold)),
+            blueTick(p),
+            Text('@' + value(p, 'username', 'user'), style: const TextStyle(color: cMuted, fontSize: 12)),
+          ])),
           if (value(p, 'user_id') == value(me ?? {}, 'id'))
             PopupMenuButton<String>(
               icon: const Icon(Icons.more_horiz, color: cMuted),
@@ -245,7 +266,12 @@ class _LiveHomeState extends State<LiveHome> {
   }
   Widget home() => Column(
     children: [
-      const Padding(padding: EdgeInsets.fromLTRB(16, 12, 16, 8), child: Align(alignment: Alignment.centerLeft, child: Brand())),
+      Padding(padding: const EdgeInsets.fromLTRB(16, 12, 16, 8), child: Row(children: [
+        const Brand(), const Spacer(),
+        Container(decoration: BoxDecoration(color: cGlass, borderRadius: BorderRadius.circular(18), border: Border.all(color: cLine)), child: IconButton(onPressed: searchUser, icon: const Icon(Icons.search_rounded, color: cBlue), tooltip: 'جست‌وجوی کاربر')),
+        const SizedBox(width: 8),
+        Container(padding: const EdgeInsets.all(2), decoration: BoxDecoration(shape: BoxShape.circle, gradient: const LinearGradient(colors: [cBlue, Color(0xFF725BFF)])), child: CircleAvatar(radius: 17, backgroundColor: cPanel, backgroundImage: (me?['avatar_url']?.toString().startsWith('https://') ?? false) ? NetworkImage(me!['avatar_url'].toString()) : null, child: (me?['avatar_url']?.toString().startsWith('https://') ?? false) ? null : const Icon(Icons.person, size: 18))),
+      ])),
       Row(children: [
         Expanded(child: InkWell(
           onTap: () { if (followingFeed) { setState(() => followingFeed = false); refresh(); } },
@@ -419,9 +445,9 @@ class _LiveHomeState extends State<LiveHome> {
         context: context,
         builder: (ctx) => StatefulBuilder(
           builder: (ctx, dialogSetState) => AlertDialog(
-            title: Text(value(user, 'display_name', value(user, 'username', 'کاربر'))),
+            title: Row(mainAxisSize: MainAxisSize.min, children: [Flexible(child: Text(value(user, 'display_name', value(user, 'username', 'کاربر'))),), blueTick(user)]),
             content: Column(mainAxisSize: MainAxisSize.min, crossAxisAlignment: CrossAxisAlignment.start, children: [
-              Text('@' + value(user, 'username'), style: const TextStyle(color: cMuted)),
+              Row(children: [Text('@' + value(user, 'username'), style: const TextStyle(color: cMuted)), blueTick(user)]),
               if (value(user, 'bio').isNotEmpty) Padding(padding: const EdgeInsets.only(top: 10), child: Text(value(user, 'bio'))),
               const SizedBox(height: 10),
               Text('${value(user, 'followers_count', '0')} دنبال‌کننده • ${value(user, 'following_count', '0')} دنبال‌شونده'),
@@ -457,9 +483,12 @@ class _LiveHomeState extends State<LiveHome> {
     final u = me; if (u == null) return Center(child: Text(error ?? 'در حال بارگذاری پروفایل...'));
     return ListView(padding: const EdgeInsets.all(20), children: [
       Container(height: 120, alignment: Alignment.center, decoration: BoxDecoration(borderRadius: BorderRadius.circular(20), gradient: const LinearGradient(colors: [Color(0xFF07162B), Color(0xFF123E70)])), child: const Icon(Icons.bolt, color: cBlue, size: 60)),
-      const SizedBox(height: 16), avatar(value(u, 'display_name', value(u, 'username', 'U'))),
-      Text(value(u, 'display_name', value(u, 'username', 'کاربر')), style: const TextStyle(fontSize: 22, fontWeight: FontWeight.bold)),
-      Text('@' + value(u, 'username'), style: const TextStyle(color: cMuted)),
+      const SizedBox(height: 16), Center(child: avatar(value(u, 'display_name', value(u, 'username', 'U')), u, 42)),
+      Row(mainAxisAlignment: MainAxisAlignment.center, children: [
+        Flexible(child: Text(value(u, 'display_name', value(u, 'username', 'کاربر')), style: const TextStyle(fontSize: 22, fontWeight: FontWeight.bold))),
+        blueTick(u),
+      ]),
+      Center(child: Text('@' + value(u, 'username'), style: const TextStyle(color: cMuted))),
       if (value(u, 'bio').isNotEmpty) Padding(padding: const EdgeInsets.only(top: 12), child: Text(value(u, 'bio'))),
       const SizedBox(height: 20),
       OutlinedButton.icon(
@@ -506,7 +535,7 @@ class _LiveHomeState extends State<LiveHome> {
     final pages = [home(), ListView(children: [Padding(padding: const EdgeInsets.fromLTRB(18, 18, 8, 8), child: Row(children: [const Expanded(child: Text('کاوش', style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold))), IconButton(onPressed: searchUser, icon: const Icon(Icons.person_search, color: cBlue), tooltip: 'جست‌وجوی کاربر')])), Padding(padding: const EdgeInsets.symmetric(horizontal: 16), child: OutlinedButton.icon(onPressed: searchUser, icon: const Icon(Icons.search), label: const Text('جست‌وجو بر اساس نام کاربری'))), ...posts.map(card)]), notifications(), conversations(), profile()];
     return Scaffold(body: SafeArea(child: IndexedStack(index: tab, children: pages)),
       floatingActionButton: tab == 0 ? FloatingActionButton(onPressed: posting ? null : compose, backgroundColor: cBlue, child: const Icon(Icons.add)) : null,
-      bottomNavigationBar: NavigationBar(height: 66, backgroundColor: cBg, indicatorColor: cBlue.withValues(alpha: .14), selectedIndex: tab, onDestinationSelected: (i) => setState(() => tab = i), destinations: const [
+      bottomNavigationBar: NavigationBar(height: 72, backgroundColor: const Color(0xEE080F1C), elevation: 0, indicatorColor: cBlue.withValues(alpha: .20), selectedIndex: tab, onDestinationSelected: (i) => setState(() => tab = i), destinations: const [
         NavigationDestination(icon: Icon(Icons.home_outlined), selectedIcon: Icon(Icons.home, color: cBlue), label: 'خانه'),
         NavigationDestination(icon: Icon(Icons.search), selectedIcon: Icon(Icons.search, color: cBlue), label: 'کاوش'),
         NavigationDestination(icon: Icon(Icons.notifications_none), selectedIcon: Icon(Icons.notifications, color: cBlue), label: 'اعلان‌ها'),
