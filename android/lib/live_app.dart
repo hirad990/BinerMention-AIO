@@ -76,13 +76,13 @@ class LiveHome extends StatefulWidget {
   @override State<LiveHome> createState() => _LiveHomeState();
 }
 class _LiveHomeState extends State<LiveHome> {
-  int tab = 0; bool loading = true, posting = false; String? error;
+  int tab = 0; bool loading = true, posting = false, followingFeed = false; String? error;
   final posts = <Map<String, dynamic>>[]; Map<String, dynamic>? me;
   @override void initState() { super.initState(); refresh(); loadProfile(); }
   Future<void> loadProfile() async { try { final u = await widget.api.me(); if (mounted) setState(() => me = u); } on ApiException catch (e) { if (mounted) setState(() => error = e.message); } }
   Future<void> refresh() async {
     setState(() { loading = true; error = null; });
-    try { final data = await widget.api.posts(); if (mounted) setState(() { posts..clear()..addAll(data); }); }
+    try { final data = await widget.api.posts(following: followingFeed); if (mounted) setState(() { posts..clear()..addAll(data); }); }
     on ApiException catch (e) { if (mounted) setState(() => error = e.message); }
     finally { if (mounted) setState(() => loading = false); }
   }
@@ -180,7 +180,23 @@ class _LiveHomeState extends State<LiveHome> {
   }
   Widget home() => Column(
     children: [
-      const Padding(padding: EdgeInsets.all(16), child: Align(alignment: Alignment.centerLeft, child: Brand())),
+      const Padding(padding: EdgeInsets.fromLTRB(16, 12, 16, 8), child: Align(alignment: Alignment.centerLeft, child: Brand())),
+      Row(children: [
+        Expanded(child: InkWell(
+          onTap: () { if (followingFeed) { setState(() => followingFeed = false); refresh(); } },
+          child: Column(children: [
+            Padding(padding: const EdgeInsets.symmetric(vertical: 12), child: Text('برای تو', style: TextStyle(fontWeight: FontWeight.bold, color: followingFeed ? cMuted : Colors.white))),
+            Container(height: 3, width: 82, decoration: BoxDecoration(color: followingFeed ? Colors.transparent : cBlue, borderRadius: BorderRadius.circular(3))),
+          ]),
+        )),
+        Expanded(child: InkWell(
+          onTap: () { if (!followingFeed) { setState(() => followingFeed = true); refresh(); } },
+          child: Column(children: [
+            Padding(padding: const EdgeInsets.symmetric(vertical: 12), child: Text('دنبال‌شونده‌ها', style: TextStyle(fontWeight: FontWeight.bold, color: followingFeed ? Colors.white : cMuted))),
+            Container(height: 3, width: 112, decoration: BoxDecoration(color: followingFeed ? cBlue : Colors.transparent, borderRadius: BorderRadius.circular(3))),
+          ]),
+        )),
+      ]),
       const Divider(height: 1, color: cLine),
       Expanded(child: feedBody()),
     ],
