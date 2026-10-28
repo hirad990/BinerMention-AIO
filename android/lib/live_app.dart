@@ -759,6 +759,49 @@ class _ChatPageState extends State<ChatPage> {
     }
   }
 
+  Future<void> messageActions(Map<String, dynamic> item) async {
+    final action = await showModalBottomSheet<String>(
+      context: context, backgroundColor: Colors.transparent, useSafeArea: true,
+      builder: (ctx) => ClipRRect(
+        borderRadius: const BorderRadius.vertical(top: Radius.circular(28)),
+        child: BackdropFilter(
+          filter: ImageFilter.blur(sigmaX: 24, sigmaY: 24),
+          child: Container(
+            padding: const EdgeInsets.fromLTRB(18, 14, 18, 24),
+            decoration: BoxDecoration(color: const Color(0xEE0B1422), border: Border.all(color: cLine), borderRadius: const BorderRadius.vertical(top: Radius.circular(28))),
+            child: Column(mainAxisSize: MainAxisSize.min, children: [
+              Container(width: 42, height: 4, decoration: BoxDecoration(color: cMuted.withValues(alpha: .6), borderRadius: BorderRadius.circular(5))),
+              const SizedBox(height: 12),
+              ListTile(leading: const Icon(Icons.reply_rounded, color: cBlue), title: const Text('پاسخ به پیام'), subtitle: Text((item['body'] ?? '').toString(), maxLines: 1, overflow: TextOverflow.ellipsis), onTap: () => Navigator.pop(ctx, 'reply')),
+              ListTile(leading: const Icon(Icons.forward_rounded, color: Color(0xFF9B8CFF)), title: const Text('بازارسال در همین گفتگو'), onTap: () => Navigator.pop(ctx, 'forward')),
+              ListTile(leading: const Icon(Icons.copy_rounded, color: cMuted), title: const Text('کپی متن پیام'), onTap: () => Navigator.pop(ctx, 'copy')),
+            ]),
+          ),
+        ),
+      ),
+    );
+    if (!mounted || action == null) return;
+    final body = (item['body'] ?? '').toString();
+    if (action == 'reply') {
+      setState(() => replyingTo = item);
+      FocusScope.of(context).requestFocus(FocusNode());
+    } else if (action == 'copy') {
+      await Clipboard.setData(ClipboardData(text: body));
+      if (mounted) ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('متن پیام کپی شد.')));
+    } else if (action == 'forward') {
+      try {
+        final sent = await widget.api.sendMessage(widget.conversationId, '↗ پیام بازارسال‌شده\n$body');
+        if (!mounted) return;
+        setState(() => items.add(sent));
+        WidgetsBinding.instance.addPostFrameCallback((_) {
+          if (scroll.hasClients) scroll.animateTo(scroll.position.maxScrollExtent, duration: const Duration(milliseconds: 260), curve: Curves.easeOutCubic);
+        });
+      } on ApiException catch (e) {
+        if (mounted) ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(e.message)));
+      }
+    }
+  }
+
   Widget messageList() {
     if (loading && items.isEmpty) {
       return const Center(child: CircularProgressIndicator(color: cBlue));
