@@ -1,6 +1,6 @@
 <?php
 declare(strict_types=1);
-$config = require __DIR__ . '/config.example.php';
+$config = require __DIR__ . '/config.php';
 $origin = $_SERVER['HTTP_ORIGIN'] ?? '';
 if ($origin && in_array($origin, $config['allowed_origins'] ?? [], true)) { header("Access-Control-Allow-Origin: $origin"); header('Vary: Origin'); }
 header('Access-Control-Allow-Headers: Authorization, Content-Type'); header('Access-Control-Allow-Methods: GET, POST, PATCH, DELETE, OPTIONS');
