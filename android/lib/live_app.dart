@@ -149,6 +149,55 @@ class _LiveHomeState extends State<LiveHome> {
     }
   }
 
+  Future<void> editPost(Map<String, dynamic> post) async {
+    final controller = TextEditingController(text: value(post, 'body'));
+    final text = await showDialog<String>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: const Text('ویرایش پست'),
+        content: TextField(controller: controller, autofocus: true, minLines: 3, maxLines: 6, maxLength: 280),
+        actions: [
+          TextButton(onPressed: () => Navigator.pop(ctx), child: const Text('انصراف')),
+          FilledButton(onPressed: () => Navigator.pop(ctx, controller.text.trim()), child: const Text('ذخیره')),
+        ],
+      ),
+    );
+    controller.dispose();
+    if (text == null || !mounted) return;
+    try {
+      final updated = await widget.api.updatePost(int.parse(value(post, 'id')), text);
+      if (mounted) setState(() {
+        final index = posts.indexWhere((item) => value(item, 'id') == value(post, 'id'));
+        if (index >= 0) posts[index] = updated;
+      });
+      if (mounted) toast('پست ویرایش شد.');
+    } on ApiException catch (e) {
+      if (mounted) toast(e.message);
+    }
+  }
+
+  Future<void> deletePost(int id) async {
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: const Text('حذف پست؟'),
+        content: const Text('این کار پست را از فید حذف می‌کند.'),
+        actions: [
+          TextButton(onPressed: () => Navigator.pop(ctx, false), child: const Text('لغو')),
+          FilledButton(onPressed: () => Navigator.pop(ctx, true), child: const Text('حذف')),
+        ],
+      ),
+    );
+    if (confirmed != true || !mounted) return;
+    try {
+      await widget.api.deletePost(id);
+      if (mounted) setState(() => posts.removeWhere((p) => value(p, 'id') == id.toString()));
+      if (mounted) toast('پست حذف شد.');
+    } on ApiException catch (e) {
+      if (mounted) toast(e.message);
+    }
+  }
+
   Future<void> toggle(Map<String, dynamic> p, String actionName) async {
     final flag = actionName == 'like' ? 'liked' : 'reposted', count = actionName == 'like' ? 'likes_count' : 'reposts_count';
     final id = int.tryParse(p['id'].toString()); if (id == null) return;
@@ -166,7 +215,23 @@ class _LiveHomeState extends State<LiveHome> {
     final liked = p['liked'] == true, reposted = p['reposted'] == true;
     return Container(padding: const EdgeInsets.all(15), decoration: const BoxDecoration(border: Border(bottom: BorderSide(color: cLine)), color: cBg), child: Row(crossAxisAlignment: CrossAxisAlignment.start, children: [
       avatar(name), const SizedBox(width: 10), Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-        Text(name + '  @' + value(p, 'username', 'user'), style: const TextStyle(fontWeight: FontWeight.bold)),
+        Row(children: [
+          Expanded(child: Text(name + '  @' + value(p, 'username', 'user'), style: const TextStyle(fontWeight: FontWeight.bold))),
+          if (value(p, 'user_id') == value(me ?? {}, 'id'))
+            PopupMenuButton<String>(
+              icon: const Icon(Icons.more_horiz, color: cMuted),
+              onSelected: (action) {
+                final id = int.tryParse(value(p, 'id'));
+                if (id == null) return;
+                if (action == 'edit') editPost(p);
+                if (action == 'delete') deletePost(id);
+              },
+              itemBuilder: (_) => const [
+                PopupMenuItem(value: 'edit', child: Text('ویرایش پست')),
+                PopupMenuItem(value: 'delete', child: Text('حذف پست')),
+              ],
+            ),
+        ]),
         if (body.isNotEmpty) Padding(padding: const EdgeInsets.only(top: 7), child: Text(body, style: const TextStyle(height: 1.5))),
         if (value(p, 'media_url').startsWith('https://')) Padding(padding: const EdgeInsets.only(top: 10), child: ClipRRect(borderRadius: BorderRadius.circular(14), child: Image.network(value(p, 'media_url'), fit: BoxFit.cover, errorBuilder: (_, __, ___) => const SizedBox.shrink()))),
         const SizedBox(height: 10),
