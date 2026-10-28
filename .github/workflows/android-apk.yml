@@ -6,14 +6,24 @@ on:
     paths:
       - 'android/**'
       - '.github/workflows/android-apk.yml'
+  pull_request:
+    paths:
+      - 'android/**'
+      - '.github/workflows/android-apk.yml'
   workflow_dispatch:
 
 permissions:
   contents: read
 
+concurrency:
+  group: android-apk-${{ github.ref }}
+  cancel-in-progress: true
+
 jobs:
-  build-apk:
+  validate-and-build:
+    name: Validate Flutter app and build APK
     runs-on: ubuntu-latest
+    timeout-minutes: 30
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
@@ -23,25 +33,43 @@ jobs:
         with:
           channel: stable
           cache: true
+          cache-key: flutter-${{ runner.os }}-${{ hashFiles('android/pubspec.yaml') }}
 
-      - name: Generate Android Flutter scaffold
+      - name: Generate Android platform scaffold
         run: flutter create --platforms=android --org ir.binercraft --project-name binerm_mention "$RUNNER_TEMP/binerm_mention"
 
-      - name: Inject BinerMention source
+      - name: Inject app source and tests
         run: |
           cp android/pubspec.yaml "$RUNNER_TEMP/binerm_mention/pubspec.yaml"
-          rm -rf "$RUNNER_TEMP/binerm_mention/lib"
+          rm -rf "$RUNNER_TEMP/binerm_mention/lib" "$RUNNER_TEMP/binerm_mention/test"
           cp -R android/lib "$RUNNER_TEMP/binerm_mention/lib"
+          if [ -d android/test ]; then cp -R android/test "$RUNNER_TEMP/binerm_mention/test"; fi
 
-      - name: Resolve packages
+      - name: Resolve dependencies
         working-directory: ${{ runner.temp }}/binerm_mention
         run: flutter pub get
+
+      - name: Format Dart sources
+        working-directory: ${{ runner.temp }}/binerm_mention
+        run: dart format --output=none --set-exit-if-changed lib test
+
+      - name: Analyze Dart sources
+        working-directory: ${{ runner.temp }}/binerm_mention
+        run: flutter analyze
+
+      - name: Run Flutter tests
+        working-directory: ${{ runner.temp }}/binerm_mention
+        run: flutter test --reporter expanded
 
       - name: Build release APK
         working-directory: ${{ runner.temp }}/binerm_mention
         run: flutter build apk --release
 
+      - name: Verify APK output
+        run: test -s "$RUNNER_TEMP/binerm_mention/build/app/outputs/flutter-apk/app-release.apk"
+
       - name: Upload APK artifact
+        if: success()
         uses: actions/upload-artifact@v4
         with:
           name: BinerMention-Android-release
