@@ -344,34 +344,105 @@ class _ChatPageState extends State<ChatPage> {
     }
   }
 
-  @override Widget build(BuildContext context) => Scaffold(
-    appBar: AppBar(title: Text(widget.title), backgroundColor: cBg, actions: [IconButton(onPressed: loadMessages, icon: const Icon(Icons.refresh))]),
-    body: Column(children: [
-      Expanded(child: loading && items.isEmpty
-        ? const Center(child: CircularProgressIndicator(color: cBlue))
-        : error != null && items.isEmpty
-          ? Center(child: Padding(padding: const EdgeInsets.all(24), child: Column(mainAxisSize: MainAxisSize.min, children: [Text(error!, textAlign: TextAlign.center), const SizedBox(height: 10), OutlinedButton(onPressed: loadMessages, child: const Text('تلاش دوباره'))]))
-          : ListView.builder(controller: scroll, padding: const EdgeInsets.all(14), itemCount: items.length, itemBuilder: (context, index) {
-              final item = items[index];
-              final mine = item['sender_id']?.toString() == widget.currentUserId.toString();
-              return Align(alignment: mine ? Alignment.centerRight : Alignment.centerLeft, child: Container(
-                constraints: BoxConstraints(maxWidth: MediaQuery.of(context).size.width * .78),
-                margin: const EdgeInsets.symmetric(vertical: 4),
-                padding: const EdgeInsets.symmetric(horizontal: 13, vertical: 10),
-                decoration: BoxDecoration(color: mine ? const Color(0xFF103B5B) : cPanel, borderRadius: BorderRadius.circular(16), border: Border.all(color: cLine)),
-                child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-                  Text(item['body']?.toString() ?? '', style: const TextStyle(fontSize: 15)),
-                  const SizedBox(height: 4),
-                  Text(item['created_at']?.toString() ?? '', style: const TextStyle(color: cMuted, fontSize: 10)),
-                ]),
-              ));
-            })),
-      SafeArea(top: false, child: Padding(padding: const EdgeInsets.fromLTRB(10, 8, 10, 8), child: Row(crossAxisAlignment: CrossAxisAlignment.end, children: [
-        Expanded(child: TextField(controller: controller, minLines: 1, maxLines: 5, textInputAction: TextInputAction.newline, decoration: InputDecoration(hintText: 'پیامت را بنویس...', filled: true, fillColor: cPanel, border: OutlineInputBorder(borderRadius: BorderRadius.circular(22), borderSide: BorderSide.none)))),
-        const SizedBox(width: 8),
-        IconButton.filled(onPressed: sending ? null : send, icon: sending ? const SizedBox(width: 18, height: 18, child: CircularProgressIndicator(strokeWidth: 2)) : const Icon(Icons.send_rounded), style: IconButton.styleFrom(backgroundColor: cBlue)),
-      ]))),
-    ]),
+  Widget messageList() {
+    if (loading && items.isEmpty) {
+      return const Center(child: CircularProgressIndicator(color: cBlue));
+    }
+    if (error != null && items.isEmpty) {
+      return Center(
+        child: Padding(
+          padding: const EdgeInsets.all(24),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Text(error!, textAlign: TextAlign.center),
+              const SizedBox(height: 10),
+              OutlinedButton(onPressed: loadMessages, child: const Text('تلاش دوباره')),
+            ],
+          ),
+        ),
+      );
+    }
+    return ListView.builder(
+      controller: scroll,
+      padding: const EdgeInsets.all(14),
+      itemCount: items.length,
+      itemBuilder: (context, index) {
+        final item = items[index];
+        final mine = item['sender_id']?.toString() == widget.currentUserId.toString();
+        return Align(
+          alignment: mine ? Alignment.centerRight : Alignment.centerLeft,
+          child: Container(
+            constraints: BoxConstraints(maxWidth: MediaQuery.of(context).size.width * .78),
+            margin: const EdgeInsets.symmetric(vertical: 4),
+            padding: const EdgeInsets.symmetric(horizontal: 13, vertical: 10),
+            decoration: BoxDecoration(
+              color: mine ? const Color(0xFF103B5B) : cPanel,
+              borderRadius: BorderRadius.circular(16),
+              border: Border.all(color: cLine),
+            ),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(item['body']?.toString() ?? '', style: const TextStyle(fontSize: 15)),
+                const SizedBox(height: 4),
+                Text(item['created_at']?.toString() ?? '', style: const TextStyle(color: cMuted, fontSize: 10)),
+              ],
+            ),
+          ),
+        );
+      },
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) => Scaffold(
+    appBar: AppBar(
+      title: Text(widget.title),
+      backgroundColor: cBg,
+      actions: [IconButton(onPressed: loadMessages, icon: const Icon(Icons.refresh))],
+    ),
+    body: Column(
+      children: [
+        Expanded(child: messageList()),
+        SafeArea(
+          top: false,
+          child: Padding(
+            padding: const EdgeInsets.fromLTRB(10, 8, 10, 8),
+            child: Row(
+              crossAxisAlignment: CrossAxisAlignment.end,
+              children: [
+                Expanded(
+                  child: TextField(
+                    controller: controller,
+                    minLines: 1,
+                    maxLines: 5,
+                    textInputAction: TextInputAction.newline,
+                    decoration: InputDecoration(
+                      hintText: 'پیامت را بنویس...',
+                      filled: true,
+                      fillColor: cPanel,
+                      border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(22),
+                        borderSide: BorderSide.none,
+                      ),
+                    ),
+                  ),
+                ),
+                const SizedBox(width: 8),
+                IconButton.filled(
+                  onPressed: sending ? null : send,
+                  icon: sending
+                      ? const SizedBox(width: 18, height: 18, child: CircularProgressIndicator(strokeWidth: 2))
+                      : const Icon(Icons.send_rounded),
+                  style: IconButton.styleFrom(backgroundColor: cBlue),
+                ),
+              ],
+            ),
+          ),
+        ),
+      ],
+    ),
   );
 }
 
