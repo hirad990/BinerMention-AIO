@@ -264,7 +264,7 @@ class _UserProfilePageState extends State<UserProfilePage> {
                               Expanded(child: Padding(padding: const EdgeInsets.only(bottom: 6), child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
                                 Text(displayName, maxLines: 2, overflow: TextOverflow.ellipsis, style: const TextStyle(fontSize: 22, fontWeight: FontWeight.w900)),
                                 Row(children: [
-                                  Flexible(child: Text('@${textOf('username')}', style: TextStyle(color: muted))),
+                                  Flexible(child: Text("@${textOf('username')}", style: TextStyle(color: muted))),
                                   if (user?['BlueTick'] == true || user?['BlueTick'] == 1) const Padding(padding: EdgeInsets.only(left: 4), child: Icon(Icons.verified_rounded, color: Color(0xFF1D9BF0), size: 17)),
                                 ]),
                               ]))),
