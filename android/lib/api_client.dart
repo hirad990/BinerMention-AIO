@@ -243,6 +243,31 @@ class BinerApi {
   Future<Map<String, dynamic>> userByUsername(String username) async =>
       Map<String, dynamic>.from((await _request('GET', 'v1/users/${Uri.encodeComponent(username)}', authenticated: false))['user'] as Map);
 
+  Future<List<Map<String, dynamic>>> postsByUser(int userId, {int limit = 50}) async {
+    final result = await _request('GET', 'v1/users/$userId/posts', query: {'limit': '$limit'});
+    return (result['posts'] as List? ?? const [])
+        .whereType<Map>()
+        .map((item) => Map<String, dynamic>.from(item))
+        .toList();
+  }
+
+  Future<List<Map<String, dynamic>>> searchPosts(String query, {int limit = 30}) async {
+    final result = await _request('GET', 'v1/search/posts', query: {'q': query.trim(), 'limit': '$limit'});
+    return (result['posts'] as List? ?? const [])
+        .whereType<Map>()
+        .map((item) => Map<String, dynamic>.from(item))
+        .toList();
+  }
+
+  Future<List<Map<String, dynamic>>> userConnections(int userId, {required bool followers}) async {
+    final endpoint = followers ? 'followers' : 'following';
+    final result = await _request('GET', 'v1/users/$userId/$endpoint');
+    return (result['users'] as List? ?? const [])
+        .whereType<Map>()
+        .map((item) => Map<String, dynamic>.from(item))
+        .toList();
+  }
+
   Future<int> createConversation(int userId) async {
     final result = await _request('POST', 'v1/conversations', body: {'user_id': userId});
     final id = int.tryParse(result['conversation_id'].toString());
