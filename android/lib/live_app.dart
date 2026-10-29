@@ -1029,6 +1029,46 @@ class _ChatPageState extends State<ChatPage> {
     }
   }
 
+  Future<void> handleChatSafetyAction(String action) async {
+    if (action == 'report') {
+      final reasonController = TextEditingController();
+      final reason = await showDialog<String>(
+        context: context,
+        builder: (ctx) => AlertDialog(
+          title: const Text('گزارش گفت‌وگو'),
+          content: TextField(controller: reasonController, maxLength: 500, maxLines: 3, decoration: const InputDecoration(hintText: 'دلیل گزارش را بنویس…')),
+          actions: [
+            TextButton(onPressed: () => Navigator.pop(ctx), child: const Text('انصراف')),
+            FilledButton(onPressed: () => Navigator.pop(ctx, reasonController.text.trim().isEmpty ? 'محتوای نامناسب' : reasonController.text.trim()), child: const Text('ارسال گزارش')),
+          ],
+        ),
+      );
+      reasonController.dispose();
+      if (reason == null || !mounted) return;
+      try {
+        await widget.api.reportConversation(widget.conversationId, reason);
+        if (mounted) ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('گزارش ثبت شد. ممنون که اطلاع دادی.')));
+      } on ApiException catch (e) { if (mounted) ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(e.message))); }
+    } else if (action == 'block') {
+      final confirmed = await showDialog<bool>(
+        context: context,
+        builder: (ctx) => AlertDialog(
+          title: const Text('مسدود کردن کاربر؟'),
+          content: const Text('پس از مسدودسازی، ارسال پیام در این گفت‌وگو متوقف می‌شود.'),
+          actions: [
+            TextButton(onPressed: () => Navigator.pop(ctx, false), child: const Text('انصراف')),
+            FilledButton(onPressed: () => Navigator.pop(ctx, true), child: const Text('مسدود کن')),
+          ],
+        ),
+      );
+      if (confirmed != true || !mounted) return;
+      try {
+        await widget.api.blockConversationUser(widget.conversationId);
+        if (mounted) ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('کاربر مسدود شد.')));
+      } on ApiException catch (e) { if (mounted) ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(e.message))); }
+    }
+  }
+
   Future<void> messageActions(Map<String, dynamic> item) async {
     final action = await showModalBottomSheet<String>(
       context: context, backgroundColor: Colors.transparent, useSafeArea: true,
@@ -1172,7 +1212,13 @@ class _ChatPageState extends State<ChatPage> {
       backgroundColor: const Color(0xFF050507),
       foregroundColor: Theme.of(context).colorScheme.onSurface,
       title: Row(children: [Container(width: 34, height: 34, decoration: BoxDecoration(shape: BoxShape.circle, color: cBlue.withValues(alpha: .12), border: Border.all(color: cLine)), child: const Icon(Icons.person_rounded, color: cBlue, size: 20)), const SizedBox(width: 10), Expanded(child: Text(widget.title, maxLines: 1, overflow: TextOverflow.ellipsis, style: const TextStyle(fontWeight: FontWeight.w800, fontSize: 17)))]),
-      actions: [IconButton(tooltip: 'بارگذاری دوباره', onPressed: loadMessages, icon: const Icon(Icons.refresh_rounded))],
+      actions: [
+        IconButton(tooltip: 'بارگذاری دوباره', onPressed: loadMessages, icon: const Icon(Icons.refresh_rounded)),
+        PopupMenuButton<String>(tooltip: 'گزینه‌های گفت‌وگو', onSelected: handleChatSafetyAction, itemBuilder: (_) => const [
+          PopupMenuItem(value: 'report', child: ListTile(dense: true, contentPadding: EdgeInsets.zero, leading: Icon(Icons.flag_outlined), title: Text('گزارش گفت‌وگو'))),
+          PopupMenuItem(value: 'block', child: ListTile(dense: true, contentPadding: EdgeInsets.zero, leading: Icon(Icons.block_rounded, color: Color(0xFFFF7185)), title: Text('مسدود کردن کاربر'))),
+        ]),
+      ],
     ),
     body: Column(
       children: [
