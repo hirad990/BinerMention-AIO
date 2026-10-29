@@ -2,7 +2,9 @@ import 'dart:io';
 import 'dart:ui';
 import 'package:flutter/services.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_animate/flutter_animate.dart';
 import 'api_client.dart';
+import 'ui_kit.dart';
 import 'package:image_picker/image_picker.dart';
 
 const cBg = Color(0xFF050812), cPanel = Color(0xCC101B2C), cLine = Color(0x5537BFFF), cBlue = Color(0xFF39C5FF), cMuted = Color(0xFF91A6C3), cGlass = Color(0x99121F32);
@@ -14,6 +16,8 @@ class BinerLiveApp extends StatefulWidget {
 class _BinerLiveAppState extends State<BinerLiveApp> {
   final api = BinerApi();
   bool ready = false, loggedIn = false;
+  ThemeMode themeMode = ThemeMode.dark;
+  void toggleTheme() => setState(() => themeMode = themeMode == ThemeMode.dark ? ThemeMode.light : ThemeMode.dark);
   @override void initState() { super.initState(); init(); }
   Future<void> init() async {
     await api.restoreSession();
@@ -24,29 +28,29 @@ class _BinerLiveAppState extends State<BinerLiveApp> {
   Future<void> logout() async { await api.logout(); if (mounted) setState(() => loggedIn = false); }
   @override void dispose() { api.dispose(); super.dispose(); }
   @override Widget build(BuildContext context) => MaterialApp(
-    title: 'BinerMention', debugShowCheckedModeBanner: false,
-    theme: ThemeData(
-      brightness: Brightness.dark,
-      scaffoldBackgroundColor: cBg,
-      colorScheme: const ColorScheme.dark(primary: cBlue, surface: Color(0xFF111C2D), secondary: Color(0xFF9B8CFF)),
-      useMaterial3: true,
-      splashFactory: InkSparkle.splashFactory,
-      pageTransitionsTheme: const PageTransitionsTheme(builders: {
-        TargetPlatform.android: ZoomPageTransitionsBuilder(),
-        TargetPlatform.iOS: FadeForwardsPageTransitionsBuilder(),
-        TargetPlatform.macOS: FadeForwardsPageTransitionsBuilder(),
-        TargetPlatform.windows: FadeForwardsPageTransitionsBuilder(),
-        TargetPlatform.linux: FadeForwardsPageTransitionsBuilder(),
-      }),
-      inputDecorationTheme: InputDecorationTheme(
-        filled: true, fillColor: const Color(0xAA111D30),
-        contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 13),
-        border: OutlineInputBorder(borderRadius: BorderRadius.circular(17), borderSide: const BorderSide(color: cLine)),
-        enabledBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(17), borderSide: const BorderSide(color: cLine)),
-        focusedBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(17), borderSide: const BorderSide(color: cBlue, width: 1.4)),
+    title: 'BinerMention',
+    debugShowCheckedModeBanner: false,
+    theme: buildBinerTheme(Brightness.light),
+    darkTheme: buildBinerTheme(Brightness.dark),
+    themeMode: themeMode,
+    builder: (context, child) => BinerBackdrop(child: child ?? const SizedBox.shrink()),
+    home: AnimatedSwitcher(
+      duration: const Duration(milliseconds: 320),
+      switchInCurve: Curves.easeOutCubic,
+      switchOutCurve: Curves.easeInCubic,
+      transitionBuilder: (child, animation) => FadeTransition(
+        opacity: animation,
+        child: SlideTransition(
+          position: Tween<Offset>(begin: const Offset(0, .025), end: Offset.zero).animate(animation),
+          child: child,
+        ),
       ),
+      child: !ready
+          ? const Scaffold(key: ValueKey('boot'), body: Center(child: CircularProgressIndicator(color: cBlue)))
+          : loggedIn
+              ? LiveHome(key: const ValueKey('home'), api: api, logout: logout, onToggleTheme: toggleTheme, isDark: themeMode == ThemeMode.dark)
+              : LiveAuth(key: const ValueKey('auth'), api: api, onDone: signedIn),
     ),
-    home: !ready ? const Scaffold(body: Center(child: CircularProgressIndicator(color: cBlue))) : loggedIn ? LiveHome(api: api, logout: logout) : LiveAuth(api: api, onDone: signedIn),
   );
 }
 
@@ -94,8 +98,10 @@ class _LiveAuthState extends State<LiveAuth> {
 }
 
 class LiveHome extends StatefulWidget {
-  const LiveHome({super.key, required this.api, required this.logout});
+  const LiveHome({super.key, required this.api, required this.logout, required this.onToggleTheme, required this.isDark});
   final BinerApi api; final Future<void> Function() logout;
+  final VoidCallback onToggleTheme;
+  final bool isDark;
   @override State<LiveHome> createState() => _LiveHomeState();
 }
 class _LiveHomeState extends State<LiveHome> {
@@ -336,8 +342,14 @@ class _LiveHomeState extends State<LiveHome> {
       Padding(padding: const EdgeInsets.fromLTRB(16, 12, 16, 8), child: Row(children: [
         const Brand(), const Spacer(),
         Container(decoration: BoxDecoration(color: cGlass, borderRadius: BorderRadius.circular(18), border: Border.all(color: cLine)), child: IconButton(onPressed: searchUser, icon: const Icon(Icons.search_rounded, color: cBlue), tooltip: 'جست‌وجوی کاربر')),
-        const SizedBox(width: 8),
-        Container(padding: const EdgeInsets.all(2), decoration: BoxDecoration(shape: BoxShape.circle, gradient: const LinearGradient(colors: [cBlue, Color(0xFF725BFF)])), child: CircleAvatar(radius: 17, backgroundColor: cPanel, backgroundImage: (me?['avatar_url']?.toString().startsWith('https://') ?? false) ? NetworkImage(me!['avatar_url'].toString()) : null, child: (me?['avatar_url']?.toString().startsWith('https://') ?? false) ? null : const Icon(Icons.person, size: 18))),
+        const SizedBox(width: 4),
+        IconButton(
+          tooltip: isDark ? 'حالت روشن' : 'حالت تیره',
+          onPressed: widget.onToggleTheme,
+          icon: Icon(isDark ? Icons.light_mode_rounded : Icons.dark_mode_rounded, color: cBlue),
+        ),
+        const SizedBox(width: 4),
+        Hero(tag: 'biner-profile-avatar', child: Container(padding: const EdgeInsets.all(2), decoration: BoxDecoration(shape: BoxShape.circle, gradient: const LinearGradient(colors: [cBlue, Color(0xFF725BFF)])), child: CircleAvatar(radius: 17, backgroundColor: cPanel, backgroundImage: (me?['avatar_url']?.toString().startsWith('https://') ?? false) ? NetworkImage(me!['avatar_url'].toString()) : null, child: (me?['avatar_url']?.toString().startsWith('https://') ?? false) ? null : const Icon(Icons.person, size: 18)))),
       ])),
       Row(children: [
         Expanded(child: InkWell(
@@ -362,7 +374,9 @@ class _LiveHomeState extends State<LiveHome> {
 
   Widget feedBody() {
     if (loading && posts.isEmpty) {
-      return const Center(child: CircularProgressIndicator(color: cBlue));
+      return const SingleChildScrollView(
+        child: Column(children: [BinerSkeleton(), BinerSkeleton(), BinerSkeleton(), BinerSkeleton()]),
+      );
     }
     if (error != null && posts.isEmpty) {
       return Center(
@@ -682,15 +696,34 @@ class _LiveHomeState extends State<LiveHome> {
 
   @override Widget build(BuildContext context) {
     final pages = [home(), ListView(children: [Padding(padding: const EdgeInsets.fromLTRB(18, 18, 8, 8), child: Row(children: [const Expanded(child: Text('کاوش', style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold))), IconButton(onPressed: searchUser, icon: const Icon(Icons.person_search, color: cBlue), tooltip: 'جست‌وجوی کاربر')])), Padding(padding: const EdgeInsets.symmetric(horizontal: 16), child: OutlinedButton.icon(onPressed: searchUser, icon: const Icon(Icons.search), label: const Text('جست‌وجو بر اساس نام کاربری'))), ...posts.map(card)]), notifications(), conversations(), profile()];
-    return Scaffold(body: SafeArea(child: IndexedStack(index: tab, children: pages)),
-      floatingActionButton: tab == 0 ? FloatingActionButton(onPressed: posting ? null : compose, backgroundColor: cBlue, child: const Icon(Icons.add)) : null,
-      bottomNavigationBar: NavigationBar(height: 72, backgroundColor: const Color(0xEE080F1C), elevation: 0, indicatorColor: cBlue.withValues(alpha: .20), selectedIndex: tab, onDestinationSelected: (i) => setState(() => tab = i), destinations: const [
-        NavigationDestination(icon: Icon(Icons.home_outlined), selectedIcon: Icon(Icons.home, color: cBlue), label: 'خانه'),
-        NavigationDestination(icon: Icon(Icons.search), selectedIcon: Icon(Icons.search, color: cBlue), label: 'کاوش'),
-        NavigationDestination(icon: Icon(Icons.notifications_none), selectedIcon: Icon(Icons.notifications, color: cBlue), label: 'اعلان‌ها'),
-        NavigationDestination(icon: Icon(Icons.mail_outline), selectedIcon: Icon(Icons.mail, color: cBlue), label: 'پیام‌ها'),
-        NavigationDestination(icon: Icon(Icons.person_outline), selectedIcon: Icon(Icons.person, color: cBlue), label: 'پروفایل'),
-      ]),
+    return Scaffold(
+      body: SafeArea(child: IndexedStack(index: tab, children: pages)),
+      floatingActionButton: tab == 0
+          ? FloatingActionButton(
+              onPressed: posting ? null : compose,
+              backgroundColor: cBlue,
+              foregroundColor: const Color(0xFF06111D),
+              child: const Icon(Icons.add_rounded),
+            ).animate().scale(begin: const Offset(.78, .78), duration: 240.ms, curve: Curves.easeOutBack)
+          : null,
+      bottomNavigationBar: BinerLiquidGlass(
+        borderRadius: BorderRadius.zero,
+        child: NavigationBar(
+          height: 72,
+          backgroundColor: Colors.transparent,
+          elevation: 0,
+          indicatorColor: cBlue.withValues(alpha: .20),
+          selectedIndex: tab,
+          onDestinationSelected: (i) => setState(() => tab = i),
+          destinations: const [
+            NavigationDestination(icon: Icon(Icons.home_outlined), selectedIcon: Icon(Icons.home_rounded, color: cBlue), label: 'خانه'),
+            NavigationDestination(icon: Icon(Icons.search_rounded), selectedIcon: Icon(Icons.search_rounded, color: cBlue), label: 'کاوش'),
+            NavigationDestination(icon: Icon(Icons.notifications_none_rounded), selectedIcon: Icon(Icons.notifications_rounded, color: cBlue), label: 'اعلان‌ها'),
+            NavigationDestination(icon: Icon(Icons.mail_outline_rounded), selectedIcon: Icon(Icons.mail_rounded, color: cBlue), label: 'پیام‌ها'),
+            NavigationDestination(icon: Icon(Icons.person_outline_rounded), selectedIcon: Icon(Icons.person_rounded, color: cBlue), label: 'پروفایل'),
+          ],
+        ),
+      ),
     );
   }
 }
@@ -911,5 +944,8 @@ class _ChatPageState extends State<ChatPage> {
 
 class Brand extends StatelessWidget {
   const Brand({super.key});
-  @override Widget build(BuildContext context) => RichText(text: const TextSpan(style: TextStyle(fontSize: 21, fontWeight: FontWeight.w800, color: Colors.white), children: [TextSpan(text: 'Biner'), TextSpan(text: 'Mention', style: TextStyle(color: cBlue))]));
+  @override Widget build(BuildContext context) => ShaderMask(
+    shaderCallback: (bounds) => const LinearGradient(colors: [Color(0xFFF7FBFF), cBlue, Color(0xFF9B8CFF)]).createShader(bounds),
+    child: const Text('BinerMention', style: TextStyle(fontSize: 21, fontWeight: FontWeight.w900, letterSpacing: -.45, color: Colors.white)),
+  ).animate().fadeIn(duration: 350.ms).slideX(begin: -.04, duration: 350.ms);
 }
