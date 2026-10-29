@@ -119,6 +119,7 @@ class _LiveHomeState extends State<LiveHome> {
   final savedPosts = <Map<String, dynamic>>[];
   Map<String, dynamic>? me;
   String exploreQuery = '';
+  bool showingSaved = false;
   Future<List<dynamic>>? exploreResults;
   final Set<String> _postActionsInFlight = <String>{};
   @override void initState() { super.initState(); refresh(); loadProfile(); loadSavedPosts(); }
@@ -173,8 +174,8 @@ class _LiveHomeState extends State<LiveHome> {
     final trending = tags.entries.toList()..sort((a, b) => b.value.compareTo(a.value));
     return ListView(padding: const EdgeInsets.only(bottom: 20), children: [
       Padding(padding: const EdgeInsets.fromLTRB(18, 18, 18, 10), child: Row(children: [
-        const Expanded(child: Text('کاوش و ترندها', style: TextStyle(fontSize: 25, fontWeight: FontWeight.w900))),
-        const Icon(Icons.auto_awesome_rounded, color: cBlue),
+        Expanded(child: Text(showingSaved ? 'پست‌های ذخیره‌شده' : 'کاوش و ترندها', style: const TextStyle(fontSize: 25, fontWeight: FontWeight.w900))),
+        IconButton(tooltip: showingSaved ? 'نمایش کاوش' : 'ذخیره‌ها', onPressed: () => setState(() { showingSaved = !showingSaved; exploreQuery = ''; exploreResults = null; }), icon: Icon(showingSaved ? Icons.explore_rounded : Icons.bookmarks_rounded, color: cBlue)),
       ])),
       Padding(padding: const EdgeInsets.symmetric(horizontal: 16), child: TextField(
         onChanged: updateExploreQuery,
@@ -188,7 +189,10 @@ class _LiveHomeState extends State<LiveHome> {
           enabledBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(20), borderSide: BorderSide(color: cLine.withValues(alpha: .45))),
         ),
       )),
-      if (exploreQuery.isEmpty) ...[
+      if (showingSaved) ...[
+        if (savedPosts.isEmpty) const Padding(padding: EdgeInsets.all(34), child: Center(child: Text('هنوز پستی ذخیره نکردی.'))),
+        ...savedPosts.map(card),
+      ] else if (exploreQuery.isEmpty) ...[
         Padding(padding: const EdgeInsets.fromLTRB(18, 22, 18, 10), child: Row(children: [
           const Icon(Icons.local_fire_department_rounded, color: Color(0xFFFF8A4C)),
           const SizedBox(width: 8),
@@ -558,6 +562,8 @@ class _LiveHomeState extends State<LiveHome> {
           TextButton.icon(style: TextButton.styleFrom(foregroundColor: cMuted, visualDensity: VisualDensity.compact, padding: const EdgeInsets.symmetric(horizontal: 7)), onPressed: () => showReplies(p), icon: const Icon(Icons.chat_bubble_outline, size: 17), label: Text(fmt(p['replies_count'] ?? 0))),
           TextButton.icon(style: TextButton.styleFrom(foregroundColor: reposted ? const Color(0xFF00BA7C) : cMuted, visualDensity: VisualDensity.compact, padding: const EdgeInsets.symmetric(horizontal: 7)), onPressed: () => toggle(p, 'repost'), icon: const Icon(Icons.repeat, size: 17), label: Text(fmt(p['reposts_count'] ?? 0))),
           TextButton.icon(style: TextButton.styleFrom(foregroundColor: liked ? const Color(0xFFF91880) : cMuted, visualDensity: VisualDensity.compact, padding: const EdgeInsets.symmetric(horizontal: 7)), onPressed: () => toggle(p, 'like'), icon: Icon(liked ? Icons.favorite : Icons.favorite_border, size: 17), label: Text(fmt(p['likes_count'] ?? 0))),
+          IconButton(tooltip: savedPosts.any((item) => value(item, 'id') == value(p, 'id')) ? 'حذف از ذخیره‌ها' : 'ذخیره پست', visualDensity: VisualDensity.compact, onPressed: () => toggleSavedPost(p), icon: Icon(savedPosts.any((item) => value(item, 'id') == value(p, 'id')) ? Icons.bookmark_rounded : Icons.bookmark_border_rounded, color: savedPosts.any((item) => value(item, 'id') == value(p, 'id')) ? cBlue : cMuted, size: 20)),
+          IconButton(tooltip: 'کپی متن پست', visualDensity: VisualDensity.compact, onPressed: () => copyPost(p), icon: const Icon(Icons.ios_share_rounded, color: cMuted, size: 18)),
         ]),
       ])),
     ])).animate().fadeIn(duration: 240.ms).slideY(begin: .035, duration: 240.ms, curve: Curves.easeOutCubic);
@@ -882,7 +888,7 @@ class _LiveHomeState extends State<LiveHome> {
   }
 
   @override Widget build(BuildContext context) {
-    final pages = [home(), ListView(children: [Padding(padding: const EdgeInsets.fromLTRB(18, 18, 8, 8), child: Row(children: [const Expanded(child: Text('کاوش', style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold))), IconButton(onPressed: searchUser, icon: const Icon(Icons.person_search, color: cBlue), tooltip: 'جست‌وجوی کاربر')])), Padding(padding: const EdgeInsets.symmetric(horizontal: 16), child: OutlinedButton.icon(onPressed: searchUser, icon: const Icon(Icons.search), label: const Text('جست‌وجو بر اساس نام کاربری'))), ...posts.map(card)]), notifications(), conversations(), profile()];
+    final pages = [home(), explore(), notifications(), conversations(), profile()];
     return Scaffold(
       body: SafeArea(child: IndexedStack(index: tab, children: pages)),
       floatingActionButton: tab == 0
