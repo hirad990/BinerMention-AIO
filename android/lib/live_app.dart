@@ -387,7 +387,7 @@ class _LiveHomeState extends State<LiveHome> {
     final name = value(p, 'display_name', value(p, 'username', 'کاربر'));
     final body = value(p, 'body');
     final liked = p['liked'] == true, reposted = p['reposted'] == true;
-    return Container(padding: const EdgeInsets.fromLTRB(14, 14, 14, 8), margin: const EdgeInsets.symmetric(horizontal: 8), decoration: BoxDecoration(color: Theme.of(context).brightness == Brightness.dark ? const Color(0x99101826) : const Color(0xDFFFFFFF), border: Border(bottom: BorderSide(color: Theme.of(context).brightness == Brightness.dark ? const Color(0x332D4058) : const Color(0x223D6592)))), child: Row(crossAxisAlignment: CrossAxisAlignment.start, children: [
+    return Container(padding: const EdgeInsets.fromLTRB(15, 15, 15, 11), margin: const EdgeInsets.symmetric(horizontal: 12, vertical: 6), decoration: BoxDecoration(color: Theme.of(context).brightness == Brightness.dark ? const Color(0xCC101827) : const Color(0xF7FFFFFF), borderRadius: BorderRadius.circular(22), border: Border.all(color: Theme.of(context).brightness == Brightness.dark ? const Color(0x4439C5FF) : const Color(0x223D6592)), boxShadow: [BoxShadow(color: Theme.of(context).brightness == Brightness.dark ? const Color(0x16000000) : const Color(0x0D27476A), blurRadius: 22, offset: const Offset(0, 7))]), child: Row(crossAxisAlignment: CrossAxisAlignment.start, children: [
       GestureDetector(onTap: () => openUserProfile(value(p, 'username')), child: avatar(name, p, 21)), const SizedBox(width: 10), Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
         Row(children: [
           Expanded(child: Wrap(crossAxisAlignment: WrapCrossAlignment.center, spacing: 3, children: [
@@ -907,6 +907,7 @@ class _ChatPageState extends State<ChatPage> {
       itemCount: items.length,
       itemBuilder: (context, index) {
         final item = items[index];
+        final dark = Theme.of(context).brightness == Brightness.dark;
         final mine = item['sender_id']?.toString() == widget.currentUserId.toString();
         return Align(
           alignment: mine ? Alignment.centerRight : Alignment.centerLeft,
@@ -917,10 +918,10 @@ class _ChatPageState extends State<ChatPage> {
             margin: const EdgeInsets.symmetric(vertical: 4),
             padding: const EdgeInsets.symmetric(horizontal: 13, vertical: 10),
             decoration: BoxDecoration(
-              gradient: mine ? const LinearGradient(begin: Alignment.topLeft, end: Alignment.bottomRight, colors: [Color(0xDD174A70), Color(0xCC252B57)]) : const LinearGradient(begin: Alignment.topLeft, end: Alignment.bottomRight, colors: [Color(0xCC18263A), Color(0xAA101A2B)]),
+              gradient: mine ? (dark ? const LinearGradient(begin: Alignment.topLeft, end: Alignment.bottomRight, colors: [Color(0xDD174A70), Color(0xCC252B57)]) : const LinearGradient(begin: Alignment.topLeft, end: Alignment.bottomRight, colors: [Color(0xFFD9F2FF), Color(0xFFDCDFFF)])) : (dark ? const LinearGradient(begin: Alignment.topLeft, end: Alignment.bottomRight, colors: [Color(0xCC18263A), Color(0xAA101A2B)]) : const LinearGradient(begin: Alignment.topLeft, end: Alignment.bottomRight, colors: [Color(0xF8FFFFFF), Color(0xFFEFF4FA)])),
               borderRadius: BorderRadius.circular(16),
-              border: Border.all(color: mine ? const Color(0x6639C5FF) : const Color(0x553B5270)),
-              boxShadow: [BoxShadow(color: (mine ? cBlue : Colors.black).withValues(alpha: .07), blurRadius: 16, offset: const Offset(0, 5))],
+              border: Border.all(color: mine ? const Color(0x6639C5FF) : (dark ? const Color(0x553B5270) : const Color(0x223B5270))),
+              boxShadow: [BoxShadow(color: (mine ? cBlue : Colors.black).withValues(alpha: dark ? .07 : .035), blurRadius: 16, offset: const Offset(0, 5))],
             ),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -963,7 +964,7 @@ class _ChatPageState extends State<ChatPage> {
                     decoration: InputDecoration(
                       hintText: 'پیامت را بنویس...',
                       filled: true,
-                      fillColor: cPanel,
+                      fillColor: Theme.of(context).colorScheme.surface,
                       border: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(22),
                         borderSide: BorderSide.none,
