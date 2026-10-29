@@ -687,7 +687,7 @@ class _LiveHomeState extends State<LiveHome> {
   Widget conversations() => FutureBuilder<List<Map<String, dynamic>>>(
     future: widget.api.conversations(),
     builder: (context, s) {
-      if (s.connectionState == ConnectionState.waiting) return const ListView(children: [BinerSkeleton(lines: 1), BinerSkeleton(lines: 1), BinerSkeleton(lines: 1)]);
+      if (s.connectionState == ConnectionState.waiting) return ListView(children: const [BinerSkeleton(lines: 1), BinerSkeleton(lines: 1), BinerSkeleton(lines: 1)]);
       if (s.hasError) return Center(child: Text(s.error.toString(), textAlign: TextAlign.center));
       final items = s.data ?? [];
       return ListView(children: [
@@ -976,6 +976,8 @@ class _ChatPageState extends State<ChatPage> {
   final controller = TextEditingController();
   final scroll = ScrollController();
   final items = <Map<String, dynamic>>[];
+  String value(Map<String, dynamic> m, String k, [String fallback = '']) => m[k]?.toString() ?? fallback;
+  void toast(String message) => ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(message), behavior: SnackBarBehavior.floating, shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(18))));
   bool loading = true, sending = false;
   String? error;
   Map<String, dynamic>? replyingTo;
@@ -1151,7 +1153,7 @@ class _ChatPageState extends State<ChatPage> {
 
   Widget messageList() {
     if (loading && items.isEmpty) {
-      return const ListView(children: [BinerSkeleton(lines: 2), BinerSkeleton(lines: 2), BinerSkeleton(lines: 2)]);
+      return ListView(children: const [BinerSkeleton(lines: 2), BinerSkeleton(lines: 2), BinerSkeleton(lines: 2)]);
     }
     if (error != null && items.isEmpty) {
       return Center(
@@ -1208,7 +1210,6 @@ class _ChatPageState extends State<ChatPage> {
   @override
   Widget build(BuildContext context) => Scaffold(
     appBar: AppBar(
-      title: Text(widget.title),
       backgroundColor: const Color(0xFF050507),
       foregroundColor: Theme.of(context).colorScheme.onSurface,
       title: Row(children: [Container(width: 34, height: 34, decoration: BoxDecoration(shape: BoxShape.circle, color: cBlue.withValues(alpha: .12), border: Border.all(color: cLine)), child: const Icon(Icons.person_rounded, color: cBlue, size: 20)), const SizedBox(width: 10), Expanded(child: Text(widget.title, maxLines: 1, overflow: TextOverflow.ellipsis, style: const TextStyle(fontWeight: FontWeight.w800, fontSize: 17)))]),
