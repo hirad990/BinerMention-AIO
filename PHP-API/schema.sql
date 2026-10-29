@@ -134,3 +134,30 @@ CREATE TABLE IF NOT EXISTS api_rate_limits (
   request_count INT UNSIGNED NOT NULL DEFAULT 0,
   PRIMARY KEY (bucket_hash), KEY idx_rate_window (window_started_at)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+
+CREATE TABLE IF NOT EXISTS user_blocks (
+  blocker_user_id BIGINT UNSIGNED NOT NULL,
+  blocked_user_id BIGINT UNSIGNED NOT NULL,
+  created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  PRIMARY KEY (blocker_user_id, blocked_user_id),
+  KEY idx_user_blocks_blocked (blocked_user_id),
+  CONSTRAINT fk_user_blocks_blocker FOREIGN KEY (blocker_user_id) REFERENCES users(id) ON DELETE CASCADE,
+  CONSTRAINT fk_user_blocks_blocked FOREIGN KEY (blocked_user_id) REFERENCES users(id) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+CREATE TABLE IF NOT EXISTS reports (
+  id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
+  reporter_user_id BIGINT UNSIGNED NOT NULL,
+  reported_user_id BIGINT UNSIGNED NOT NULL,
+  conversation_id BIGINT UNSIGNED NULL,
+  reason VARCHAR(500) NOT NULL,
+  status ENUM('pending','reviewed','dismissed') NOT NULL DEFAULT 'pending',
+  created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  PRIMARY KEY (id),
+  KEY idx_reports_status_created (status, created_at),
+  KEY idx_reports_reported_user (reported_user_id, created_at),
+  CONSTRAINT fk_reports_reporter FOREIGN KEY (reporter_user_id) REFERENCES users(id) ON DELETE CASCADE,
+  CONSTRAINT fk_reports_reported FOREIGN KEY (reported_user_id) REFERENCES users(id) ON DELETE CASCADE,
+  CONSTRAINT fk_reports_conversation FOREIGN KEY (conversation_id) REFERENCES conversations(id) ON DELETE SET NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
