@@ -177,7 +177,7 @@ class _LiveHomeState extends State<LiveHome> {
         Expanded(child: Text(showingSaved ? 'پست‌های ذخیره‌شده' : 'کاوش و ترندها', style: const TextStyle(fontSize: 25, fontWeight: FontWeight.w900))),
         IconButton(tooltip: showingSaved ? 'نمایش کاوش' : 'ذخیره‌ها', onPressed: () => setState(() { showingSaved = !showingSaved; exploreQuery = ''; exploreResults = null; }), icon: Icon(showingSaved ? Icons.explore_rounded : Icons.bookmarks_rounded, color: cBlue)),
       ])),
-      Padding(padding: const EdgeInsets.symmetric(horizontal: 16), child: TextField(
+      if (!showingSaved) Padding(padding: const EdgeInsets.symmetric(horizontal: 16), child: TextField(
         onChanged: updateExploreQuery,
         textInputAction: TextInputAction.search,
         decoration: InputDecoration(
@@ -558,12 +558,12 @@ class _LiveHomeState extends State<LiveHome> {
         if (body.isNotEmpty) Padding(padding: const EdgeInsets.only(top: 8, right: 2), child: richPostBody(body)),
         if (value(p, 'media_url').startsWith('https://')) Padding(padding: const EdgeInsets.only(top: 10), child: ClipRRect(borderRadius: BorderRadius.circular(14), child: Image.network(value(p, 'media_url'), fit: BoxFit.cover, errorBuilder: (_, __, ___) => const SizedBox.shrink()))),
         const SizedBox(height: 10),
-        Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [
-          TextButton.icon(style: TextButton.styleFrom(foregroundColor: cMuted, visualDensity: VisualDensity.compact, padding: const EdgeInsets.symmetric(horizontal: 7)), onPressed: () => showReplies(p), icon: const Icon(Icons.chat_bubble_outline, size: 17), label: Text(fmt(p['replies_count'] ?? 0))),
+        Wrap(alignment: WrapAlignment.spaceBetween, crossAxisAlignment: WrapCrossAlignment.center, runSpacing: 0, children: [
+          TextButton.icon(style: TextButton.styleFrom(foregroundColor: cMuted, visualDensity: VisualDensity.compact, padding: const EdgeInsets.symmetric(horizontal: 5)), onPressed: () => showReplies(p), icon: const Icon(Icons.chat_bubble_outline, size: 17), label: Text(fmt(p['replies_count'] ?? 0))),
           TextButton.icon(style: TextButton.styleFrom(foregroundColor: reposted ? const Color(0xFF00BA7C) : cMuted, visualDensity: VisualDensity.compact, padding: const EdgeInsets.symmetric(horizontal: 7)), onPressed: () => toggle(p, 'repost'), icon: const Icon(Icons.repeat, size: 17), label: Text(fmt(p['reposts_count'] ?? 0))),
           TextButton.icon(style: TextButton.styleFrom(foregroundColor: liked ? const Color(0xFFF91880) : cMuted, visualDensity: VisualDensity.compact, padding: const EdgeInsets.symmetric(horizontal: 7)), onPressed: () => toggle(p, 'like'), icon: Icon(liked ? Icons.favorite : Icons.favorite_border, size: 17), label: Text(fmt(p['likes_count'] ?? 0))),
           IconButton(tooltip: savedPosts.any((item) => value(item, 'id') == value(p, 'id')) ? 'حذف از ذخیره‌ها' : 'ذخیره پست', visualDensity: VisualDensity.compact, onPressed: () => toggleSavedPost(p), icon: Icon(savedPosts.any((item) => value(item, 'id') == value(p, 'id')) ? Icons.bookmark_rounded : Icons.bookmark_border_rounded, color: savedPosts.any((item) => value(item, 'id') == value(p, 'id')) ? cBlue : cMuted, size: 20)),
-          IconButton(tooltip: 'کپی متن پست', visualDensity: VisualDensity.compact, onPressed: () => copyPost(p), icon: const Icon(Icons.ios_share_rounded, color: cMuted, size: 18)),
+          IconButton(tooltip: 'کپی متن پست', visualDensity: VisualDensity.compact, onPressed: () => copyPost(p), icon: const Icon(Icons.content_copy_rounded, color: cMuted, size: 18)),
         ]),
       ])),
     ])).animate().fadeIn(duration: 240.ms).slideY(begin: .035, duration: 240.ms, curve: Curves.easeOutCubic);
