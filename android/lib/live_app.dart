@@ -508,7 +508,7 @@ class _LiveHomeState extends State<LiveHome> {
     final items = s.data ?? [];
     return ListView(children: [const Padding(padding: EdgeInsets.all(18), child: Text('اعلان‌ها', style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold))),
       if (items.isEmpty) const Center(child: Padding(padding: EdgeInsets.all(24), child: Text('اعلان تازه‌ای نداری.'))),
-      ...items.map((n) => ListTile(leading: avatar(value(n, 'actor_display_name', value(n, 'actor_username', 'U'))), title: Text(value(n, 'actor_display_name', value(n, 'actor_username', 'کاربر')) + ' • ' + value(n, 'type', 'تعامل جدید')), subtitle: Text(value(n, 'created_at'), style: const TextStyle(color: cMuted)))),
+      ...items.map((n) { final kind = value(n, 'type'); final labels = {'mention': 'در یک پست منشن‌ات کرد', 'follow': 'دنبال‌ات کرد', 'like': 'پستت را پسندید', 'repost': 'پستت را بازنشر کرد', 'reply': 'به پستت پاسخ داد', 'message': 'پیام فرستاد'}; return ListTile(leading: avatar(value(n, 'actor_display_name', value(n, 'actor_username', 'U'))), title: Text(value(n, 'actor_display_name', value(n, 'actor_username', 'کاربر')) + ' • ' + (labels[kind] ?? 'تعامل جدید')), subtitle: Text(value(n, 'created_at'), style: const TextStyle(color: cMuted))); }),
     ]);
   });
   Future<void> startConversation() async {
