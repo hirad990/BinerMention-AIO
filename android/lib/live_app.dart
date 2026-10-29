@@ -177,13 +177,13 @@ class _LiveHomeState extends State<LiveHome> {
 
   Widget richPostBody(String body) {
     final spans = <InlineSpan>[];
-    final pattern = RegExp(r'(#|@)([A-Za-z0-9_]{2,24})');
+    final pattern = RegExp(r'#[A-Za-z0-9_\u0600-\u06FF]{2,40}|@[A-Za-z0-9_]{3,24}');
     var cursor = 0;
     for (final match in pattern.allMatches(body)) {
       if (match.start > cursor) spans.add(TextSpan(text: body.substring(cursor, match.start)));
       final token = match.group(0)!;
-      final isTag = match.group(1) == '#';
-      final value = match.group(2)!;
+      final isTag = token.startsWith('#');
+      final value = token.substring(1);
       spans.add(WidgetSpan(
         alignment: PlaceholderAlignment.baseline,
         baseline: TextBaseline.alphabetic,
@@ -200,6 +200,17 @@ class _LiveHomeState extends State<LiveHome> {
   Future<void> compose({int? replyToId}) async {
     final controller = TextEditingController();
     XFile? attachment;
+    void insertToken(String token) {
+      final current = controller.value;
+      final selection = current.selection;
+      final start = selection.isValid ? selection.start : current.text.length;
+      final end = selection.isValid ? selection.end : current.text.length;
+      final text = current.text.replaceRange(start, end, token);
+      controller.value = TextEditingValue(
+        text: text,
+        selection: TextSelection.collapsed(offset: start + token.length),
+      );
+    }
     final result = await showModalBottomSheet<Map<String, dynamic>>(
       context: context,
       isScrollControlled: true,
@@ -215,11 +226,13 @@ class _LiveHomeState extends State<LiveHome> {
               Text(replyToId == null ? 'پست جدید' : 'پاسخ به پست #$replyToId',
                   style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
               TextField(controller: controller, autofocus: true, minLines: 3, maxLines: 5, maxLength: 280,
-                  decoration: const InputDecoration(hintText: 'چه خبر؟', border: InputBorder.none)),
+                  decoration: const InputDecoration(hintText: 'چه خبر؟  #هشتگ  @منشن', border: InputBorder.none)),
               if (attachment != null)
                 ListTile(leading: const Icon(Icons.image, color: cBlue), title: Text(attachment!.name, maxLines: 1, overflow: TextOverflow.ellipsis),
                   trailing: IconButton(icon: const Icon(Icons.close), onPressed: () => sheetSetState(() => attachment = null))),
               Row(children: [
+                IconButton(tooltip: 'افزودن هشتگ', onPressed: () => insertToken('#'), icon: const Icon(Icons.tag_rounded, color: cBlue)),
+                IconButton(tooltip: 'منشن کردن کاربر', onPressed: () => insertToken('@'), icon: const Icon(Icons.alternate_email_rounded, color: Color(0xFF9B8CFF))),
                 IconButton(
                   tooltip: 'افزودن تصویر',
                   onPressed: () async {
