@@ -6,8 +6,8 @@ import 'package:flutter_animate/flutter_animate.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:shimmer/shimmer.dart';
 
-const binerBlue = Color(0xFF39C5FF);
-const binerViolet = Color(0xFF8B75FF);
+const binerBlue = Color(0xFF54C8FF);
+const binerViolet = Color(0xFF9B8CFF);
 
 /// Shared Material 3 theme with a Persian-friendly typeface and adaptive surfaces.
 ThemeData buildBinerTheme(Brightness brightness) {
@@ -20,13 +20,14 @@ ThemeData buildBinerTheme(Brightness brightness) {
     colorScheme: ColorScheme.fromSeed(
       seedColor: binerBlue,
       brightness: brightness,
-      surface: dark ? const Color(0xFF101A2A) : const Color(0xFFF8FAFF),
+      surface: dark ? const Color(0xFF08080B) : const Color(0xFFF8FAFF),
       secondary: binerViolet,
     ),
-    textTheme: GoogleFonts.vazirmatnTextTheme(base.textTheme).apply(
+    textTheme: GoogleFonts.notoSansArabicTextTheme(base.textTheme).apply(
       bodyColor: textColor,
       displayColor: textColor,
     ),
+    snackBarTheme: SnackBarThemeData(behavior: SnackBarBehavior.floating, backgroundColor: const Color(0xF21A1A20), elevation: 0, shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(18), side: BorderSide(color: binerBlue.withValues(alpha: .38))), insetPadding: const EdgeInsets.fromLTRB(16, 0, 16, 12), contentTextStyle: TextStyle(color: dark ? const Color(0xFFF5F5F7) : const Color(0xFF142033), fontWeight: FontWeight.w600)),
     splashFactory: InkSparkle.splashFactory,
     pageTransitionsTheme: const PageTransitionsTheme(builders: {
       TargetPlatform.android: ZoomPageTransitionsBuilder(),
@@ -82,7 +83,7 @@ class BinerBackdrop extends StatelessWidget {
               begin: Alignment.topLeft,
               end: Alignment.bottomRight,
               colors: dark
-                  ? const [Color(0xFF050812), Color(0xFF0B1020), Color(0xFF070B14)]
+                  ? const [Color(0xFF000000), Color(0xFF050509), Color(0xFF000000)]
                   : const [Color(0xFFF4F8FF), Color(0xFFEAF3FF), Color(0xFFF9FAFF)],
             ),
           ),
@@ -148,7 +149,7 @@ class BinerLiquidGlass extends StatelessWidget {
       child: ClipRRect(
         borderRadius: borderRadius,
         child: BackdropFilter(
-          filter: ImageFilter.blur(sigmaX: 18, sigmaY: 18),
+          filter: ImageFilter.blur(sigmaX: 12, sigmaY: 12),
           child: AnimatedContainer(
             duration: const Duration(milliseconds: 260),
             curve: Curves.easeOutCubic,
@@ -159,7 +160,7 @@ class BinerLiquidGlass extends StatelessWidget {
                 begin: Alignment.topLeft,
                 end: Alignment.bottomRight,
                 colors: dark
-                    ? [const Color(0xCC111D30), const Color(0x9910192A)]
+                    ? [const Color(0xE60D0D12), const Color(0xD908080B)]
                     : [const Color(0xDDFEFFFF), const Color(0xBFEAF2FC)],
               ),
               border: Border.all(
@@ -191,8 +192,8 @@ class BinerSkeleton extends StatelessWidget {
   Widget build(BuildContext context) {
     final dark = Theme.of(context).brightness == Brightness.dark;
     return Shimmer.fromColors(
-      baseColor: dark ? const Color(0xFF172337) : const Color(0xFFDDE6F1),
-      highlightColor: dark ? const Color(0xFF263B55) : const Color(0xFFF7FAFF),
+      baseColor: dark ? const Color(0xFF15151B) : const Color(0xFFDDE6F1),
+      highlightColor: dark ? const Color(0xFF24242D) : const Color(0xFFF7FAFF),
       child: Padding(
         padding: const EdgeInsets.fromLTRB(16, 18, 16, 8),
         child: Row(
