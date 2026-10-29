@@ -32,7 +32,8 @@ All paths below are relative to the API root. Protected routes require `Authoriz
 - `POST /v1/auth/login` — identity (username or email) and password
 - `POST /v1/auth/logout`, `GET /v1/auth/sessions`, `DELETE /v1/auth/sessions/{id}`
 - `GET /v1/me`, `PATCH /v1/me`
-- `GET /v1/users/{username}`, `GET /v1/users/{id}/posts`
+- `GET /v1/users/{username}`, `GET /v1/users/{id}/posts`, `GET /v1/users/{id}/followers`, `GET /v1/users/{id}/following`
+- `GET /v1/search/posts?q=hashtag` — search posts containing a hashtag
 - `GET /v1/posts`, `POST /v1/posts`, `GET /v1/posts/{id}`, `PATCH /v1/posts/{id}`, `DELETE /v1/posts/{id}`
 - `POST /v1/posts/{id}/like`, `DELETE /v1/posts/{id}/like`
 - `POST /v1/posts/{id}/repost`, `DELETE /v1/posts/{id}/repost`
