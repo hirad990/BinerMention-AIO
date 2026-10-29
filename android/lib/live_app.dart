@@ -335,9 +335,9 @@ class _LiveHomeState extends State<LiveHome> {
       decoration: BoxDecoration(shape: BoxShape.circle, gradient: const LinearGradient(colors: [cBlue, Color(0xFF7A5CFF)]), boxShadow: [BoxShadow(color: cBlue.withValues(alpha: .16), blurRadius: 14)]),
       child: CircleAvatar(
         radius: radius,
-        backgroundColor: const Color(0xFF17334F),
+        backgroundColor: Theme.of(context).brightness == Brightness.dark ? const Color(0xFF17334F) : const Color(0xFFE6EFFB),
         backgroundImage: url.startsWith('https://') ? NetworkImage(url) : null,
-        child: url.startsWith('https://') ? null : Text(n.isEmpty ? '?' : n[0].toUpperCase(), style: const TextStyle(fontWeight: FontWeight.bold)),
+        child: url.startsWith('https://') ? null : Text(n.isEmpty ? '?' : n[0].toUpperCase(), style: TextStyle(fontWeight: FontWeight.bold, color: Theme.of(context).colorScheme.onSurface)),
       ),
     );
   }
@@ -949,7 +949,8 @@ class _ChatPageState extends State<ChatPage> {
   Widget build(BuildContext context) => Scaffold(
     appBar: AppBar(
       title: Text(widget.title),
-      backgroundColor: cBg,
+      backgroundColor: Theme.of(context).colorScheme.surface,
+      foregroundColor: Theme.of(context).colorScheme.onSurface,
       actions: [IconButton(onPressed: loadMessages, icon: const Icon(Icons.refresh))],
     ),
     body: Column(
