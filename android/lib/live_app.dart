@@ -1043,7 +1043,7 @@ class _ChatPageState extends State<ChatPage> {
               Container(width: 42, height: 4, decoration: BoxDecoration(color: cMuted.withValues(alpha: .6), borderRadius: BorderRadius.circular(5))),
               const SizedBox(height: 12),
               ListTile(leading: const Icon(Icons.reply_rounded, color: cBlue), title: const Text('پاسخ به پیام'), subtitle: Text((item['body'] ?? '').toString(), maxLines: 1, overflow: TextOverflow.ellipsis), onTap: () => Navigator.pop(ctx, 'reply')),
-              ListTile(leading: const Icon(Icons.forward_rounded, color: Color(0xFF9B8CFF)), title: const Text('بازارسال در همین گفتگو'), onTap: () => Navigator.pop(ctx, 'forward')),
+              ListTile(leading: const Icon(Icons.forward_rounded, color: Color(0xFF9B8CFF)), title: const Text('بازارسال به گفت‌وگوی دیگر'), subtitle: const Text('انتخاب مقصد'), onTap: () => Navigator.pop(ctx, 'forward')),
               ListTile(leading: const Icon(Icons.copy_rounded, color: cMuted), title: const Text('کپی متن پیام'), onTap: () => Navigator.pop(ctx, 'copy')),
             ]),
           ),
@@ -1060,14 +1060,51 @@ class _ChatPageState extends State<ChatPage> {
       if (mounted) ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('متن پیام کپی شد.')));
     } else if (action == 'forward') {
       try {
-        final sent = await widget.api.sendMessage(widget.conversationId, '↗ پیام بازارسال‌شده\n$body');
+        final conversations = await widget.api.conversations();
         if (!mounted) return;
-        setState(() => items.add(sent));
-        WidgetsBinding.instance.addPostFrameCallback((_) {
-          if (scroll.hasClients) scroll.animateTo(scroll.position.maxScrollExtent, duration: const Duration(milliseconds: 260), curve: Curves.easeOutCubic);
-        });
+        final destinations = conversations.where((c) => int.tryParse(value(c, 'id')) != widget.conversationId).toList();
+        if (destinations.isEmpty) {
+          toast('برای بازارسال، ابتدا یک گفت‌وگوی دیگر بساز.');
+          return;
+        }
+        final destinationId = await showModalBottomSheet<int>(
+          context: context,
+          backgroundColor: Colors.transparent,
+          useSafeArea: true,
+          builder: (ctx) => ClipRRect(
+            borderRadius: const BorderRadius.vertical(top: Radius.circular(28)),
+            child: BackdropFilter(
+              filter: ImageFilter.blur(sigmaX: 16, sigmaY: 16),
+              child: Container(
+                decoration: BoxDecoration(color: const Color(0xF20B0B10), borderRadius: const BorderRadius.vertical(top: Radius.circular(28)), border: Border.all(color: cLine)),
+                padding: const EdgeInsets.fromLTRB(12, 14, 12, 22),
+                child: Column(mainAxisSize: MainAxisSize.min, children: [
+                  Container(width: 40, height: 4, decoration: BoxDecoration(color: cMuted.withValues(alpha: .55), borderRadius: BorderRadius.circular(4))),
+                  const Padding(padding: EdgeInsets.all(14), child: Text('انتخاب مقصد بازارسال', style: TextStyle(fontSize: 18, fontWeight: FontWeight.w800))),
+                  Flexible(child: ListView(
+                    shrinkWrap: true,
+                    children: destinations.map((c) {
+                      final id = int.tryParse(value(c, 'id'));
+                      final name = value(c, 'other_display_name', value(c, 'other_username', 'گفت‌وگو'));
+                      return ListTile(
+                        leading: const CircleAvatar(backgroundColor: Color(0x2239C5FF), child: Icon(Icons.person_rounded, color: cBlue)),
+                        title: Text(name),
+                        subtitle: Text(value(c, 'last_message', 'گفت‌وگوی جدید'), maxLines: 1, overflow: TextOverflow.ellipsis),
+                        trailing: const Icon(Icons.arrow_forward_rounded, color: cBlue),
+                        onTap: id == null ? null : () => Navigator.pop(ctx, id),
+                      );
+                    }).toList(),
+                  )),
+                ]),
+              ),
+            ),
+          ),
+        );
+        if (destinationId == null || !mounted) return;
+        await widget.api.sendMessage(destinationId, '↗ بازارسال‌شده\n$body');
+        if (mounted) toast('پیام بازارسال شد.');
       } on ApiException catch (e) {
-        if (mounted) ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(e.message)));
+        if (mounted) toast(e.message);
       }
     }
   }
