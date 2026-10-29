@@ -108,7 +108,7 @@ class _UserProfilePageState extends State<UserProfilePage> {
     return Expanded(
       child: InkWell(
         borderRadius: BorderRadius.circular(16),
-        onTap: () => showConnections(followers),
+        onTap: key == 'posts_count' ? null : () => showConnections(followers),
         child: Padding(
           padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 6),
           child: Column(children: [
@@ -169,6 +169,14 @@ class _UserProfilePageState extends State<UserProfilePage> {
                       ),
                       title: Text(name),
                       subtitle: Text("@${person['username'] ?? ''}", style: TextStyle(color: muted)),
+                      onTap: () {
+                        final username = person['username']?.toString() ?? '';
+                        if (username.isNotEmpty) {
+                          Navigator.of(context).push(MaterialPageRoute<void>(
+                            builder: (_) => UserProfilePage(api: widget.api, username: username),
+                          ));
+                        }
+                      },
                     );
                   },
                 );
