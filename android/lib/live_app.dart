@@ -1121,7 +1121,7 @@ class _ChatPageState extends State<ChatPage> {
                 child: Column(mainAxisSize: MainAxisSize.min, children: [
                   Container(width: 40, height: 4, decoration: BoxDecoration(color: cMuted.withValues(alpha: .55), borderRadius: BorderRadius.circular(4))),
                   const Padding(padding: EdgeInsets.all(14), child: Text('انتخاب مقصد بازارسال', style: TextStyle(fontSize: 18, fontWeight: FontWeight.w800))),
-                  Flexible(child: ListView(
+                  ConstrainedBox(constraints: BoxConstraints(maxHeight: MediaQuery.of(ctx).size.height * .55), child: ListView(
                     shrinkWrap: true,
                     children: destinations.map((c) {
                       final id = int.tryParse(value(c, 'id'));
