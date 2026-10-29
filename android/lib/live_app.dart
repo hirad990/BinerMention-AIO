@@ -10,7 +10,7 @@ import 'ui_kit.dart';
 import 'profile_page.dart';
 import 'package:image_picker/image_picker.dart';
 
-const cBg = Color(0xFF050812), cPanel = Color(0xCC101B2C), cLine = Color(0x5537BFFF), cBlue = Color(0xFF39C5FF), cMuted = Color(0xFF91A6C3), cGlass = Color(0x99121F32);
+const cBg = Color(0xFF000000), cPanel = Color(0xF20A0A0C), cLine = Color(0x4439C5FF), cBlue = Color(0xFF54C8FF), cMuted = Color(0xFF9A9AA8), cGlass = Color(0xAA101014);
 
 class BinerLiveApp extends StatefulWidget {
   const BinerLiveApp({super.key});
@@ -249,7 +249,7 @@ class _LiveHomeState extends State<LiveHome> {
     on ApiException catch (e) { if (mounted) setState(() => error = e.message); }
     finally { if (mounted) setState(() => loading = false); }
   }
-  void toast(String s) => ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(s)));
+  void toast(String s) => ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(s), behavior: SnackBarBehavior.floating, backgroundColor: const Color(0xF21A1A20), elevation: 0, shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(18), side: BorderSide(color: cLine.withValues(alpha: .65))), margin: const EdgeInsets.fromLTRB(16, 0, 16, 12)));
 
   Future<void> openUserProfile(String username) async {
     final normalized = username.trim().replaceFirst(RegExp(r'^@'), '');
@@ -687,7 +687,7 @@ class _LiveHomeState extends State<LiveHome> {
   Widget conversations() => FutureBuilder<List<Map<String, dynamic>>>(
     future: widget.api.conversations(),
     builder: (context, s) {
-      if (s.connectionState == ConnectionState.waiting) return const Center(child: CircularProgressIndicator(color: cBlue));
+      if (s.connectionState == ConnectionState.waiting) return const ListView(children: [BinerSkeleton(lines: 1), BinerSkeleton(lines: 1), BinerSkeleton(lines: 1)]);
       if (s.hasError) return Center(child: Text(s.error.toString(), textAlign: TextAlign.center));
       final items = s.data ?? [];
       return ListView(children: [
@@ -696,10 +696,14 @@ class _LiveHomeState extends State<LiveHome> {
           IconButton(onPressed: startConversation, icon: const Icon(Icons.edit_square, color: cBlue), tooltip: 'پیام جدید'),
         ])),
         if (items.isEmpty) const Center(child: Padding(padding: EdgeInsets.all(24), child: Text('هنوز گفت‌وگویی نداری. برای شروع روی پیام جدید بزن.'))),
-        ...items.map((c) => ListTile(
-          leading: avatar('M'),
-          title: Text('گفت‌وگو #' + value(c, 'id')),
-          subtitle: Text(value(c, 'last_message', 'گفت‌وگوی جدید'), maxLines: 1, overflow: TextOverflow.ellipsis),
+        ...items.map((c) {
+          final display = value(c, 'other_display_name', value(c, 'other_username', 'گفت‌وگو'));
+          final username = value(c, 'other_username');
+          final person = <String, dynamic>{'avatar_url': value(c, 'other_avatar_url'), 'username': username};
+          return ListTile(
+          leading: avatar(display, person, 24),
+          title: Text(display, maxLines: 1, overflow: TextOverflow.ellipsis, style: const TextStyle(fontWeight: FontWeight.w700)),
+          subtitle: Text((username.isNotEmpty ? '@$username · ' : '') + value(c, 'last_message', 'گفت‌وگوی جدید'), maxLines: 1, overflow: TextOverflow.ellipsis),
           trailing: const Icon(Icons.chevron_right, color: cMuted),
           onTap: () async {
             final id = int.tryParse(value(c, 'id'));
@@ -712,14 +716,15 @@ class _LiveHomeState extends State<LiveHome> {
                 api: widget.api,
                 conversationId: id,
                 currentUserId: int.parse(currentUser['id'].toString()),
-                title: 'گفت‌وگو #' + id.toString(),
+                title: display,
               )));
             } on ApiException catch (e) {
               if (mounted) toast(e.message);
             }
             if (mounted) setState(() {});
           },
-        )),
+        );
+        }),
       ]);
     },
   );
@@ -804,27 +809,61 @@ class _LiveHomeState extends State<LiveHome> {
   }
 
   Widget profile() {
-    final u = me; if (u == null) return Center(child: Text(error ?? 'در حال بارگذاری پروفایل...'));
-    return ListView(padding: const EdgeInsets.all(20), children: [
-      Container(height: 120, alignment: Alignment.center, decoration: BoxDecoration(borderRadius: BorderRadius.circular(20), gradient: const LinearGradient(colors: [Color(0xFF07162B), Color(0xFF123E70)])), child: const Icon(Icons.bolt, color: cBlue, size: 60)),
-      const SizedBox(height: 16), Center(child: avatar(value(u, 'display_name', value(u, 'username', 'U')), u, 42)),
-      Row(mainAxisAlignment: MainAxisAlignment.center, children: [
-        Flexible(child: Text(value(u, 'display_name', value(u, 'username', 'کاربر')), style: const TextStyle(fontSize: 22, fontWeight: FontWeight.bold))),
-        blueTick(u),
-      ]),
-      Center(child: Text('@' + value(u, 'username'), style: const TextStyle(color: cMuted))),
-      if (value(u, 'bio').isNotEmpty) Padding(padding: const EdgeInsets.only(top: 12), child: Text(value(u, 'bio'))),
-      if (value(u, 'website').isNotEmpty) Padding(padding: const EdgeInsets.only(top: 8), child: Text(value(u, 'website'), style: const TextStyle(color: cBlue))),
-      const SizedBox(height: 20),
-      OutlinedButton.icon(
-        onPressed: () => editProfile(u),
-        icon: const Icon(Icons.edit_outlined),
-        label: const Text('ویرایش پروفایل'),
+    final u = me;
+    if (u == null) return const Center(child: BinerSkeleton(lines: 3));
+    final display = value(u, 'display_name', value(u, 'username', 'کاربر'));
+    final username = value(u, 'username'), bio = value(u, 'bio'), website = value(u, 'website');
+    return ListView(padding: const EdgeInsets.fromLTRB(16, 16, 16, 28), children: [
+      BinerLiquidGlass(borderRadius: BorderRadius.circular(30), padding: const EdgeInsets.fromLTRB(18, 18, 18, 20),
+        child: Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
+          Container(height: 118, decoration: BoxDecoration(borderRadius: BorderRadius.circular(22), gradient: const LinearGradient(begin: Alignment.topLeft, end: Alignment.bottomRight, colors: [Color(0xFF101018), Color(0xFF101F35), Color(0xFF17102B)]), border: Border.all(color: cLine.withValues(alpha: .6))),
+            child: Stack(children: [
+              Positioned(right: 18, top: 12, child: Icon(Icons.blur_on_rounded, size: 84, color: cBlue.withValues(alpha: .16))),
+              Positioned(left: 18, bottom: 10, child: Text('BINER / IDENTITY', style: TextStyle(color: cBlue.withValues(alpha: .75), fontSize: 10, letterSpacing: 2, fontWeight: FontWeight.w800))),
+              const Center(child: Icon(Icons.bolt_rounded, color: cBlue, size: 54)),
+            ]),
+          ),
+          const SizedBox(height: 18),
+          Row(children: [
+            avatar(display, u, 34), const SizedBox(width: 13),
+            Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+              Row(children: [Flexible(child: Text(display, maxLines: 1, overflow: TextOverflow.ellipsis, style: const TextStyle(fontSize: 21, fontWeight: FontWeight.w900))), blueTick(u)]),
+              const SizedBox(height: 3), Text('@$username', style: const TextStyle(color: cMuted, fontSize: 13)),
+            ])),
+            IconButton(tooltip: 'ویرایش پروفایل', onPressed: () => editProfile(u), icon: const Icon(Icons.edit_rounded, color: cBlue)),
+          ]),
+          if (bio.isNotEmpty) ...[const SizedBox(height: 16), Text(bio, style: const TextStyle(fontSize: 14, height: 1.7))],
+          if (website.isNotEmpty) ...[const SizedBox(height: 10), Row(children: [const Icon(Icons.link_rounded, color: cBlue, size: 18), const SizedBox(width: 8), Expanded(child: Text(website, style: const TextStyle(color: cBlue), maxLines: 2, overflow: TextOverflow.ellipsis))])],
+          const SizedBox(height: 18),
+          Row(children: [
+            Expanded(child: _profileMetric('پست‌ها', value(u, 'posts_count', '0'))), const SizedBox(width: 8),
+            Expanded(child: _profileMetric('دنبال‌کننده', value(u, 'followers_count', '0'))), const SizedBox(width: 8),
+            Expanded(child: _profileMetric('دنبال‌شونده', value(u, 'following_count', '0'))),
+          ]),
+        ]),
+      ).animate().fadeIn(duration: 320.ms).slideY(begin: .025, duration: 320.ms, curve: Curves.easeOutCubic),
+      const SizedBox(height: 14),
+      BinerLiquidGlass(borderRadius: BorderRadius.circular(22), padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
+        child: Column(children: [
+          ListTile(leading: const Icon(Icons.tune_rounded, color: cBlue), title: const Text('شخصی‌سازی پروفایل'), subtitle: const Text('نام، تصویر، بیو و لینک‌ها'), trailing: const Icon(Icons.chevron_right_rounded), onTap: () => editProfile(u)),
+          Divider(height: 1, color: cLine.withValues(alpha: .35)),
+          ListTile(leading: const Icon(Icons.shield_outlined, color: cBlue), title: const Text('حریم خصوصی و امنیت'), subtitle: const Text('تنظیمات حساب و محافظت از آن'), trailing: const Icon(Icons.chevron_right_rounded), onTap: () => toast('تنظیمات امنیتی در حال آماده‌سازی است.')),
+          Divider(height: 1, color: cLine.withValues(alpha: .35)),
+          ListTile(leading: const Icon(Icons.logout_rounded, color: Color(0xFFFF7185)), title: const Text('خروج از حساب'), subtitle: const Text('پایان نشست فعلی'), onTap: () async => widget.logout()),
+        ]),
       ),
-      const SizedBox(height: 8),
-      OutlinedButton.icon(onPressed: () async => widget.logout(), icon: const Icon(Icons.logout), label: const Text('خروج از حساب')),
     ]);
   }
+
+  Widget _profileMetric(String label, String count) => Container(
+    padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 6),
+    decoration: BoxDecoration(color: const Color(0xFF08080B), borderRadius: BorderRadius.circular(16), border: Border.all(color: cLine.withValues(alpha: .32))),
+    child: Column(children: [
+      Text(count, style: const TextStyle(fontSize: 19, fontWeight: FontWeight.w900, color: Colors.white)),
+      const SizedBox(height: 4), Text(label, style: const TextStyle(fontSize: 11, color: cMuted)),
+    ]),
+  );
+
   Future<void> editProfile(Map<String, dynamic> user) async {
     final name = TextEditingController(text: value(user, 'display_name'));
     final bio = TextEditingController(text: value(user, 'bio'));
@@ -899,22 +938,26 @@ class _LiveHomeState extends State<LiveHome> {
               child: const Icon(Icons.add_rounded),
             ).animate().scale(begin: const Offset(.78, .78), duration: 240.ms, curve: Curves.easeOutBack)
           : null,
-      bottomNavigationBar: BinerLiquidGlass(
-        borderRadius: BorderRadius.zero,
-        child: NavigationBar(
-          height: 72,
-          backgroundColor: Colors.transparent,
-          elevation: 0,
-          indicatorColor: cBlue.withValues(alpha: .20),
-          selectedIndex: tab,
-          onDestinationSelected: (i) => setState(() => tab = i),
-          destinations: const [
-            NavigationDestination(icon: Icon(Icons.home_outlined), selectedIcon: Icon(Icons.home_rounded, color: cBlue), label: 'خانه'),
-            NavigationDestination(icon: Icon(Icons.search_rounded), selectedIcon: Icon(Icons.search_rounded, color: cBlue), label: 'کاوش'),
-            NavigationDestination(icon: Icon(Icons.notifications_none_rounded), selectedIcon: Icon(Icons.notifications_rounded, color: cBlue), label: 'اعلان‌ها'),
-            NavigationDestination(icon: Icon(Icons.mail_outline_rounded), selectedIcon: Icon(Icons.mail_rounded, color: cBlue), label: 'پیام‌ها'),
-            NavigationDestination(icon: Icon(Icons.person_outline_rounded), selectedIcon: Icon(Icons.person_rounded, color: cBlue), label: 'پروفایل'),
-          ],
+      bottomNavigationBar: Padding(
+        padding: const EdgeInsets.fromLTRB(12, 0, 12, 8),
+        child: BinerLiquidGlass(
+          borderRadius: BorderRadius.circular(26),
+          child: NavigationBar(
+            height: 68,
+            labelBehavior: NavigationDestinationLabelBehavior.onlyShowSelected,
+            backgroundColor: Colors.transparent,
+            elevation: 0,
+            indicatorColor: cBlue.withValues(alpha: .20),
+            selectedIndex: tab,
+            onDestinationSelected: (i) { if (i != tab) setState(() => tab = i); },
+            destinations: const [
+              NavigationDestination(icon: Icon(Icons.home_outlined), selectedIcon: Icon(Icons.home_rounded, color: cBlue), label: 'خانه'),
+              NavigationDestination(icon: Icon(Icons.search_rounded), selectedIcon: Icon(Icons.search_rounded, color: cBlue), label: 'کاوش'),
+              NavigationDestination(icon: Icon(Icons.notifications_none_rounded), selectedIcon: Icon(Icons.notifications_rounded, color: cBlue), label: 'اعلان‌ها'),
+              NavigationDestination(icon: Icon(Icons.mail_outline_rounded), selectedIcon: Icon(Icons.mail_rounded, color: cBlue), label: 'پیام‌ها'),
+              NavigationDestination(icon: Icon(Icons.person_outline_rounded), selectedIcon: Icon(Icons.person_rounded, color: cBlue), label: 'پروفایل'),
+            ],
+          ),
         ),
       ),
     );
@@ -980,7 +1023,7 @@ class _ChatPageState extends State<ChatPage> {
         if (scroll.hasClients) scroll.animateTo(scroll.position.maxScrollExtent, duration: const Duration(milliseconds: 220), curve: Curves.easeOut);
       });
     } on ApiException catch (e) {
-      if (mounted) { controller.text = text; ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(e.message))); }
+      if (mounted) { controller.text = raw; ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(e.message), behavior: SnackBarBehavior.floating, shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(18)))); }
     } finally {
       if (mounted) setState(() => sending = false);
     }
@@ -1031,7 +1074,7 @@ class _ChatPageState extends State<ChatPage> {
 
   Widget messageList() {
     if (loading && items.isEmpty) {
-      return const Center(child: CircularProgressIndicator(color: cBlue));
+      return const ListView(children: [BinerSkeleton(lines: 2), BinerSkeleton(lines: 2), BinerSkeleton(lines: 2)]);
     }
     if (error != null && items.isEmpty) {
       return Center(
@@ -1089,9 +1132,10 @@ class _ChatPageState extends State<ChatPage> {
   Widget build(BuildContext context) => Scaffold(
     appBar: AppBar(
       title: Text(widget.title),
-      backgroundColor: Theme.of(context).colorScheme.surface,
+      backgroundColor: const Color(0xFF050507),
       foregroundColor: Theme.of(context).colorScheme.onSurface,
-      actions: [IconButton(onPressed: loadMessages, icon: const Icon(Icons.refresh))],
+      title: Row(children: [Container(width: 34, height: 34, decoration: BoxDecoration(shape: BoxShape.circle, color: cBlue.withValues(alpha: .12), border: Border.all(color: cLine)), child: const Icon(Icons.person_rounded, color: cBlue, size: 20)), const SizedBox(width: 10), Expanded(child: Text(widget.title, maxLines: 1, overflow: TextOverflow.ellipsis, style: const TextStyle(fontWeight: FontWeight.w800, fontSize: 17)))]),
+      actions: [IconButton(tooltip: 'بارگذاری دوباره', onPressed: loadMessages, icon: const Icon(Icons.refresh_rounded))],
     ),
     body: Column(
       children: [
