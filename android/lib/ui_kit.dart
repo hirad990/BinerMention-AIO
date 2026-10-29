@@ -149,7 +149,9 @@ class BinerLiquidGlass extends StatelessWidget {
         borderRadius: borderRadius,
         child: BackdropFilter(
           filter: ImageFilter.blur(sigmaX: 18, sigmaY: 18),
-          child: Container(
+          child: AnimatedContainer(
+            duration: const Duration(milliseconds: 260),
+            curve: Curves.easeOutCubic,
             padding: padding,
             decoration: BoxDecoration(
               borderRadius: borderRadius,
