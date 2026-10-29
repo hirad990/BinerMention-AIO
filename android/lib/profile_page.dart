@@ -46,6 +46,7 @@ class _UserProfilePageState extends State<UserProfilePage> {
         user = person;
         myId = mine;
         posts = userPosts;
+        person['posts_count'] = userPosts.length;
         loading = false;
       });
     } on ApiException catch (e) {
@@ -167,7 +168,7 @@ class _UserProfilePageState extends State<UserProfilePage> {
                         child: url.startsWith('https://') ? null : const Icon(Icons.person_outline),
                       ),
                       title: Text(name),
-                      subtitle: Text('@${person['username'] ?? ''}', style: TextStyle(color: muted)),
+                      subtitle: Text("@${person['username'] ?? ''}", style: TextStyle(color: muted)),
                     );
                   },
                 );
