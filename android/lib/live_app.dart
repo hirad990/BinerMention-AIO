@@ -335,7 +335,7 @@ class _LiveHomeState extends State<LiveHome> {
           TextButton.icon(style: TextButton.styleFrom(foregroundColor: liked ? const Color(0xFFF91880) : cMuted, visualDensity: VisualDensity.compact, padding: const EdgeInsets.symmetric(horizontal: 7)), onPressed: () => toggle(p, 'like'), icon: Icon(liked ? Icons.favorite : Icons.favorite_border, size: 17), label: Text(fmt(p['likes_count'] ?? 0))),
         ]),
       ])),
-    ]));
+    ])).animate().fadeIn(duration: 240.ms).slideY(begin: .035, duration: 240.ms, curve: Curves.easeOutCubic);
   }
   Widget home() => Column(
     children: [
