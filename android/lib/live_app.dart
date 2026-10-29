@@ -197,7 +197,7 @@ class _LiveHomeState extends State<LiveHome> {
       context: context,
       isScrollControlled: true,
       useSafeArea: true,
-      backgroundColor: cPanel,
+      backgroundColor: Theme.of(context).colorScheme.surface,
       builder: (ctx) => StatefulBuilder(
         builder: (ctx, sheetSetState) => Padding(
           padding: EdgeInsets.fromLTRB(18, 18, 18, MediaQuery.of(ctx).viewInsets.bottom + 18),
@@ -358,7 +358,7 @@ class _LiveHomeState extends State<LiveHome> {
             const Expanded(child: Text('گفت‌وگوی پست', style: TextStyle(fontSize: 21, fontWeight: FontWeight.w800))),
             Text(fmt(post['replies_count'] ?? 0) + ' پاسخ', style: const TextStyle(color: cMuted)),
           ])),
-          Container(margin: const EdgeInsets.symmetric(horizontal: 12), decoration: BoxDecoration(color: cGlass, borderRadius: BorderRadius.circular(20), border: Border.all(color: cLine)), child: card(post)),
+          Container(margin: const EdgeInsets.symmetric(horizontal: 12), decoration: BoxDecoration(color: Theme.of(context).brightness == Brightness.dark ? cGlass : const Color(0xEFFFFFFF), borderRadius: BorderRadius.circular(20), border: Border.all(color: cLine)), child: card(post)),
           Expanded(
             child: FutureBuilder<List<Map<String, dynamic>>>(
               future: widget.api.posts(limit: 50, replyToId: id),
@@ -425,7 +425,7 @@ class _LiveHomeState extends State<LiveHome> {
     children: [
       Padding(padding: const EdgeInsets.fromLTRB(16, 12, 16, 8), child: Row(children: [
         const Brand(), const Spacer(),
-        Container(decoration: BoxDecoration(color: cGlass, borderRadius: BorderRadius.circular(18), border: Border.all(color: cLine)), child: IconButton(onPressed: searchUser, icon: const Icon(Icons.search_rounded, color: cBlue), tooltip: 'جست‌وجوی کاربر')),
+        Container(decoration: BoxDecoration(color: Theme.of(context).brightness == Brightness.dark ? cGlass : const Color(0xEFFFFFFF), borderRadius: BorderRadius.circular(18), border: Border.all(color: cLine)), child: IconButton(onPressed: searchUser, icon: const Icon(Icons.search_rounded, color: cBlue), tooltip: 'جست‌وجوی کاربر')),
         const SizedBox(width: 4),
         IconButton(
           tooltip: widget.isDark ? 'حالت روشن' : 'حالت تیره',
@@ -433,7 +433,7 @@ class _LiveHomeState extends State<LiveHome> {
           icon: Icon(widget.isDark ? Icons.light_mode_rounded : Icons.dark_mode_rounded, color: cBlue),
         ),
         const SizedBox(width: 4),
-        Hero(tag: 'biner-profile-avatar', child: Container(padding: const EdgeInsets.all(2), decoration: BoxDecoration(shape: BoxShape.circle, gradient: const LinearGradient(colors: [cBlue, Color(0xFF725BFF)])), child: CircleAvatar(radius: 17, backgroundColor: cPanel, backgroundImage: (me?['avatar_url']?.toString().startsWith('https://') ?? false) ? NetworkImage(me!['avatar_url'].toString()) : null, child: (me?['avatar_url']?.toString().startsWith('https://') ?? false) ? null : const Icon(Icons.person, size: 18)))),
+        Hero(tag: 'biner-profile-avatar', child: Container(padding: const EdgeInsets.all(2), decoration: BoxDecoration(shape: BoxShape.circle, gradient: const LinearGradient(colors: [cBlue, Color(0xFF725BFF)])), child: CircleAvatar(radius: 17, backgroundColor: Theme.of(context).colorScheme.surface, backgroundImage: (me?['avatar_url']?.toString().startsWith('https://') ?? false) ? NetworkImage(me!['avatar_url'].toString()) : null, child: (me?['avatar_url']?.toString().startsWith('https://') ?? false) ? null : const Icon(Icons.person, size: 18)))),
       ])),
       Row(children: [
         Expanded(child: InkWell(
@@ -653,46 +653,7 @@ class _LiveHomeState extends State<LiveHome> {
     );
     controller.dispose();
     if (selected == null || !mounted) return;
-    final user = selected;
-    final selfId = int.tryParse(value(me ?? {}, 'id', '-1')) ?? -1;
-    final userId = int.tryParse(user['id'].toString()) ?? -1;
-    var following = user['is_following'] == true;
-    await showDialog<void>(
-      context: context,
-      builder: (ctx) => StatefulBuilder(
-        builder: (ctx, dialogSetState) => AlertDialog(
-          backgroundColor: cPanel,
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(26), side: const BorderSide(color: cLine)),
-          title: Row(mainAxisSize: MainAxisSize.min, children: [
-            Flexible(child: Text(value(user, 'display_name', value(user, 'username', 'کاربر')))),
-            blueTick(user),
-          ]),
-          content: Column(mainAxisSize: MainAxisSize.min, crossAxisAlignment: CrossAxisAlignment.start, children: [
-            Row(children: [Text('@' + value(user, 'username'), style: const TextStyle(color: cMuted)), blueTick(user)]),
-            if (value(user, 'bio').isNotEmpty) Padding(padding: const EdgeInsets.only(top: 10), child: Text(value(user, 'bio'))),
-            const SizedBox(height: 10),
-            Text('${value(user, 'followers_count', '0')} دنبال‌کننده • ${value(user, 'following_count', '0')} دنبال‌شونده'),
-            if (value(user, 'website').isNotEmpty) Padding(padding: const EdgeInsets.only(top: 8), child: Text(value(user, 'website'), style: const TextStyle(color: cBlue))),
-          ]),
-          actions: [
-            TextButton(onPressed: () => Navigator.pop(ctx), child: const Text('بستن')),
-            if (selfId != userId && selfId >= 0)
-              FilledButton(
-                onPressed: () async {
-                  try {
-                    await widget.api.followUser(userId, !following);
-                    dialogSetState(() => following = !following);
-                  } on ApiException catch (e) {
-                    if (mounted) toast(e.message);
-                  }
-                },
-                child: Text(following ? 'دنبال‌نکردن' : 'دنبال‌کردن'),
-              ),
-            if (selfId == userId) const Padding(padding: EdgeInsets.all(8), child: Text('این حساب خودت است.')),
-          ],
-        ),
-      ),
-    );
+    await openUserProfile(value(selected, 'username'));
   }
 
   Widget profile() {
@@ -726,7 +687,7 @@ class _LiveHomeState extends State<LiveHome> {
       context: context,
       builder: (ctx) => StatefulBuilder(
         builder: (ctx, dialogSetState) => AlertDialog(
-          backgroundColor: cPanel,
+          backgroundColor: Theme.of(ctx).colorScheme.surface,
           shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(26), side: const BorderSide(color: cLine)),
           title: const Text('شخصی‌سازی پروفایل'),
           content: SingleChildScrollView(child: Column(mainAxisSize: MainAxisSize.min, children: [
@@ -734,7 +695,7 @@ class _LiveHomeState extends State<LiveHome> {
               padding: const EdgeInsets.all(3),
               decoration: const BoxDecoration(shape: BoxShape.circle, gradient: LinearGradient(colors: [cBlue, Color(0xFF855DFF)])),
               child: CircleAvatar(
-                radius: 38, backgroundColor: cBg,
+                radius: 38, backgroundColor: Theme.of(context).scaffoldBackgroundColor,
                 backgroundImage: avatarFile != null ? FileImage(File(avatarFile!.path)) : (value(user, 'avatar_url').startsWith('https://') ? NetworkImage(value(user, 'avatar_url')) : null) as ImageProvider?,
                 child: avatarFile == null && !value(user, 'avatar_url').startsWith('https://') ? const Icon(Icons.person, size: 34, color: cBlue) : null,
               ),
