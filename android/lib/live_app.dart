@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'api_client.dart';
 import 'ui_kit.dart';
+import 'profile_page.dart';
 import 'package:image_picker/image_picker.dart';
 
 const cBg = Color(0xFF050812), cPanel = Color(0xCC101B2C), cLine = Color(0x5537BFFF), cBlue = Color(0xFF39C5FF), cMuted = Color(0xFF91A6C3), cGlass = Color(0x99121F32);
@@ -107,6 +108,7 @@ class LiveHome extends StatefulWidget {
 class _LiveHomeState extends State<LiveHome> {
   int tab = 0; bool loading = true, posting = false, followingFeed = false; String? error;
   final posts = <Map<String, dynamic>>[]; Map<String, dynamic>? me;
+  final Set<String> _postActionsInFlight = <String>{};
   @override void initState() { super.initState(); refresh(); loadProfile(); }
   Future<void> loadProfile() async { try { final u = await widget.api.me(); if (mounted) setState(() => me = u); } on ApiException catch (e) { if (mounted) setState(() => error = e.message); } }
   Future<void> refresh() async {
@@ -116,6 +118,78 @@ class _LiveHomeState extends State<LiveHome> {
     finally { if (mounted) setState(() => loading = false); }
   }
   void toast(String s) => ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(s)));
+
+  Future<void> openUserProfile(String username) async {
+    final normalized = username.trim().replaceFirst(RegExp(r'^@'), '');
+    if (normalized.isEmpty || !mounted) return;
+    await Navigator.of(context).push(MaterialPageRoute<void>(
+      builder: (_) => UserProfilePage(api: widget.api, username: normalized),
+    ));
+  }
+
+  Future<void> openHashtag(String hashtag) async {
+    final query = hashtag.trim().replaceFirst(RegExp(r'^#'), '');
+    if (query.isEmpty) return;
+    await showModalBottomSheet<void>(
+      context: context,
+      isScrollControlled: true,
+      useSafeArea: true,
+      backgroundColor: Colors.transparent,
+      builder: (ctx) => Container(
+        height: MediaQuery.of(ctx).size.height * .78,
+        decoration: BoxDecoration(
+          color: Theme.of(ctx).brightness == Brightness.dark ? const Color(0xF20B1422) : const Color(0xF7FFFFFF),
+          borderRadius: const BorderRadius.vertical(top: Radius.circular(28)),
+          border: Border.all(color: cLine),
+        ),
+        child: Column(children: [
+          Padding(
+            padding: const EdgeInsets.all(18),
+            child: Row(children: [
+              const Icon(Icons.tag_rounded, color: cBlue),
+              const SizedBox(width: 8),
+              Expanded(child: Text('#$query', style: const TextStyle(fontSize: 22, fontWeight: FontWeight.w800))),
+            ]),
+          ),
+          Expanded(
+            child: FutureBuilder<List<Map<String, dynamic>>>(
+              future: widget.api.searchPosts(query),
+              builder: (context, snapshot) {
+                if (snapshot.connectionState == ConnectionState.waiting) return const Center(child: CircularProgressIndicator(color: cBlue));
+                if (snapshot.hasError) return Center(child: Padding(padding: const EdgeInsets.all(20), child: Text(snapshot.error.toString(), textAlign: TextAlign.center)));
+                final found = snapshot.data ?? const <Map<String, dynamic>>[];
+                if (found.isEmpty) return const Center(child: Text('پستی با این هشتگ پیدا نشد.'));
+                return ListView.builder(itemCount: found.length, itemBuilder: (_, i) => card(found[i]));
+              },
+            ),
+          ),
+        ]),
+      ),
+    );
+  }
+
+  Widget richPostBody(String body) {
+    final spans = <InlineSpan>[];
+    final pattern = RegExp(r'(#|@)([A-Za-z0-9_]{2,24})');
+    var cursor = 0;
+    for (final match in pattern.allMatches(body)) {
+      if (match.start > cursor) spans.add(TextSpan(text: body.substring(cursor, match.start)));
+      final token = match.group(0)!;
+      final isTag = match.group(1) == '#';
+      final value = match.group(2)!;
+      spans.add(WidgetSpan(
+        alignment: PlaceholderAlignment.baseline,
+        baseline: TextBaseline.alphabetic,
+        child: GestureDetector(
+          onTap: () => isTag ? openHashtag(value) : openUserProfile(value),
+          child: Text(token, style: TextStyle(color: isTag ? const Color(0xFF35A7F5) : const Color(0xFF9B8CFF), fontWeight: FontWeight.w700)),
+        ),
+      ));
+      cursor = match.end;
+    }
+    if (cursor < body.length) spans.add(TextSpan(text: body.substring(cursor)));
+    return RichText(text: TextSpan(style: TextStyle(color: Theme.of(context).colorScheme.onSurface, fontSize: 15, height: 1.48, letterSpacing: .05), children: spans));
+  }
   Future<void> compose({int? replyToId}) async {
     final controller = TextEditingController();
     XFile? attachment;
@@ -230,10 +304,20 @@ class _LiveHomeState extends State<LiveHome> {
   Future<void> toggle(Map<String, dynamic> p, String actionName) async {
     final flag = actionName == 'like' ? 'liked' : 'reposted', count = actionName == 'like' ? 'likes_count' : 'reposts_count';
     final id = int.tryParse(p['id'].toString()); if (id == null) return;
+    final lockKey = '$id:$actionName';
+    if (_postActionsInFlight.contains(lockKey)) return;
+    _postActionsInFlight.add(lockKey);
     final oldFlag = p[flag] == true, oldCount = int.tryParse((p[count] ?? 0).toString()) ?? 0;
     setState(() { p[flag] = !oldFlag; p[count] = oldCount + (oldFlag ? -1 : 1); });
-    try { await widget.api.togglePostAction(id, actionName, !oldFlag); }
-    on ApiException catch (e) { if (!mounted) return; setState(() { p[flag] = oldFlag; p[count] = oldCount; }); toast(e.message); }
+    try {
+      await widget.api.togglePostAction(id, actionName, !oldFlag);
+    } on ApiException catch (e) {
+      if (!mounted) return;
+      setState(() { p[flag] = oldFlag; p[count] = oldCount; });
+      toast(e.message);
+    } finally {
+      _postActionsInFlight.remove(lockKey);
+    }
   }
   String value(Map<String, dynamic> m, String k, [String fallback = '']) => m[k]?.toString() ?? fallback;
   String fmt(dynamic raw) { final n = int.tryParse(raw.toString()) ?? 0; if (n >= 1000) return (n / 1000).toStringAsFixed(1) + 'K'; return n.toString(); }
@@ -266,7 +350,7 @@ class _LiveHomeState extends State<LiveHome> {
       backgroundColor: Colors.transparent,
       builder: (ctx) => Container(
         height: MediaQuery.of(ctx).size.height * .76,
-        decoration: BoxDecoration(color: const Color(0xF20B1422), borderRadius: const BorderRadius.vertical(top: Radius.circular(28)), border: Border.all(color: cLine)),
+        decoration: BoxDecoration(color: Theme.of(ctx).brightness == Brightness.dark ? const Color(0xF20B1422) : const Color(0xF7FFFFFF), borderRadius: const BorderRadius.vertical(top: Radius.circular(28)), border: Border.all(color: cLine)),
         child: Column(children: [
           const SizedBox(height: 12),
           Container(width: 42, height: 4, decoration: BoxDecoration(color: cMuted.withValues(alpha: .5), borderRadius: BorderRadius.circular(4))),
@@ -303,13 +387,13 @@ class _LiveHomeState extends State<LiveHome> {
     final name = value(p, 'display_name', value(p, 'username', 'کاربر'));
     final body = value(p, 'body');
     final liked = p['liked'] == true, reposted = p['reposted'] == true;
-    return Container(padding: const EdgeInsets.fromLTRB(14, 14, 14, 8), margin: const EdgeInsets.symmetric(horizontal: 8), decoration: const BoxDecoration(color: Color(0x99101826), border: Border(bottom: BorderSide(color: Color(0x332D4058)))), child: Row(crossAxisAlignment: CrossAxisAlignment.start, children: [
-      avatar(name, p, 21), const SizedBox(width: 10), Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+    return Container(padding: const EdgeInsets.fromLTRB(14, 14, 14, 8), margin: const EdgeInsets.symmetric(horizontal: 8), decoration: BoxDecoration(color: Theme.of(context).brightness == Brightness.dark ? const Color(0x99101826) : const Color(0xDFFFFFFF), border: Border(bottom: BorderSide(color: Theme.of(context).brightness == Brightness.dark ? const Color(0x332D4058) : const Color(0x223D6592)))), child: Row(crossAxisAlignment: CrossAxisAlignment.start, children: [
+      GestureDetector(onTap: () => openUserProfile(value(p, 'username')), child: avatar(name, p, 21)), const SizedBox(width: 10), Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
         Row(children: [
           Expanded(child: Wrap(crossAxisAlignment: WrapCrossAlignment.center, spacing: 3, children: [
-            Text(name, style: const TextStyle(fontWeight: FontWeight.w800, fontSize: 14)),
+            GestureDetector(onTap: () => openUserProfile(value(p, 'username')), child: Text(name, style: const TextStyle(fontWeight: FontWeight.w800, fontSize: 14))),
             blueTick(p),
-            Text('@' + value(p, 'username', 'user'), style: const TextStyle(color: Color(0xFF8496AC), fontSize: 12)),
+            GestureDetector(onTap: () => openUserProfile(value(p, 'username')), child: Text('@' + value(p, 'username', 'user'), style: const TextStyle(color: Color(0xFF8496AC), fontSize: 12))),
           ])),
           if (value(p, 'user_id') == value(me ?? {}, 'id'))
             PopupMenuButton<String>(
@@ -326,7 +410,7 @@ class _LiveHomeState extends State<LiveHome> {
               ],
             ),
         ]),
-        if (body.isNotEmpty) Padding(padding: const EdgeInsets.only(top: 8, right: 2), child: Text(body, style: const TextStyle(fontSize: 15, height: 1.48, letterSpacing: .05))),
+        if (body.isNotEmpty) Padding(padding: const EdgeInsets.only(top: 8, right: 2), child: richPostBody(body)),
         if (value(p, 'media_url').startsWith('https://')) Padding(padding: const EdgeInsets.only(top: 10), child: ClipRRect(borderRadius: BorderRadius.circular(14), child: Image.network(value(p, 'media_url'), fit: BoxFit.cover, errorBuilder: (_, __, ___) => const SizedBox.shrink()))),
         const SizedBox(height: 10),
         Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [
@@ -355,14 +439,14 @@ class _LiveHomeState extends State<LiveHome> {
         Expanded(child: InkWell(
           onTap: () { if (followingFeed) { setState(() => followingFeed = false); refresh(); } },
           child: Column(children: [
-            Padding(padding: const EdgeInsets.symmetric(vertical: 12), child: Text('برای تو', style: TextStyle(fontWeight: FontWeight.bold, color: followingFeed ? cMuted : Colors.white))),
+            Padding(padding: const EdgeInsets.symmetric(vertical: 12), child: Text('برای تو', style: TextStyle(fontWeight: FontWeight.bold, color: followingFeed ? cMuted : Theme.of(context).colorScheme.onSurface))),
             Container(height: 3, width: 82, decoration: BoxDecoration(color: followingFeed ? Colors.transparent : cBlue, borderRadius: BorderRadius.circular(3))),
           ]),
         )),
         Expanded(child: InkWell(
           onTap: () { if (!followingFeed) { setState(() => followingFeed = true); refresh(); } },
           child: Column(children: [
-            Padding(padding: const EdgeInsets.symmetric(vertical: 12), child: Text('دنبال‌شونده‌ها', style: TextStyle(fontWeight: FontWeight.bold, color: followingFeed ? Colors.white : cMuted))),
+            Padding(padding: const EdgeInsets.symmetric(vertical: 12), child: Text('دنبال‌شونده‌ها', style: TextStyle(fontWeight: FontWeight.bold, color: followingFeed ? Theme.of(context).colorScheme.onSurface : cMuted))),
             Container(height: 3, width: 112, decoration: BoxDecoration(color: followingFeed ? cBlue : Colors.transparent, borderRadius: BorderRadius.circular(3))),
           ]),
         )),
@@ -622,6 +706,7 @@ class _LiveHomeState extends State<LiveHome> {
       ]),
       Center(child: Text('@' + value(u, 'username'), style: const TextStyle(color: cMuted))),
       if (value(u, 'bio').isNotEmpty) Padding(padding: const EdgeInsets.only(top: 12), child: Text(value(u, 'bio'))),
+      if (value(u, 'website').isNotEmpty) Padding(padding: const EdgeInsets.only(top: 8), child: Text(value(u, 'website'), style: const TextStyle(color: cBlue))),
       const SizedBox(height: 20),
       OutlinedButton.icon(
         onPressed: () => editProfile(u),
