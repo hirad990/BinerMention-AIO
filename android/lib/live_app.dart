@@ -2,6 +2,7 @@ import 'dart:io';
 import 'dart:ui';
 import 'package:flutter/services.dart';
 import 'package:flutter/material.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'api_client.dart';
 import 'ui_kit.dart';
@@ -18,9 +19,15 @@ class _BinerLiveAppState extends State<BinerLiveApp> {
   final api = BinerApi();
   bool ready = false, loggedIn = false;
   ThemeMode themeMode = ThemeMode.dark;
-  void toggleTheme() => setState(() => themeMode = themeMode == ThemeMode.dark ? ThemeMode.light : ThemeMode.dark);
+  void toggleTheme() {
+    final next = themeMode == ThemeMode.dark ? ThemeMode.light : ThemeMode.dark;
+    setState(() => themeMode = next);
+    SharedPreferences.getInstance().then((prefs) => prefs.setBool('biner_theme_dark', next == ThemeMode.dark));
+  }
   @override void initState() { super.initState(); init(); }
   Future<void> init() async {
+    final prefs = await SharedPreferences.getInstance();
+    themeMode = prefs.getBool('biner_theme_dark') == false ? ThemeMode.light : ThemeMode.dark;
     await api.restoreSession();
     if (api.isAuthenticated) { try { await api.me(); loggedIn = true; } on ApiException { loggedIn = false; } }
     if (mounted) setState(() => ready = true);
