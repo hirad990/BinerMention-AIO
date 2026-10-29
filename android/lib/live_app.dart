@@ -344,9 +344,9 @@ class _LiveHomeState extends State<LiveHome> {
         Container(decoration: BoxDecoration(color: cGlass, borderRadius: BorderRadius.circular(18), border: Border.all(color: cLine)), child: IconButton(onPressed: searchUser, icon: const Icon(Icons.search_rounded, color: cBlue), tooltip: 'جست‌وجوی کاربر')),
         const SizedBox(width: 4),
         IconButton(
-          tooltip: isDark ? 'حالت روشن' : 'حالت تیره',
+          tooltip: widget.isDark ? 'حالت روشن' : 'حالت تیره',
           onPressed: widget.onToggleTheme,
-          icon: Icon(isDark ? Icons.light_mode_rounded : Icons.dark_mode_rounded, color: cBlue),
+          icon: Icon(widget.isDark ? Icons.light_mode_rounded : Icons.dark_mode_rounded, color: cBlue),
         ),
         const SizedBox(width: 4),
         Hero(tag: 'biner-profile-avatar', child: Container(padding: const EdgeInsets.all(2), decoration: BoxDecoration(shape: BoxShape.circle, gradient: const LinearGradient(colors: [cBlue, Color(0xFF725BFF)])), child: CircleAvatar(radius: 17, backgroundColor: cPanel, backgroundImage: (me?['avatar_url']?.toString().startsWith('https://') ?? false) ? NetworkImage(me!['avatar_url'].toString()) : null, child: (me?['avatar_url']?.toString().startsWith('https://') ?? false) ? null : const Icon(Icons.person, size: 18)))),
