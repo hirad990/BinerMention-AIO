@@ -290,5 +290,17 @@ class BinerApi {
     await _request('POST', 'v1/conversations/$conversationId/read');
   }
 
+  Future<void> blockConversationUser(int conversationId) async {
+    await _request('POST', 'v1/conversations/$conversationId/block');
+  }
+
+  Future<void> unblockConversationUser(int conversationId) async {
+    await _request('DELETE', 'v1/conversations/$conversationId/block');
+  }
+
+  Future<void> reportConversation(int conversationId, String reason) async {
+    await _request('POST', 'v1/conversations/$conversationId/report', body: {'reason': reason});
+  }
+
   void dispose() => _client.close();
 }
