@@ -1,5 +1,6 @@
 import 'dart:io';
 import 'dart:ui';
+import 'dart:convert';
 import 'package:flutter/services.dart';
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -114,9 +115,129 @@ class LiveHome extends StatefulWidget {
 }
 class _LiveHomeState extends State<LiveHome> {
   int tab = 0; bool loading = true, posting = false, followingFeed = false; String? error;
-  final posts = <Map<String, dynamic>>[]; Map<String, dynamic>? me;
+  final posts = <Map<String, dynamic>>[];
+  final savedPosts = <Map<String, dynamic>>[];
+  Map<String, dynamic>? me;
+  String exploreQuery = '';
+  Future<List<dynamic>>? exploreResults;
   final Set<String> _postActionsInFlight = <String>{};
-  @override void initState() { super.initState(); refresh(); loadProfile(); }
+  @override void initState() { super.initState(); refresh(); loadProfile(); loadSavedPosts(); }
+  Future<void> loadSavedPosts() async {
+    final prefs = await SharedPreferences.getInstance();
+    final encoded = prefs.getStringList('biner_saved_posts') ?? const <String>[];
+    final restored = <Map<String, dynamic>>[];
+    for (final item in encoded) {
+      try { final decoded = jsonDecode(item); if (decoded is Map) restored.add(Map<String, dynamic>.from(decoded)); } catch (_) {}
+    }
+    if (mounted) setState(() { savedPosts..clear()..addAll(restored); });
+  }
+  Future<void> toggleSavedPost(Map<String, dynamic> post) async {
+    final id = value(post, 'id');
+    if (id.isEmpty) return;
+    final wasSaved = savedPosts.any((item) => value(item, 'id') == id);
+    setState(() {
+      if (wasSaved) { savedPosts.removeWhere((item) => value(item, 'id') == id); }
+      else { savedPosts.insert(0, Map<String, dynamic>.from(post)); }
+    });
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setStringList('biner_saved_posts', savedPosts.map((item) => jsonEncode(item)).toList());
+    if (mounted) toast(wasSaved ? 'از ذخیره‌ها حذف شد.' : 'پست در ذخیره‌ها قرار گرفت.');
+  }
+  Future<void> copyPost(Map<String, dynamic> post) async {
+    final body = value(post, 'body');
+    final username = value(post, 'username');
+    await Clipboard.setData(ClipboardData(text: '@$username\n$body'));
+    if (mounted) toast('متن پست کپی شد.');
+  }
+  void updateExploreQuery(String query) {
+    setState(() {
+      exploreQuery = query.trim();
+      if (exploreQuery.isEmpty) {
+        exploreResults = null;
+      } else {
+        final q = exploreQuery.replaceFirst(RegExp(r'^[#@]'), '');
+        exploreResults = Future.wait<dynamic>([widget.api.searchUsers(q), widget.api.searchPosts(q)]);
+      }
+    });
+  }
+  Widget explore() {
+    final dark = Theme.of(context).brightness == Brightness.dark;
+    final tags = <String, int>{};
+    final pattern = RegExp(r'#[A-Za-z0-9_\u0600-\u06FF]{2,40}');
+    for (final post in posts) {
+      for (final match in pattern.allMatches(value(post, 'body'))) {
+        final tag = match.group(0)!;
+        tags[tag] = (tags[tag] ?? 0) + 1;
+      }
+    }
+    final trending = tags.entries.toList()..sort((a, b) => b.value.compareTo(a.value));
+    return ListView(padding: const EdgeInsets.only(bottom: 20), children: [
+      Padding(padding: const EdgeInsets.fromLTRB(18, 18, 18, 10), child: Row(children: [
+        const Expanded(child: Text('کاوش و ترندها', style: TextStyle(fontSize: 25, fontWeight: FontWeight.w900))),
+        const Icon(Icons.auto_awesome_rounded, color: cBlue),
+      ])),
+      Padding(padding: const EdgeInsets.symmetric(horizontal: 16), child: TextField(
+        onChanged: updateExploreQuery,
+        textInputAction: TextInputAction.search,
+        decoration: InputDecoration(
+          prefixIcon: const Icon(Icons.search_rounded),
+          hintText: 'جست‌وجوی پست، هشتگ یا کاربر…',
+          filled: true,
+          fillColor: dark ? cGlass : const Color(0xF7FFFFFF),
+          border: OutlineInputBorder(borderRadius: BorderRadius.circular(20), borderSide: BorderSide(color: cLine)),
+          enabledBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(20), borderSide: BorderSide(color: cLine.withValues(alpha: .45))),
+        ),
+      )),
+      if (exploreQuery.isEmpty) ...[
+        Padding(padding: const EdgeInsets.fromLTRB(18, 22, 18, 10), child: Row(children: [
+          const Icon(Icons.local_fire_department_rounded, color: Color(0xFFFF8A4C)),
+          const SizedBox(width: 8),
+          const Text('هشتگ‌های داغ', style: TextStyle(fontSize: 18, fontWeight: FontWeight.w800)),
+          const Spacer(),
+          const Text('از پست‌های بارگذاری‌شده', style: TextStyle(color: cMuted, fontSize: 11)),
+        ])),
+        if (trending.isEmpty)
+          const Padding(padding: EdgeInsets.fromLTRB(18, 4, 18, 18), child: Text('با انتشار پست‌های دارای هشتگ، این بخش پر می‌شود.', style: TextStyle(color: cMuted)))
+        else
+          Padding(padding: const EdgeInsets.symmetric(horizontal: 16), child: Wrap(
+            spacing: 8, runSpacing: 8,
+            children: trending.take(12).map((entry) => ActionChip(
+              avatar: const Icon(Icons.tag_rounded, size: 17, color: cBlue),
+              label: Text(entry.key),
+              onPressed: () => updateExploreQuery(entry.key),
+            )).toList(),
+          )),
+        const Padding(padding: EdgeInsets.fromLTRB(18, 24, 18, 8), child: Row(children: [
+          Icon(Icons.bolt_rounded, color: cBlue),
+          SizedBox(width: 8),
+          Text('پست‌های پیشنهادی', style: TextStyle(fontSize: 18, fontWeight: FontWeight.w800)),
+        ])),
+        ...posts.map(card),
+      ] else if (exploreResults != null)
+        FutureBuilder<List<dynamic>>(
+          future: exploreResults,
+          builder: (context, snapshot) {
+            if (snapshot.connectionState == ConnectionState.waiting) return const Padding(padding: EdgeInsets.all(32), child: Center(child: CircularProgressIndicator(color: cBlue)));
+            if (snapshot.hasError) return Padding(padding: const EdgeInsets.all(24), child: Text('جست‌وجو انجام نشد: ${snapshot.error}', textAlign: TextAlign.center));
+            final users = snapshot.data != null && snapshot.data!.isNotEmpty ? snapshot.data![0] as List<Map<String, dynamic>> : <Map<String, dynamic>>[];
+            final foundPosts = snapshot.data != null && snapshot.data!.length > 1 ? snapshot.data![1] as List<Map<String, dynamic>> : <Map<String, dynamic>>[];
+            return Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
+              if (users.isNotEmpty) const Padding(padding: EdgeInsets.fromLTRB(18, 18, 18, 4), child: Text('آدم‌ها', style: TextStyle(fontSize: 18, fontWeight: FontWeight.w800))),
+              ...users.take(8).map((user) => ListTile(
+                leading: avatar(value(user, 'display_name', value(user, 'username', 'کاربر')), user, 22),
+                title: Text(value(user, 'display_name', value(user, 'username', 'کاربر'))),
+                subtitle: Text('@${value(user, 'username')}', style: const TextStyle(color: cMuted)),
+                trailing: const Icon(Icons.chevron_right_rounded, color: cBlue),
+                onTap: () => openUserProfile(value(user, 'username')),
+              )),
+              if (foundPosts.isNotEmpty) const Padding(padding: EdgeInsets.fromLTRB(18, 18, 18, 4), child: Text('پست‌ها', style: TextStyle(fontSize: 18, fontWeight: FontWeight.w800))),
+              ...foundPosts.map(card),
+              if (users.isEmpty && foundPosts.isEmpty) const Padding(padding: EdgeInsets.all(32), child: Center(child: Text('نتیجه‌ای پیدا نشد.'))),
+            ]);
+          },
+        ),
+    ]);
+  }
   Future<void> loadProfile() async { try { final u = await widget.api.me(); if (mounted) setState(() => me = u); } on ApiException catch (e) { if (mounted) setState(() => error = e.message); } }
   Future<void> refresh() async {
     setState(() { loading = true; error = null; });
