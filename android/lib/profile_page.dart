@@ -20,7 +20,7 @@ class _UserProfilePageState extends State<UserProfilePage> {
   int? myId;
 
   bool get dark => Theme.of(context).brightness == Brightness.dark;
-  Color get surface => dark ? const Color(0xCC101B2C) : const Color(0xEFFFFFFF);
+  Color get surface => dark ? const Color(0xE60B0B10) : const Color(0xEFFFFFFF);
   Color get muted => dark ? const Color(0xFF91A6C3) : const Color(0xFF66758B);
 
   @override
@@ -193,9 +193,8 @@ class _UserProfilePageState extends State<UserProfilePage> {
     final display = post['display_name']?.toString() ?? post['username']?.toString() ?? 'کاربر';
     final likes = post['likes_count']?.toString() ?? '0';
     final reposts = post['reposts_count']?.toString() ?? '0';
-    return Container(
-      margin: const EdgeInsets.fromLTRB(16, 6, 16, 8),
-      padding: const EdgeInsets.all(16),
+    return BinerLiquidGlass(margin: const EdgeInsets.fromLTRB(16, 6, 16, 8), padding: const EdgeInsets.all(16), borderRadius: BorderRadius.circular(24), child: Container(
+      padding: EdgeInsets.zero,
       decoration: BoxDecoration(
         color: surface,
         borderRadius: BorderRadius.circular(22),
@@ -223,6 +222,7 @@ class _UserProfilePageState extends State<UserProfilePage> {
           Text(reposts, style: TextStyle(color: muted, fontSize: 12)),
         ]),
       ]),
+      ),
     ).animate().fadeIn(duration: 260.ms).slideY(begin: .025, duration: 260.ms, curve: Curves.easeOutCubic);
   }
 
@@ -232,7 +232,7 @@ class _UserProfilePageState extends State<UserProfilePage> {
     return Scaffold(
       body: SafeArea(
         child: loading && user == null
-            ? const Center(child: CircularProgressIndicator(color: binerBlue))
+            ? const Center(child: BinerSkeleton(lines: 3))
             : error != null && user == null
                 ? Center(child: Padding(padding: const EdgeInsets.all(24), child: Column(mainAxisSize: MainAxisSize.min, children: [
                     Text(error!, textAlign: TextAlign.center),
