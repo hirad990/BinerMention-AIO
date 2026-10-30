@@ -60,6 +60,8 @@ jobs:
       - name: Inject app source, tests and network permission
         run: |
           cp android/pubspec.yaml "$RUNNER_TEMP/binerm_mention/pubspec.yaml"
+          mkdir -p "$RUNNER_TEMP/binerm_mention/assets"
+          cp f9ce68bae32185e60d387b03ed84504f88a5cc7c.png "$RUNNER_TEMP/binerm_mention/assets/app_icon.png"
           rm -rf "$RUNNER_TEMP/binerm_mention/lib" "$RUNNER_TEMP/binerm_mention/test"
           cp -R android/lib "$RUNNER_TEMP/binerm_mention/lib"
           if [ -d android/test ]; then cp -R android/test "$RUNNER_TEMP/binerm_mention/test"; fi
