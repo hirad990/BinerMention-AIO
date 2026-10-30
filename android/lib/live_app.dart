@@ -11,6 +11,7 @@ import 'package:flutter_animate/flutter_animate.dart';
 import 'api_client.dart';
 import 'ui_kit.dart';
 import 'profile_page.dart';
+import 'media_editor.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:url_launcher/url_launcher.dart';
 
@@ -230,7 +231,7 @@ class _LiveHomeState extends State<LiveHome> {
 
   Future<void> createStory() async {
     try {
-      final file = await ImagePicker().pickMedia();
+      final file = await BinerMediaEditor.pickMedia();
       if (file == null || !mounted) return;
       toast('در حال بارگذاری استوری…');
       final uploaded = await widget.api.uploadMedia(file);
@@ -1472,7 +1473,7 @@ class _ChatPageState extends State<ChatPage> {
                 IconButton(
                   tooltip: 'ارسال عکس یا ویدیو',
                   onPressed: sending ? null : () async {
-                    final picked = await ImagePicker().pickMedia();
+                    final picked = await BinerMediaEditor.pickMedia();
                     if (picked != null && mounted) await send(attachment: picked);
                   },
                   icon: const Icon(Icons.add_photo_alternate_rounded, color: cBlue),
