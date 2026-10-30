@@ -713,9 +713,9 @@ class _LiveHomeState extends State<LiveHome> {
                 if (action == 'edit') editPost(p);
                 if (action == 'delete') deletePost(id);
               },
-              itemBuilder: (_) => const [
+              itemBuilder: (_) => [
                 PopupMenuItem(value: 'edit', child: Text(binerText('ویرایش پست',en:'Edit post',ar:'تعديل المنشور',tr:'Gönderiyi düzenle'))),
-                PopupMenuItem(value: 'delete', child: Text('حذف پست')),
+                const PopupMenuItem(value: 'delete', child: Text('حذف پست')),
               ],
             ),
         ]),
