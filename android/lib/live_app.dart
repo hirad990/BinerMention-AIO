@@ -349,9 +349,9 @@ class _LiveHomeState extends State<LiveHome> {
         Padding(padding: const EdgeInsets.fromLTRB(18, 22, 18, 10), child: Row(children: [
           const Icon(Icons.local_fire_department_rounded, color: Color(0xFFFF8A4C)),
           const SizedBox(width: 8),
-          const Text(binerText('هشتگ‌های داغ',en:'Hot hashtags',ar:'الوسوم الرائجة',tr:'Popüler etiketler'), style: TextStyle(fontSize: 18, fontWeight: FontWeight.w800)),
+          Text(binerText('هشتگ‌های داغ',en:'Hot hashtags',ar:'الوسوم الرائجة',tr:'Popüler etiketler'), style: TextStyle(fontSize: 18, fontWeight: FontWeight.w800)),
           const Spacer(),
-          const Text(binerText('از پست‌های بارگذاری‌شده',en:'From recent posts',ar:'من المنشورات الحديثة',tr:'Son gönderilerden'), style: TextStyle(color: cMuted, fontSize: 11)),
+          Text(binerText('از پست‌های بارگذاری‌شده',en:'From recent posts',ar:'من المنشورات الحديثة',tr:'Son gönderilerden'), style: TextStyle(color: cMuted, fontSize: 11)),
         ])),
         if (trending.isEmpty)
           const Padding(padding: EdgeInsets.fromLTRB(18, 4, 18, 18), child: Text('با انتشار پست‌های دارای هشتگ، این بخش پر می‌شود.', style: TextStyle(color: cMuted)))
@@ -521,7 +521,7 @@ class _LiveHomeState extends State<LiveHome> {
                 ),
                 const Spacer(),
                 FilledButton(onPressed: () => Navigator.pop(ctx, {'text': controller.text.trim(), 'attachment': attachment}),
-                    child: const Text(binerText('انتشار',en:'Publish',ar:'نشر',tr:'Paylaş'))),
+                    child: Text(binerText('انتشار',en:'Publish',ar:'نشر',tr:'Paylaş'))),
               ]),
             ],
           ),
@@ -555,7 +555,7 @@ class _LiveHomeState extends State<LiveHome> {
     final text = await showDialog<String>(
       context: context,
       builder: (ctx) => AlertDialog(
-        title: const Text(binerText('ویرایش پست',en:'Edit post',ar:'تعديل المنشور',tr:'Gönderiyi düzenle')),
+        title: Text(binerText('ویرایش پست',en:'Edit post',ar:'تعديل المنشور',tr:'Gönderiyi düzenle')),
         content: TextField(controller: controller, autofocus: true, minLines: 3, maxLines: 6, maxLength: 280),
         actions: [
           TextButton(onPressed: () => Navigator.pop(ctx), child: const Text('انصراف')),
@@ -581,8 +581,8 @@ class _LiveHomeState extends State<LiveHome> {
     final confirmed = await showDialog<bool>(
       context: context,
       builder: (ctx) => AlertDialog(
-        title: const Text(binerText('حذف پست؟',en:'Delete post?',ar:'حذف المنشور؟',tr:'Gönderi silinsin mi?')),
-        content: const Text(binerText('این کار پست را از فید حذف می‌کند.',en:'This will remove the post from the feed.',ar:'سيؤدي هذا إلى إزالة المنشور من الموجز.',tr:'Bu işlem gönderiyi akıştan kaldırır.')),
+        title: Text(binerText('حذف پست؟',en:'Delete post?',ar:'حذف المنشور؟',tr:'Gönderi silinsin mi?')),
+        content: Text(binerText('این کار پست را از فید حذف می‌کند.',en:'This will remove the post from the feed.',ar:'سيؤدي هذا إلى إزالة المنشور من الموجز.',tr:'Bu işlem gönderiyi akıştan kaldırır.')),
         actions: [
           TextButton(onPressed: () => Navigator.pop(ctx, false), child: const Text('لغو')),
           FilledButton(onPressed: () => Navigator.pop(ctx, true), child: const Text('حذف')),
@@ -673,7 +673,7 @@ class _LiveHomeState extends State<LiveHome> {
             padding: const EdgeInsets.fromLTRB(16, 8, 16, 12),
             child: SizedBox(width: double.infinity, child: FilledButton.icon(
               onPressed: () { Navigator.pop(ctx); compose(replyToId: id); },
-              icon: const Icon(Icons.reply_rounded), label: const Text(binerText('نوشتن پاسخ',en:'Write a reply',ar:'كتابة رد',tr:'Yanıt yaz')),
+              icon: const Icon(Icons.reply_rounded), label: Text(binerText('نوشتن پاسخ',en:'Write a reply',ar:'كتابة رد',tr:'Yanıt yaz')),
             )),
           )),
         ]),
@@ -774,7 +774,7 @@ class _LiveHomeState extends State<LiveHome> {
             children: [
               Text(error!, textAlign: TextAlign.center),
               const SizedBox(height: 12),
-              OutlinedButton(onPressed: refresh, child: const Text(binerText('تلاش دوباره',en:'Try again',ar:'حاول مرة أخرى',tr:'Tekrar dene'))),
+              OutlinedButton(onPressed: refresh, child: Text(binerText('تلاش دوباره',en:'Try again',ar:'حاول مرة أخرى',tr:'Tekrar dene'))),
             ],
           ),
         ),
@@ -810,8 +810,8 @@ class _LiveHomeState extends State<LiveHome> {
   Future<void> startConversation() async {
     final controller = TextEditingController();
     final username = await showDialog<String>(context: context, builder: (ctx) => AlertDialog(
-      title: const Text(binerText('پیام جدید',en:'New message',ar:'رسالة جديدة',tr:'Yeni mesaj')),
-      content: TextField(controller: controller, autocorrect: false, decoration: const InputDecoration(labelText: binerText('نام کاربری گیرنده',en:'Recipient username',ar:'اسم المستخدم للمستلم',tr:'Alıcının kullanıcı adı'))),
+      title: Text(binerText('پیام جدید',en:'New message',ar:'رسالة جديدة',tr:'Yeni mesaj')),
+      content: TextField(controller: controller, autocorrect: false, decoration: InputDecoration(labelText: binerText('نام کاربری گیرنده',en:'Recipient username',ar:'اسم المستخدم للمستلم',tr:'Alıcının kullanıcı adı'))),
       actions: [
         TextButton(onPressed: () => Navigator.pop(ctx), child: const Text('انصراف')),
         FilledButton(onPressed: () => Navigator.pop(ctx, controller.text.trim()), child: const Text('ادامه')),
@@ -905,7 +905,7 @@ class _LiveHomeState extends State<LiveHome> {
           child: Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
             Center(child: Container(width: 42, height: 4, decoration: BoxDecoration(color: cMuted.withValues(alpha: .5), borderRadius: BorderRadius.circular(4)))),
             const SizedBox(height: 16),
-            const Text(binerText('کشف آدم‌های جدید',en:'Discover people',ar:'اكتشف أشخاصاً جدد',tr:'Yeni kişileri keşfet'), style: TextStyle(fontSize: 22, fontWeight: FontWeight.w800)),
+            Text(binerText('کشف آدم‌های جدید',en:'Discover people',ar:'اكتشف أشخاصاً جدد',tr:'Yeni kişileri keşfet'), style: TextStyle(fontSize: 22, fontWeight: FontWeight.w800)),
             const SizedBox(height: 12),
             TextField(
               controller: controller,
@@ -1001,13 +1001,13 @@ class _LiveHomeState extends State<LiveHome> {
       const SizedBox(height: 14),
       BinerLiquidGlass(borderRadius: BorderRadius.circular(22), padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
         child: Column(children: [
-          ListTile(leading: const Icon(Icons.tune_rounded, color: cBlue), title: const Text(binerText('شخصی‌سازی پروفایل',en:'Customize profile',ar:'تخصيص الملف الشخصي',tr:'Profili özelleştir')), subtitle: const Text('نام، تصویر، بیو و لینک‌ها'), trailing: const Icon(Icons.chevron_right_rounded), onTap: () => editProfile(u)),
+          ListTile(leading: const Icon(Icons.tune_rounded, color: cBlue), title: Text(binerText('شخصی‌سازی پروفایل',en:'Customize profile',ar:'تخصيص الملف الشخصي',tr:'Profili özelleştir')), subtitle: const Text('نام، تصویر، بیو و لینک‌ها'), trailing: const Icon(Icons.chevron_right_rounded), onTap: () => editProfile(u)),
           Divider(height: 1, color: cLine.withValues(alpha: .35)),
-          ListTile(leading: const Icon(Icons.shield_outlined, color: cBlue), title: const Text(binerText('حریم خصوصی و امنیت',en:'Privacy & security',ar:'الخصوصية والأمان',tr:'Gizlilik ve güvenlik')), subtitle: const Text(binerText('تنظیمات حساب و محافظت از آن',en:'Account settings and protection',ar:'إعدادات الحساب وحمايته',tr:'Hesap ayarları ve koruması')), trailing: const Icon(Icons.chevron_right_rounded), onTap: () => toast('تنظیمات امنیتی در حال آماده‌سازی است.')),
+          ListTile(leading: const Icon(Icons.shield_outlined, color: cBlue), title: Text(binerText('حریم خصوصی و امنیت',en:'Privacy & security',ar:'الخصوصية والأمان',tr:'Gizlilik ve güvenlik')), subtitle: Text(binerText('تنظیمات حساب و محافظت از آن',en:'Account settings and protection',ar:'إعدادات الحساب وحمايته',tr:'Hesap ayarları ve koruması')), trailing: const Icon(Icons.chevron_right_rounded), onTap: () => toast('تنظیمات امنیتی در حال آماده‌سازی است.')),
           Divider(height: 1, color: cLine.withValues(alpha: .35)),
           ListTile(leading: const Icon(Icons.palette_outlined, color: cBlue), title: Text(binerText('زبان، رنگ و عملکرد', en:'Language, color & performance', ar:'اللغة واللون والأداء', tr:'Dil, renk ve performans')), subtitle: Text(binerText('فارسی، انگلیسی، عربی، ترکی و حالت سریع', en:'Persian, English, Arabic, Turkish and fast mode', ar:'الفارسية والإنجليزية والعربية والتركية والوضع السريع', tr:'Farsça, İngilizce, Arapça, Türkçe ve hızlı mod')), trailing: const Icon(Icons.chevron_right_rounded), onTap: openAppSettings),
           Divider(height: 1, color: cLine.withValues(alpha: .35)),
-          ListTile(leading: const Icon(Icons.logout_rounded, color: Color(0xFFFF7185)), title: const Text(binerText('خروج از حساب',en:'Sign out',ar:'تسجيل الخروج',tr:'Çıkış yap')), subtitle: const Text(binerText('پایان نشست فعلی',en:'End current session',ar:'إنهاء الجلسة الحالية',tr:'Geçerli oturumu kapat')), onTap: () async => widget.logout()),
+          ListTile(leading: const Icon(Icons.logout_rounded, color: Color(0xFFFF7185)), title: Text(binerText('خروج از حساب',en:'Sign out',ar:'تسجيل الخروج',tr:'Çıkış yap')), subtitle: Text(binerText('پایان نشست فعلی',en:'End current session',ar:'إنهاء الجلسة الحالية',tr:'Geçerli oturumu kapat')), onTap: () async => widget.logout()),
         ]),
       ),
     ]);
@@ -1079,7 +1079,7 @@ class _LiveHomeState extends State<LiveHome> {
         builder: (ctx, dialogSetState) => AlertDialog(
           backgroundColor: Theme.of(ctx).colorScheme.surface,
           shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(26), side: const BorderSide(color: cLine)),
-          title: const Text(binerText('شخصی‌سازی پروفایل',en:'Customize profile',ar:'تخصيص الملف الشخصي',tr:'Profili özelleştir')),
+          title: Text(binerText('شخصی‌سازی پروفایل',en:'Customize profile',ar:'تخصيص الملف الشخصي',tr:'Profili özelleştir')),
           content: SingleChildScrollView(child: Column(mainAxisSize: MainAxisSize.min, children: [
             Container(
               padding: const EdgeInsets.all(3),
@@ -1099,13 +1099,13 @@ class _LiveHomeState extends State<LiveHome> {
               icon: const Icon(Icons.add_a_photo_outlined),
               label: Text(avatarFile == null ? 'انتخاب عکس پروفایل' : 'تغییر عکس انتخاب‌شده'),
             ),
-            TextField(controller: name, maxLength: 80, decoration: const InputDecoration(labelText: binerText('نام نمایشی',en:'Display name',ar:'الاسم الظاهر',tr:'Görünen ad'), prefixIcon: Icon(Icons.badge_outlined))),
-            TextField(controller: bio, maxLength: 280, maxLines: 3, decoration: const InputDecoration(labelText: binerText('بیوگرافی',en:'Bio',ar:'نبذة',tr:'Biyografi'), prefixIcon: Icon(Icons.edit_note))),
-            TextField(controller: website, keyboardType: TextInputType.url, decoration: const InputDecoration(labelText: binerText('وب‌سایت یا لینک شخصی',en:'Website or personal link',ar:'الموقع أو رابط شخصي',tr:'Web sitesi veya kişisel bağlantı'), prefixIcon: Icon(Icons.link))),
+            TextField(controller: name, maxLength: 80, decoration: InputDecoration(labelText: binerText('نام نمایشی',en:'Display name',ar:'الاسم الظاهر',tr:'Görünen ad'), prefixIcon: Icon(Icons.badge_outlined))),
+            TextField(controller: bio, maxLength: 280, maxLines: 3, decoration: InputDecoration(labelText: binerText('بیوگرافی',en:'Bio',ar:'نبذة',tr:'Biyografi'), prefixIcon: Icon(Icons.edit_note))),
+            TextField(controller: website, keyboardType: TextInputType.url, decoration: InputDecoration(labelText: binerText('وب‌سایت یا لینک شخصی',en:'Website or personal link',ar:'الموقع أو رابط شخصي',tr:'Web sitesi veya kişisel bağlantı'), prefixIcon: Icon(Icons.link))),
           ])),
           actions: [
             TextButton(onPressed: () => Navigator.pop(ctx, false), child: const Text('انصراف')),
-            FilledButton(onPressed: () => Navigator.pop(ctx, true), child: const Text(binerText('ذخیره تغییرات',en:'Save changes',ar:'حفظ التغييرات',tr:'Değişiklikleri kaydet'))),
+            FilledButton(onPressed: () => Navigator.pop(ctx, true), child: Text(binerText('ذخیره تغییرات',en:'Save changes',ar:'حفظ التغييرات',tr:'Değişiklikleri kaydet'))),
           ],
         ),
       ),
@@ -1251,7 +1251,7 @@ class _ChatPageState extends State<ChatPage> {
           content: TextField(controller: reasonController, maxLength: 500, maxLines: 3, decoration: const InputDecoration(hintText: 'دلیل گزارش را بنویس…')),
           actions: [
             TextButton(onPressed: () => Navigator.pop(ctx), child: const Text('انصراف')),
-            FilledButton(onPressed: () => Navigator.pop(ctx, reasonController.text.trim().isEmpty ? 'محتوای نامناسب' : reasonController.text.trim()), child: const Text(binerText('ارسال گزارش',en:'Submit report',ar:'إرسال البلاغ',tr:'Bildirimi gönder'))),
+            FilledButton(onPressed: () => Navigator.pop(ctx, reasonController.text.trim().isEmpty ? 'محتوای نامناسب' : reasonController.text.trim()), child: Text(binerText('ارسال گزارش',en:'Submit report',ar:'إرسال البلاغ',tr:'Bildirimi gönder'))),
           ],
         ),
       );
@@ -1269,7 +1269,7 @@ class _ChatPageState extends State<ChatPage> {
           content: const Text('پس از مسدودسازی، ارسال پیام در این گفت‌وگو متوقف می‌شود.'),
           actions: [
             TextButton(onPressed: () => Navigator.pop(ctx, false), child: const Text('انصراف')),
-            FilledButton(onPressed: () => Navigator.pop(ctx, true), child: const Text(binerText('مسدود کن',en:'Block',ar:'حظر',tr:'Engelle'))),
+            FilledButton(onPressed: () => Navigator.pop(ctx, true), child: Text(binerText('مسدود کن',en:'Block',ar:'حظر',tr:'Engelle'))),
           ],
         ),
       );
@@ -1314,8 +1314,8 @@ class _ChatPageState extends State<ChatPage> {
               ListTile(leading: const Icon(Icons.reply_rounded, color: cBlue), title: Text(binerText('پاسخ به پیام',en:'Reply to message',ar:'الرد على الرسالة',tr:'Mesajı yanıtla')), subtitle: Text((item['body'] ?? '').toString(), maxLines: 1, overflow: TextOverflow.ellipsis), onTap: () => Navigator.pop(ctx, 'reply')),
               ListTile(leading: const Icon(Icons.forward_rounded, color: Color(0xFF9B8CFF)), title: Text(binerText('بازارسال به گفت‌وگوی دیگر',en:'Forward to another chat',ar:'إعادة التوجيه إلى محادثة أخرى',tr:'Başka sohbete ilet')), subtitle: const Text('انتخاب مقصد'), onTap: () => Navigator.pop(ctx, 'forward')),
               ListTile(leading: const Icon(Icons.copy_rounded, color: cMuted), title: Text(binerText('کپی متن پیام',en:'Copy message text',ar:'نسخ نص الرسالة',tr:'Mesaj metnini kopyala')), onTap: () => Navigator.pop(ctx, 'copy')),
-               ListTile(leading: const Icon(Icons.summarize_rounded, color: cBlue), title: const Text(binerText('خلاصه‌سازی پیام',en:'Summarize message',ar:'تلخيص الرسالة',tr:'Mesajı özetle')), onTap: () => Navigator.pop(ctx, 'summary')),
-               ListTile(leading: const Icon(Icons.translate_rounded, color: Color(0xFF9B8CFF)), title: const Text(binerText('ترجمه پیام',en:'Translate message',ar:'ترجمة الرسالة',tr:'Mesajı çevir')), onTap: () => Navigator.pop(ctx, 'translate')),
+               ListTile(leading: const Icon(Icons.summarize_rounded, color: cBlue), title: Text(binerText('خلاصه‌سازی پیام',en:'Summarize message',ar:'تلخيص الرسالة',tr:'Mesajı özetle')), onTap: () => Navigator.pop(ctx, 'summary')),
+               ListTile(leading: const Icon(Icons.translate_rounded, color: Color(0xFF9B8CFF)), title: Text(binerText('ترجمه پیام',en:'Translate message',ar:'ترجمة الرسالة',tr:'Mesajı çevir')), onTap: () => Navigator.pop(ctx, 'translate')),
             ]),
           ),
         ),
@@ -1397,7 +1397,7 @@ class _ChatPageState extends State<ChatPage> {
             children: [
               Text(error!, textAlign: TextAlign.center),
               const SizedBox(height: 10),
-              OutlinedButton(onPressed: loadMessages, child: const Text(binerText('تلاش دوباره',en:'Try again',ar:'حاول مرة أخرى',tr:'Tekrar dene'))),
+              OutlinedButton(onPressed: loadMessages, child: Text(binerText('تلاش دوباره',en:'Try again',ar:'حاول مرة أخرى',tr:'Tekrar dene'))),
             ],
           ),
         ),
