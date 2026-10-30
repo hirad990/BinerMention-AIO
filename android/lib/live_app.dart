@@ -1386,7 +1386,7 @@ class _ChatPageState extends State<ChatPage> {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 if ((item['media_url']?.toString() ?? '').startsWith('https://')) ...[
-                  if (RegExp(r'\\.(mp4|webm)(\\?|$)', caseSensitive: false).hasMatch(item['media_url'].toString()))
+                  if (RegExp(r'\.(mp4|webm)(\?|$)', caseSensitive: false).hasMatch(item['media_url'].toString()))
                     Container(width: 190,height: 116,decoration: BoxDecoration(color: Colors.black26,borderRadius: BorderRadius.circular(14)),child: Center(child: IconButton.filled(onPressed: () => launchUrl(Uri.parse(item['media_url'].toString()), mode: LaunchMode.externalApplication), icon: const Icon(Icons.play_arrow_rounded))))
                   else ClipRRect(borderRadius: BorderRadius.circular(14),child: Image.network(item['media_url'].toString(),width: 210,height: 170,fit: BoxFit.cover,errorBuilder: (_,__,___)=>const Icon(Icons.broken_image_outlined))),
                   const SizedBox(height: 7),
