@@ -514,7 +514,7 @@ class _LiveHomeState extends State<LiveHome> {
                 IconButton(
                   tooltip: 'افزودن عکس یا ویدیو',
                   onPressed: () async {
-                    final picked = await ImagePicker().pickMedia(imageQuality: 86);
+                    final picked = await BinerMediaEditor.pickMedia();
                     if (picked != null) sheetSetState(() => attachment = picked);
                   },
                   icon: const Icon(Icons.image_outlined, color: cBlue),
