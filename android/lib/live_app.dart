@@ -1114,7 +1114,7 @@ class _LiveHomeState extends State<LiveHome> {
             indicatorColor: cBlue.withValues(alpha: .20),
             selectedIndex: tab,
             onDestinationSelected: (i) { if (i != tab) setState(() => tab = i); },
-            destinations: const [
+            destinations: [
               NavigationDestination(icon: Icon(Icons.home_outlined), selectedIcon: Icon(Icons.home_rounded, color: cBlue), label: binerText('خانه', en:'Home', ar:'الرئيسية', tr:'Ana sayfa')),
               NavigationDestination(icon: Icon(Icons.search_rounded), selectedIcon: Icon(Icons.search_rounded, color: cBlue), label: binerText('کاوش', en:'Explore', ar:'استكشاف', tr:'Keşfet')),
               NavigationDestination(icon: Icon(Icons.notifications_none_rounded), selectedIcon: Icon(Icons.notifications_rounded, color: cBlue), label: binerText('اعلان‌ها', en:'Alerts', ar:'الإشعارات', tr:'Bildirimler')),
