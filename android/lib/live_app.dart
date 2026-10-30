@@ -862,7 +862,7 @@ class _LiveHomeState extends State<LiveHome> {
           const Expanded(child: Text('پیام‌ها', style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold))),
           IconButton(onPressed: startConversation, icon: const Icon(Icons.edit_square, color: cBlue), tooltip: binerText('پیام جدید',en:'New message',ar:'رسالة جديدة',tr:'Yeni mesaj')),
         ])),
-        if (items.isEmpty) const Center(child: Padding(padding: EdgeInsets.all(24), child: Text(binerText('هنوز گفت‌وگویی نداری. برای شروع روی پیام جدید بزن.',en:'No chats yet. Start with a new message.',ar:'لا توجد محادثات بعد. ابدأ برسالة جديدة.',tr:'Henüz sohbet yok. Yeni mesajla başla.')))),
+        if (items.isEmpty) Center(child: Padding(padding: const EdgeInsets.all(24), child: Text(binerText('هنوز گفت‌وگویی نداری. برای شروع روی پیام جدید بزن.',en:'No chats yet. Start with a new message.',ar:'لا توجد محادثات بعد. ابدأ برسالة جديدة.',tr:'Henüz sohbet yok. Yeni mesajla başla.')))),
         ...items.map((c) {
           final display = value(c, 'other_display_name', value(c, 'other_username', 'گفت‌وگو'));
           final username = value(c, 'other_username');
