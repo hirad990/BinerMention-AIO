@@ -813,9 +813,9 @@ class _LiveHomeState extends State<LiveHome> {
     if (s.connectionState == ConnectionState.waiting) return const Center(child: CircularProgressIndicator(color: cBlue));
     if (s.hasError) return Center(child: Text(s.error.toString()));
     final items = s.data ?? [];
-    return ListView(children: [const Padding(padding: EdgeInsets.all(18), child: Text('اعلان‌ها', style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold))),
-      if (items.isEmpty) const Center(child: Padding(padding: EdgeInsets.all(24), child: Text('اعلان تازه‌ای نداری.'))),
-      ...items.map((n) { final kind = value(n, 'type'); final labels = {'mention': 'در یک پست منشن‌ات کرد', 'follow': 'دنبال‌ات کرد', 'like': 'پستت را پسندید', 'repost': 'پستت را بازنشر کرد', 'reply': 'به پستت پاسخ داد', 'message': 'پیام فرستاد'}; return ListTile(leading: avatar(value(n, 'actor_display_name', value(n, 'actor_username', 'U'))), title: Text(value(n, 'actor_display_name', value(n, 'actor_username', 'کاربر')) + ' • ' + (labels[kind] ?? 'تعامل جدید')), subtitle: Text(value(n, 'created_at'), style: const TextStyle(color: cMuted))); }),
+    return ListView(children: [Padding(padding: const EdgeInsets.all(18), child: Text(binerText('اعلان‌ها',en:'Notifications',ar:'الإشعارات',tr:'Bildirimler'), style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold))),
+      if (items.isEmpty) Center(child: Padding(padding: const EdgeInsets.all(24), child: Text(binerText('اعلان تازه‌ای نداری.',en:'No new notifications.',ar:'لا توجد إشعارات جديدة.',tr:'Yeni bildirimin yok.')))),
+      ...items.map((n) { final kind = value(n, 'type'); final labels = {'mention': binerText('در یک پست منشن‌ات کرد',en:'Mentioned you in a post',ar:'أشار إليك في منشور',tr:'Bir gönderide senden bahsetti'), 'follow': binerText('دنبال‌ات کرد',en:'Followed you',ar:'تابعك',tr:'Seni takip etti'), 'like': binerText('پستت را پسندید',en:'Liked your post',ar:'أُعجب بمنشورك',tr:'Gönderini beğendi'), 'repost': binerText('پستت را بازنشر کرد',en:'Reposted your post',ar:'أعاد نشر منشورك',tr:'Gönderini yeniden paylaştı'), 'reply': binerText('به پستت پاسخ داد',en:'Replied to your post',ar:'رد على منشورك',tr:'Gönderine yanıt verdi'), 'message': binerText('پیام فرستاد',en:'Sent you a message',ar:'أرسل إليك رسالة',tr:'Sana mesaj gönderdi')}; return ListTile(leading: avatar(value(n, 'actor_display_name', value(n, 'actor_username', 'U'))), title: Text(value(n, 'actor_display_name', value(n, 'actor_username', 'کاربر')) + ' • ' + (labels[kind] ?? binerText('تعامل جدید',en:'New activity',ar:'نشاط جديد',tr:'Yeni etkinlik'))), subtitle: Text(value(n, 'created_at'), style: const TextStyle(color: cMuted))); }),
     ]);
   });
   Future<void> startConversation() async {
@@ -862,7 +862,7 @@ class _LiveHomeState extends State<LiveHome> {
           const Expanded(child: Text('پیام‌ها', style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold))),
           IconButton(onPressed: startConversation, icon: const Icon(Icons.edit_square, color: cBlue), tooltip: binerText('پیام جدید',en:'New message',ar:'رسالة جديدة',tr:'Yeni mesaj')),
         ])),
-        if (items.isEmpty) const Center(child: Padding(padding: EdgeInsets.all(24), child: Text('هنوز گفت‌وگویی نداری. برای شروع روی پیام جدید بزن.'))),
+        if (items.isEmpty) const Center(child: Padding(padding: EdgeInsets.all(24), child: Text(binerText('هنوز گفت‌وگویی نداری. برای شروع روی پیام جدید بزن.',en:'No chats yet. Start with a new message.',ar:'لا توجد محادثات بعد. ابدأ برسالة جديدة.',tr:'Henüz sohbet yok. Yeni mesajla başla.')))),
         ...items.map((c) {
           final display = value(c, 'other_display_name', value(c, 'other_username', 'گفت‌وگو'));
           final username = value(c, 'other_username');
@@ -870,7 +870,7 @@ class _LiveHomeState extends State<LiveHome> {
           return ListTile(
           leading: avatar(display, person, 24),
           title: Text(display, maxLines: 1, overflow: TextOverflow.ellipsis, style: const TextStyle(fontWeight: FontWeight.w700)),
-          subtitle: Text((username.isNotEmpty ? '@$username · ' : '') + value(c, 'last_message', 'گفت‌وگوی جدید'), maxLines: 1, overflow: TextOverflow.ellipsis),
+          subtitle: Text((username.isNotEmpty ? '@$username · ' : '') + value(c, 'last_message', binerText('گفت‌وگوی جدید',en:'New conversation',ar:'محادثة جديدة',tr:'Yeni sohbet')), maxLines: 1, overflow: TextOverflow.ellipsis),
           trailing: const Icon(Icons.chevron_right, color: cMuted),
           onTap: () async {
             final id = int.tryParse(value(c, 'id'));
@@ -1168,7 +1168,7 @@ class _LiveHomeState extends State<LiveHome> {
             destinations: [
               NavigationDestination(icon: Icon(Icons.home_outlined), selectedIcon: Icon(Icons.home_rounded, color: cBlue), label: binerText('خانه', en:'Home', ar:'الرئيسية', tr:'Ana sayfa')),
               NavigationDestination(icon: Icon(Icons.search_rounded), selectedIcon: Icon(Icons.search_rounded, color: cBlue), label: binerText('کاوش', en:'Explore', ar:'استكشاف', tr:'Keşfet')),
-              NavigationDestination(icon: Icon(Icons.notifications_none_rounded), selectedIcon: Icon(Icons.notifications_rounded, color: cBlue), label: binerText('اعلان‌ها', en:'Alerts', ar:'الإشعارات', tr:'Bildirimler')),
+              NavigationDestination(icon: Icon(Icons.notifications_none_rounded), selectedIcon: Icon(Icons.notifications_rounded, color: cBlue), label: binerText(binerText('اعلان‌ها',en:'Notifications',ar:'الإشعارات',tr:'Bildirimler'), en:'Alerts', ar:'الإشعارات', tr:'Bildirimler')),
               NavigationDestination(icon: Icon(Icons.mail_outline_rounded), selectedIcon: Icon(Icons.mail_rounded, color: cBlue), label: binerText('پیام‌ها', en:'Messages', ar:'الرسائل', tr:'Mesajlar')),
               NavigationDestination(icon: Icon(Icons.person_outline_rounded), selectedIcon: Icon(Icons.person_rounded, color: cBlue), label: binerText('پروفایل', en:'Profile', ar:'الملف الشخصي', tr:'Profil')),
             ],
@@ -1375,7 +1375,7 @@ class _ChatPageState extends State<ChatPage> {
                       return ListTile(
                         leading: const CircleAvatar(backgroundColor: Color(0x2239C5FF), child: Icon(Icons.person_rounded, color: cBlue)),
                         title: Text(name),
-                        subtitle: Text(value(c, 'last_message', 'گفت‌وگوی جدید'), maxLines: 1, overflow: TextOverflow.ellipsis),
+                        subtitle: Text(value(c, 'last_message', binerText('گفت‌وگوی جدید',en:'New conversation',ar:'محادثة جديدة',tr:'Yeni sohbet')), maxLines: 1, overflow: TextOverflow.ellipsis),
                         trailing: const Icon(Icons.arrow_forward_rounded, color: cBlue),
                         onTap: id == null ? null : () => Navigator.pop(ctx, id),
                       );
