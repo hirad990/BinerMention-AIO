@@ -51,7 +51,7 @@ jobs:
           from pathlib import Path
           path = Path(sys.argv[1])
           source = path.read_text()
-          source, count = re.subn(r"compileSdk\\s*=\\s*[^\\n]+", "compileSdk = 35", source, count=1)
+          source, count = re.subn(r"compileSdk\s*=\s*[^\n]+", "compileSdk = 35", source, count=1)
           if count != 1:
               raise SystemExit(f"Could not safely update compileSdk in {path}")
           path.write_text(source)
