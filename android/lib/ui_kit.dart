@@ -95,9 +95,10 @@ class BinerBackdrop extends StatelessWidget {
             ),
           ),
         ),
-        Positioned.fill(
-          child: CustomPaint(painter: _AmbientGlowPainter(dark: dark)),
-        ),
+        if (!BinerPreferences.instance.fastMode)
+          Positioned.fill(
+            child: CustomPaint(painter: _AmbientGlowPainter(dark: dark)),
+          ),
         child,
       ],
     );
@@ -198,10 +199,7 @@ class BinerSkeleton extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final dark = Theme.of(context).brightness == Brightness.dark;
-    return Shimmer.fromColors(
-      baseColor: dark ? const Color(0xFF15151B) : const Color(0xFFDDE6F1),
-      highlightColor: dark ? const Color(0xFF24242D) : const Color(0xFFF7FAFF),
-      child: Padding(
+    final skeleton = Padding(
         padding: const EdgeInsets.fromLTRB(16, 18, 16, 8),
         child: Row(
           crossAxisAlignment: CrossAxisAlignment.start,
@@ -227,6 +225,12 @@ class BinerSkeleton extends StatelessWidget {
           ],
         ),
       ),
+    );
+    if (BinerPreferences.instance.fastMode) return skeleton;
+    return Shimmer.fromColors(
+      baseColor: dark ? const Color(0xFF15151B) : const Color(0xFFDDE6F1),
+      highlightColor: dark ? const Color(0xFF24242D) : const Color(0xFFF7FAFF),
+      child: skeleton,
     );
   }
 }
