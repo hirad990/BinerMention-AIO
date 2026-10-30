@@ -88,9 +88,9 @@ jobs:
           cache = Path.home() / ".pub-cache" / "hosted"
           changed = []
           patterns = [
-              (re.compile(r"(compileSdkVersion\\s+)(\\d+)"), r"\\g<1>36"),
-              (re.compile(r"(compileSdkVersion\\s*=\\s*)(\\d+)"), r"\\g<1>36"),
-              (re.compile(r"(compileSdk\\s*=\\s*)(\\d+)"), r"\\g<1>36"),
+              (re.compile(r"(compileSdkVersion\s+)(\d+)"), r"\g<1>36"),
+              (re.compile(r"(compileSdkVersion\s*=\s*)(\d+)"), r"\g<1>36"),
+              (re.compile(r"(compileSdk\s*=\s*)(\d+)"), r"\g<1>36"),
           ]
           for gradle in cache.glob("**/android/build.gradle"):
               source = gradle.read_text()
