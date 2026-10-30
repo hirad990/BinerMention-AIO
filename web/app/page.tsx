@@ -5,7 +5,7 @@ import {AnimatePresence,motion} from "motion/react";
 import * as Avatar from "@radix-ui/react-avatar";
 import * as Dropdown from "@radix-ui/react-dropdown-menu";
 import {useMutation,useQuery,useQueryClient} from "@tanstack/react-query";
-import {Bell,Bookmark,Check,Compass,Flame,Heart,Home,LogOut,Mail,MessageCircle,Moon,MoreHorizontal,Repeat2,Search,Send,Settings2,Sun,UserRound,Verified,X,Zap,ChevronRight,Plus,ImagePlus,Pencil,Trash2,BookMarked,Palette,Gauge,Sparkles,Users} from "lucide-react";
+import {Bell,Bookmark,Check,CheckCheck,Compass,Flame,Heart,Home,LogOut,Mail,MessageCircle,Moon,MoreHorizontal,Repeat2,Search,Send,Settings2,Sun,UserRound,Verified,X,Zap,ChevronRight,Plus,ImagePlus,Pencil,Trash2,BookMarked,Palette,Gauge,Sparkles,Users} from "lucide-react";
 import {loginSchema,registerSchema,postSchema,request,type Post,type Person} from "@/lib/core";
 import {zodResolver} from "@hookform/resolvers/zod";
 import {useForm} from "react-hook-form";
@@ -47,7 +47,8 @@ export default function HomePage(){
  const chatsQ=useQuery({queryKey:["chats"],queryFn:()=>request<{conversations:any[]}>("v1/conversations",token).then(x=>x.conversations),enabled:tab==="messages"&&!!token,refetchInterval:10000});
  const messagesQ=useQuery({queryKey:["messages",chatId],queryFn:()=>request<{messages:any[]}>("v1/conversations/"+chatId+"/messages",token).then(x=>x.messages),enabled:chatId!==null&&!!token,refetchInterval:4000});
  const messagesEndRef=useRef<HTMLDivElement|null>(null);
- useEffect(()=>{messagesEndRef.current?.scrollIntoView({behavior:"smooth",block:"end"})},[messagesQ.data,chatId]);
+ const shouldAutoScrollRef=useRef(true);
+ useEffect(()=>{if(shouldAutoScrollRef.current)messagesEndRef.current?.scrollIntoView({behavior:"smooth",block:"end"})},[messagesQ.data,chatId]);
  const profilePostsQ=useQuery({queryKey:["profile-posts",profile?.id||me?.id],queryFn:()=>request<{posts:Post[]}>("v1/users/"+(profile?.id||me?.id)+"/posts",token).then(x=>x.posts),enabled:tab==="profile"&&!!(profile?.id||me?.id)});
  const sendQ=useMutation({mutationFn:async()=>{let media_id:number|undefined;if(chatFile)media_id=(await uploadFile(chatFile)).id;return request("v1/conversations/"+chatId+"/messages",token,{method:"POST",body:JSON.stringify({body:chatReplyTo?"↪ پاسخ به "+(chatReplyTo.sender_name||"کاربر")+": \""+String(chatReplyTo.body||"").replace(/\\n/g," ")+"\"\\n"+chatText.trim():chatText.trim(),media_id})})},onSuccess:()=>{setChatText("");setChatFile(null);setChatReplyTo(null);void qc.invalidateQueries({queryKey:["messages",chatId]});void qc.invalidateQueries({queryKey:["chats"]})},onError:e=>setNotice(e instanceof Error?e.message:"ارسال پیام ناموفق بود.")});
  const trends=useMemo(()=>{const m=new Map<string,number>();posts.forEach(p=>(p.body.match(/#[A-Za-z0-9_\u0600-\u06FF]{2,40}/g)||[]).forEach(t=>m.set(t,(m.get(t)||0)+1)));return [...m.entries()].sort((a,b)=>b[1]-a[1]).slice(0,6)},[posts]);
@@ -102,7 +103,7 @@ export default function HomePage(){
           </Dropdown.Content></Dropdown.Portal></Dropdown.Root>
         </div>
       </header>
-      <div className="chat-messages" aria-live="polite">
+      <div className="chat-messages" aria-live="polite" onScroll={e=>{const el=e.currentTarget;shouldAutoScrollRef.current=el.scrollHeight-el.scrollTop-el.clientHeight<120}}>
         {messagesQ.isLoading&&!messagesQ.data?<div className="chat-empty">در حال بارگذاری پیام‌ها…</div>:null}
         {messagesQ.isError?<div className="chat-load-error">{(messagesQ.error as Error).message}<button onClick={()=>void messagesQ.refetch()}>تلاش دوباره</button></div>:null}
         {(messagesQ.data||[]).map((m:any)=><motion.div key={m.id} initial={{opacity:0,y:7}} animate={{opacity:1,y:0}} transition={{duration:.2,ease:"easeOut"}} className={"chat-message-row "+(m.sender_id===Number(me.id)?"mine":"theirs")}>
