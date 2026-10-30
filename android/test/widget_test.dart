@@ -17,6 +17,11 @@ void main() {
     expect(find.byType(FilledButton), findsOneWidget);
     expect(find.text('ورود'), findsOneWidget);
     expect(find.text('حساب نداری؟ ثبت‌نام کن'), findsOneWidget);
+
+    // Dispose animated widgets and flush flutter_animate's zero-delay restart
+    // callbacks so the fake-async test binding has no pending timers.
+    await tester.pumpWidget(const SizedBox.shrink());
+    await tester.pump(const Duration(milliseconds: 1));
   });
 
   testWidgets('switches the sign-in form to registration', (tester) async {
