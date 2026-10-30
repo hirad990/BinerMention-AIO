@@ -224,7 +224,6 @@ class BinerSkeleton extends StatelessWidget {
             ),
           ],
         ),
-      ),
     );
     if (BinerPreferences.instance.fastMode) return skeleton;
     return Shimmer.fromColors(
