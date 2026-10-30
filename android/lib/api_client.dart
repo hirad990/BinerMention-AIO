@@ -283,8 +283,19 @@ class BinerApi {
         .toList();
   }
 
-  Future<Map<String, dynamic>> sendMessage(int conversationId, String text) async =>
-      Map<String, dynamic>.from((await _request('POST', 'v1/conversations/$conversationId/messages', body: {'body': text}))['message'] as Map);
+  Future<Map<String, dynamic>> sendMessage(int conversationId, String text, {int? mediaId}) async {
+    final body = <String, dynamic>{'body': text};
+    if (mediaId != null) body['media_id'] = mediaId;
+    return Map<String, dynamic>.from((await _request('POST', 'v1/conversations/$conversationId/messages', body: body))['message'] as Map);
+  }
+
+  Future<List<Map<String, dynamic>>> stories() async {
+    final result = await _request('GET', 'v1/stories');
+    return (result['stories'] as List? ?? const []).whereType<Map>().map((x) => Map<String,dynamic>.from(x)).toList();
+  }
+
+  Future<Map<String, dynamic>> createStory(int mediaId, {String caption = ''}) async =>
+      Map<String,dynamic>.from((await _request('POST','v1/stories',body:{'media_id':mediaId,'caption':caption}))['story'] as Map);
 
   Future<void> markConversationRead(int conversationId) async {
     await _request('POST', 'v1/conversations/$conversationId/read');
