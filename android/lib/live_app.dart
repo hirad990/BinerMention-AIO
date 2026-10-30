@@ -190,16 +190,16 @@ class _StoryViewerState extends State<_StoryViewer> {
   @override Widget build(BuildContext context) => Dialog(
     backgroundColor: const Color(0xFF090B12), insetPadding: const EdgeInsets.all(10),
     child: ConstrainedBox(constraints: BoxConstraints(maxHeight: MediaQuery.of(context).size.height * .88), child: Column(mainAxisSize: MainAxisSize.min, children: [
-      Row(children: [Expanded(child: Padding(padding: const EdgeInsets.all(14), child: Text(widget.story['display_name']?.toString() ?? widget.story['username']?.toString() ?? 'Story', style: const TextStyle(color: Colors.white, fontWeight: FontWeight.w800)))), IconButton(onPressed: () => Navigator.pop(context), icon: const Icon(Icons.close,color:Colors.white))]),
+      Row(children: [Expanded(child: Padding(padding: const EdgeInsets.all(14), child: Text(widget.story['display_name']?.toString() ?? widget.story['username']?.toString() ?? binerText('استوری',en:'Story',ar:'قصة',tr:'Hikâye'), style: const TextStyle(color: Colors.white, fontWeight: FontWeight.w800)))), IconButton(onPressed: () => Navigator.pop(context), icon: const Icon(Icons.close,color:Colors.white))]),
       Flexible(child: InteractiveViewer(child: Image.network(widget.story['media_url'].toString(), fit: BoxFit.contain, errorBuilder: (_,__,___) => const Icon(Icons.broken_image,color:Colors.white,size:42)))),
       if ((widget.story['caption'] ?? '').toString().isNotEmpty) Padding(padding: const EdgeInsets.all(10), child: Text(widget.story['caption'].toString(),style: const TextStyle(color:Colors.white))),
-      Row(children: [IconButton(onPressed: toggleLike, icon: Icon(liked ? Icons.favorite : Icons.favorite_border, color: liked ? Colors.pinkAccent : Colors.white)), Text('$likes',style: const TextStyle(color:Colors.white)), const SizedBox(width:12), const Icon(Icons.chat_bubble_outline,color:Colors.white,size:19), const SizedBox(width:5), const Text('Comments',style: TextStyle(color:Colors.white))]),
+      Row(children: [IconButton(onPressed: toggleLike, icon: Icon(liked ? Icons.favorite : Icons.favorite_border, color: liked ? Colors.pinkAccent : Colors.white)), Text('$likes',style: const TextStyle(color:Colors.white)), const SizedBox(width:12), const Icon(Icons.chat_bubble_outline,color:Colors.white,size:19), const SizedBox(width:5), Text(binerText('دیدگاه‌ها',en:'Comments',ar:'التعليقات',tr:'Yorumlar'),style: TextStyle(color:Colors.white))]),
       Flexible(child: FutureBuilder<List<Map<String,dynamic>>>(future: comments,builder: (context,s) {
         if(s.connectionState==ConnectionState.waiting) return const Padding(padding: EdgeInsets.all(12),child:LinearProgressIndicator());
         final rows=s.data??[];
         return ListView(shrinkWrap:true, children: rows.map((c)=>ListTile(dense:true,title:Text(c['display_name']?.toString()??c['username']?.toString()??'User',style:const TextStyle(color:Colors.white,fontWeight:FontWeight.w700)),subtitle:Text(c['body']?.toString()??'',style:const TextStyle(color:Colors.white70)))).toList());
       })),
-      SafeArea(top:false,child:Padding(padding:const EdgeInsets.fromLTRB(10,4,10,10),child:Row(children:[Expanded(child:TextField(controller:comment,style:const TextStyle(color:Colors.white),decoration:const InputDecoration(hintText:'Write a comment…',hintStyle:TextStyle(color:Colors.white54),filled:true,fillColor:Color(0xFF171B27),border:OutlineInputBorder(borderRadius:BorderRadius.all(Radius.circular(20)),borderSide:BorderSide.none)))),IconButton(onPressed:sending?null:sendComment,icon:const Icon(Icons.send_rounded,color:cBlue))]))),
+      SafeArea(top:false,child:Padding(padding:const EdgeInsets.fromLTRB(10,4,10,10),child:Row(children:[Expanded(child:TextField(controller:comment,style:const TextStyle(color:Colors.white),decoration:const InputDecoration(hintText:binerText('دیدگاه بنویس…',en:'Write a comment…',ar:'اكتب تعليقاً…',tr:'Yorum yaz…'),hintStyle:TextStyle(color:Colors.white54),filled:true,fillColor:Color(0xFF171B27),border:OutlineInputBorder(borderRadius:BorderRadius.all(Radius.circular(20)),borderSide:BorderSide.none)))),IconButton(onPressed:sending?null:sendComment,icon:const Icon(Icons.send_rounded,color:cBlue))]))),
     ])),
   );
 }
@@ -1247,7 +1247,7 @@ class _ChatPageState extends State<ChatPage> {
       final reason = await showDialog<String>(
         context: context,
         builder: (ctx) => AlertDialog(
-          title: const Text('گزارش گفت‌وگو'),
+          title: Text(binerText('گزارش گفت‌وگو',en:'Report conversation',ar:'الإبلاغ عن المحادثة',tr:'Sohbeti bildir')),
           content: TextField(controller: reasonController, maxLength: 500, maxLines: 3, decoration: const InputDecoration(hintText: 'دلیل گزارش را بنویس…')),
           actions: [
             TextButton(onPressed: () => Navigator.pop(ctx), child: const Text('انصراف')),
@@ -1265,7 +1265,7 @@ class _ChatPageState extends State<ChatPage> {
       final confirmed = await showDialog<bool>(
         context: context,
         builder: (ctx) => AlertDialog(
-          title: const Text('مسدود کردن کاربر؟'),
+          title: Text(binerText('مسدود کردن کاربر؟',en:'Block user?',ar:'حظر المستخدم؟',tr:'Kullanıcı engellensin mi?')),
           content: const Text('پس از مسدودسازی، ارسال پیام در این گفت‌وگو متوقف می‌شود.'),
           actions: [
             TextButton(onPressed: () => Navigator.pop(ctx, false), child: const Text('انصراف')),
@@ -1311,9 +1311,9 @@ class _ChatPageState extends State<ChatPage> {
             child: Column(mainAxisSize: MainAxisSize.min, children: [
               Container(width: 42, height: 4, decoration: BoxDecoration(color: cMuted.withValues(alpha: .6), borderRadius: BorderRadius.circular(5))),
               const SizedBox(height: 12),
-              ListTile(leading: const Icon(Icons.reply_rounded, color: cBlue), title: const Text('پاسخ به پیام'), subtitle: Text((item['body'] ?? '').toString(), maxLines: 1, overflow: TextOverflow.ellipsis), onTap: () => Navigator.pop(ctx, 'reply')),
-              ListTile(leading: const Icon(Icons.forward_rounded, color: Color(0xFF9B8CFF)), title: const Text('بازارسال به گفت‌وگوی دیگر'), subtitle: const Text('انتخاب مقصد'), onTap: () => Navigator.pop(ctx, 'forward')),
-              ListTile(leading: const Icon(Icons.copy_rounded, color: cMuted), title: const Text('کپی متن پیام'), onTap: () => Navigator.pop(ctx, 'copy')),
+              ListTile(leading: const Icon(Icons.reply_rounded, color: cBlue), title: Text(binerText('پاسخ به پیام',en:'Reply to message',ar:'الرد على الرسالة',tr:'Mesajı yanıtla')), subtitle: Text((item['body'] ?? '').toString(), maxLines: 1, overflow: TextOverflow.ellipsis), onTap: () => Navigator.pop(ctx, 'reply')),
+              ListTile(leading: const Icon(Icons.forward_rounded, color: Color(0xFF9B8CFF)), title: Text(binerText('بازارسال به گفت‌وگوی دیگر',en:'Forward to another chat',ar:'إعادة التوجيه إلى محادثة أخرى',tr:'Başka sohbete ilet')), subtitle: const Text('انتخاب مقصد'), onTap: () => Navigator.pop(ctx, 'forward')),
+              ListTile(leading: const Icon(Icons.copy_rounded, color: cMuted), title: Text(binerText('کپی متن پیام',en:'Copy message text',ar:'نسخ نص الرسالة',tr:'Mesaj metnini kopyala')), onTap: () => Navigator.pop(ctx, 'copy')),
                ListTile(leading: const Icon(Icons.summarize_rounded, color: cBlue), title: const Text('خلاصه‌سازی پیام'), onTap: () => Navigator.pop(ctx, 'summary')),
                ListTile(leading: const Icon(Icons.translate_rounded, color: Color(0xFF9B8CFF)), title: const Text('ترجمه پیام'), onTap: () => Navigator.pop(ctx, 'translate')),
             ]),
@@ -1453,8 +1453,8 @@ class _ChatPageState extends State<ChatPage> {
       foregroundColor: Theme.of(context).colorScheme.onSurface,
       title: Row(children: [Container(width: 34, height: 34, decoration: BoxDecoration(shape: BoxShape.circle, color: cBlue.withValues(alpha: .12), border: Border.all(color: cLine)), child: const Icon(Icons.person_rounded, color: cBlue, size: 20)), const SizedBox(width: 10), Expanded(child: Text(widget.title, maxLines: 1, overflow: TextOverflow.ellipsis, style: const TextStyle(fontWeight: FontWeight.w800, fontSize: 17)))]),
       actions: [
-        IconButton(tooltip: 'بارگذاری دوباره', onPressed: loadMessages, icon: const Icon(Icons.refresh_rounded)),
-        PopupMenuButton<String>(tooltip: 'گزینه‌های گفت‌وگو', onSelected: handleChatSafetyAction, itemBuilder: (_) => const [
+        IconButton(tooltip: binerText('بارگذاری دوباره',en:'Refresh',ar:'تحديث',tr:'Yenile'), onPressed: loadMessages, icon: const Icon(Icons.refresh_rounded)),
+        PopupMenuButton<String>(tooltip: binerText('گزینه‌های گفت‌وگو',en:'Chat options',ar:'خيارات المحادثة',tr:'Sohbet seçenekleri'), onSelected: handleChatSafetyAction, itemBuilder: (_) => const [
           PopupMenuItem(value: 'report', child: ListTile(dense: true, contentPadding: EdgeInsets.zero, leading: Icon(Icons.flag_outlined), title: Text('گزارش گفت‌وگو'))),
           PopupMenuItem(value: 'block', child: ListTile(dense: true, contentPadding: EdgeInsets.zero, leading: Icon(Icons.block_rounded, color: Color(0xFFFF7185)), title: Text('مسدود کردن کاربر'))),
         ]),
@@ -1471,7 +1471,7 @@ class _ChatPageState extends State<ChatPage> {
               crossAxisAlignment: CrossAxisAlignment.end,
               children: [
                 IconButton(
-                  tooltip: 'ارسال عکس یا ویدیو',
+                  tooltip: binerText('ارسال عکس یا ویدیو',en:'Send photo or video',ar:'إرسال صورة أو فيديو',tr:'Fotoğraf veya video gönder'),
                   onPressed: sending ? null : () async {
                     final picked = await BinerMediaEditor.pickMedia();
                     if (picked != null && mounted) await send(attachment: picked);
