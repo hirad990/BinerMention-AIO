@@ -31,7 +31,7 @@ ThemeData buildBinerTheme(Brightness brightness, {Color seedColor = binerBlue}) 
     popupMenuTheme: PopupMenuThemeData(
       color: const Color(0xF20D0D12),
       elevation: 0,
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(18), side: BorderSide(color: binerBlue.withValues(alpha: .38))),
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(18), side: BorderSide(color: seedColor.withValues(alpha: .38))),
       textStyle: TextStyle(color: dark ? const Color(0xFFF5F5F7) : const Color(0xFF142033)),
     ),
     snackBarTheme: SnackBarThemeData(behavior: SnackBarBehavior.floating, backgroundColor: const Color(0xF21A1A20), elevation: 0, shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(18), side: BorderSide(color: binerBlue.withValues(alpha: .38))), insetPadding: const EdgeInsets.fromLTRB(16, 0, 16, 12), contentTextStyle: TextStyle(color: dark ? const Color(0xFFF5F5F7) : const Color(0xFF142033), fontWeight: FontWeight.w600)),
@@ -57,17 +57,17 @@ ThemeData buildBinerTheme(Brightness brightness, {Color seedColor = binerBlue}) 
       ),
       focusedBorder: OutlineInputBorder(
         borderRadius: BorderRadius.circular(18),
-        borderSide: const BorderSide(color: binerBlue, width: 1.5),
+        borderSide: BorderSide(color: seedColor, width: 1.5),
       ),
     ),
     navigationBarTheme: NavigationBarThemeData(
       backgroundColor: Colors.transparent,
       elevation: 0,
-      indicatorColor: binerBlue.withValues(alpha: .18),
+      indicatorColor: seedColor.withValues(alpha: .18),
       labelTextStyle: WidgetStateProperty.resolveWith((states) => TextStyle(
         fontSize: 11,
         fontWeight: states.contains(WidgetState.selected) ? FontWeight.w700 : FontWeight.w500,
-        color: states.contains(WidgetState.selected) ? binerBlue : (dark ? const Color(0xFF9BAEC6) : const Color(0xFF5C6C82)),
+        color: states.contains(WidgetState.selected) ? seedColor : (dark ? const Color(0xFF9BAEC6) : const Color(0xFF5C6C82)),
       )),
     ),
   );
@@ -81,6 +81,7 @@ class BinerBackdrop extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final dark = Theme.of(context).brightness == Brightness.dark;
+    final accent = BinerPreferences.instance.accent;
     return Stack(
       fit: StackFit.expand,
       children: [
@@ -97,7 +98,7 @@ class BinerBackdrop extends StatelessWidget {
         ),
         if (!BinerPreferences.instance.fastMode)
           Positioned.fill(
-            child: CustomPaint(painter: _AmbientGlowPainter(dark: dark)),
+            child: CustomPaint(painter: _AmbientGlowPainter(dark: dark, accent: accent)),
           ),
         child,
       ],
@@ -106,16 +107,17 @@ class BinerBackdrop extends StatelessWidget {
 }
 
 class _AmbientGlowPainter extends CustomPainter {
-  const _AmbientGlowPainter({required this.dark});
+  const _AmbientGlowPainter({required this.dark, required this.accent});
   final bool dark;
+  final Color accent;
 
   @override
   void paint(Canvas canvas, Size size) {
     final blue = Paint()
       ..shader = RadialGradient(
         colors: [
-          binerBlue.withValues(alpha: dark ? .15 : .13),
-          binerBlue.withValues(alpha: 0),
+          accent.withValues(alpha: dark ? .15 : .13),
+          accent.withValues(alpha: 0),
         ],
       ).createShader(Rect.fromCircle(center: Offset(size.width * .92, size.height * .08), radius: size.width * .72));
     canvas.drawCircle(Offset(size.width * .92, size.height * .08), size.width * .72, blue);
@@ -131,7 +133,7 @@ class _AmbientGlowPainter extends CustomPainter {
   }
 
   @override
-  bool shouldRepaint(covariant _AmbientGlowPainter oldDelegate) => oldDelegate.dark != dark;
+  bool shouldRepaint(covariant _AmbientGlowPainter oldDelegate) => oldDelegate.dark != dark || oldDelegate.accent != accent;
 }
 
 /// Liquid-glass surface: clipped blur, translucent gradient, hairline border and soft depth.
@@ -152,6 +154,7 @@ class BinerLiquidGlass extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final dark = Theme.of(context).brightness == Brightness.dark;
+    final accent = BinerPreferences.instance.accent;
     return Padding(
       padding: margin,
       child: ClipRRect(
@@ -172,12 +175,12 @@ class BinerLiquidGlass extends StatelessWidget {
                     : [const Color(0xDDFEFFFF), const Color(0xBFEAF2FC)],
               ),
               border: Border.all(
-                color: dark ? const Color(0x5539C5FF) : const Color(0x553D7DB5),
+                color: accent.withValues(alpha: .34),
                 width: 1,
               ),
               boxShadow: [
                 BoxShadow(
-                  color: (dark ? binerBlue : const Color(0xFF4777AA)).withValues(alpha: .10),
+                  color: (dark ? accent : const Color(0xFF4777AA)).withValues(alpha: .10),
                   blurRadius: BinerPreferences.instance.fastMode ? 0 : 28,
                   offset: const Offset(0, 10),
                 ),
