@@ -1093,7 +1093,7 @@ class _LiveHomeState extends State<LiveHome> {
             const SizedBox(height: 8),
             TextButton.icon(
               onPressed: () async {
-                final picked = await ImagePicker().pickImage(source: ImageSource.gallery, imageQuality: 88, maxWidth: 1200);
+                final picked = await BinerMediaEditor.pickImage();
                 if (picked != null) dialogSetState(() => avatarFile = picked);
               },
               icon: const Icon(Icons.add_a_photo_outlined),
