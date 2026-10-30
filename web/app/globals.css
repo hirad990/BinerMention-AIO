@@ -200,6 +200,6 @@ body{font-family:"Inter","Noto Sans Arabic",Tahoma,sans-serif;background:radial-
  .chat-bubble{max-width:88%}
  .chat-composer{padding:9px 9px calc(8px + env(safe-area-inset-bottom))}
  .chat-composer-hint{font-size:8px}
- .chat-mode .mobile{display:none}
+ .chat-mode .mobile{display:flex}.chat-mode.chat-open .mobile{display:none}
 }
 @media(prefers-reduced-motion:reduce){.chat-message-more,.chat-send,.chat-list-item{transition:none}.chat-spinner{animation:none}}
