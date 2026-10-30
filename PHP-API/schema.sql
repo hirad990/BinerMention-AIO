@@ -118,7 +118,7 @@ CREATE TABLE IF NOT EXISTS notifications (
   id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
   user_id BIGINT UNSIGNED NOT NULL,
   actor_user_id BIGINT UNSIGNED NOT NULL,
-  type ENUM('like','repost','follow','reply','message','mention') NOT NULL,
+  type ENUM('like','repost','follow','reply','message','mention','story_like','story_comment') NOT NULL,
   post_id BIGINT UNSIGNED NULL,
   is_read TINYINT(1) NOT NULL DEFAULT 0,
   created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
