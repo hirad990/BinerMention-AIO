@@ -10,7 +10,7 @@ const binerBlue = Color(0xFF54C8FF);
 const binerViolet = Color(0xFF9B8CFF);
 
 /// Shared Material 3 theme with a Persian-friendly typeface and adaptive surfaces.
-ThemeData buildBinerTheme(Brightness brightness) {
+ThemeData buildBinerTheme(Brightness brightness, {Color seedColor = binerBlue}) {
   final dark = brightness == Brightness.dark;
   final base = dark ? ThemeData.dark(useMaterial3: true) : ThemeData.light(useMaterial3: true);
   final textColor = dark ? const Color(0xFFF4F7FF) : const Color(0xFF142033);
@@ -18,7 +18,7 @@ ThemeData buildBinerTheme(Brightness brightness) {
     brightness: brightness,
     scaffoldBackgroundColor: Colors.transparent,
     colorScheme: ColorScheme.fromSeed(
-      seedColor: binerBlue,
+      seedColor: seedColor,
       brightness: brightness,
       surface: dark ? const Color(0xFF08080B) : const Color(0xFFF8FAFF),
       secondary: binerViolet,
