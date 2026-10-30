@@ -238,7 +238,7 @@ class _UserProfilePageState extends State<UserProfilePage> {
                 ? Center(child: Padding(padding: const EdgeInsets.all(24), child: Column(mainAxisSize: MainAxisSize.min, children: [
                     Text(error!, textAlign: TextAlign.center),
                     const SizedBox(height: 12),
-                    FilledButton.icon(onPressed: load, icon: const Icon(Icons.refresh_rounded), label: const Text(binerText('تلاش دوباره',en:'Try again',ar:'حاول مرة أخرى',tr:'Tekrar dene'))),
+                    FilledButton.icon(onPressed: load, icon: const Icon(Icons.refresh_rounded), label: Text(binerText('تلاش دوباره',en:'Try again',ar:'حاول مرة أخرى',tr:'Tekrar dene'))),
                   ])))
                 : RefreshIndicator(
                     onRefresh: load,
