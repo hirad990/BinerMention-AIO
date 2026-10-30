@@ -898,10 +898,58 @@ class _LiveHomeState extends State<LiveHome> {
           Divider(height: 1, color: cLine.withValues(alpha: .35)),
           ListTile(leading: const Icon(Icons.shield_outlined, color: cBlue), title: const Text('حریم خصوصی و امنیت'), subtitle: const Text('تنظیمات حساب و محافظت از آن'), trailing: const Icon(Icons.chevron_right_rounded), onTap: () => toast('تنظیمات امنیتی در حال آماده‌سازی است.')),
           Divider(height: 1, color: cLine.withValues(alpha: .35)),
+          ListTile(leading: const Icon(Icons.palette_outlined, color: cBlue), title: Text(binerText('زبان، رنگ و عملکرد', en:'Language, color & performance', ar:'اللغة واللون والأداء', tr:'Dil, renk ve performans')), subtitle: Text(binerText('فارسی، انگلیسی، عربی، ترکی و حالت سریع', en:'Persian, English, Arabic, Turkish and fast mode', ar:'الفارسية والإنجليزية والعربية والتركية والوضع السريع', tr:'Farsça, İngilizce, Arapça, Türkçe ve hızlı mod')), trailing: const Icon(Icons.chevron_right_rounded), onTap: openAppSettings),
+          Divider(height: 1, color: cLine.withValues(alpha: .35)),
           ListTile(leading: const Icon(Icons.logout_rounded, color: Color(0xFFFF7185)), title: const Text('خروج از حساب'), subtitle: const Text('پایان نشست فعلی'), onTap: () async => widget.logout()),
         ]),
       ),
     ]);
+  }
+
+  Future<void> openAppSettings() async {
+    final prefs = BinerPreferences.instance;
+    await showModalBottomSheet<void>(
+      context: context, isScrollControlled: true, useSafeArea: true,
+      backgroundColor: Colors.transparent,
+      builder: (ctx) => AnimatedBuilder(
+        animation: prefs,
+        builder: (ctx, _) => Container(
+          padding: const EdgeInsets.fromLTRB(20, 14, 20, 26),
+          decoration: BoxDecoration(
+            color: Theme.of(ctx).brightness == Brightness.dark ? const Color(0xF20B1422) : const Color(0xF7FFFFFF),
+            borderRadius: const BorderRadius.vertical(top: Radius.circular(30)),
+            border: Border.all(color: prefs.accent.withValues(alpha: .38)),
+          ),
+          child: Column(mainAxisSize: MainAxisSize.min, crossAxisAlignment: CrossAxisAlignment.stretch, children: [
+            Center(child: Container(width: 42, height: 4, decoration: BoxDecoration(color: cMuted.withValues(alpha: .6), borderRadius: BorderRadius.circular(4)))),
+            const SizedBox(height: 18),
+            Text(binerText('تنظیمات ظاهری و عملکرد', en:'Appearance & performance', ar:'المظهر والأداء', tr:'Görünüm ve performans'), style: const TextStyle(fontSize: 21, fontWeight: FontWeight.w900)),
+            const SizedBox(height: 16),
+            Text(binerText('زبان برنامه', en:'App language', ar:'لغة التطبيق', tr:'Uygulama dili'), style: const TextStyle(fontWeight: FontWeight.w700)),
+            const SizedBox(height: 8),
+            Wrap(spacing: 8, runSpacing: 8, children: [
+              for (final item in const [('fa','فارسی'),('en','English'),('ar','العربية'),('tr','Türkçe')])
+                ChoiceChip(label: Text(item.$2), selected: prefs.locale.languageCode == item.$1, onSelected: (_) => prefs.setLanguage(item.$1)),
+            ]),
+            const SizedBox(height: 16),
+            Text(binerText('رنگ اصلی', en:'Accent color', ar:'اللون الأساسي', tr:'Vurgu rengi'), style: const TextStyle(fontWeight: FontWeight.w700)),
+            const SizedBox(height: 9),
+            Wrap(spacing: 13, children: [
+              for (final color in const [Color(0xFF54C8FF),Color(0xFF8B7CFF),Color(0xFF36D6A0),Color(0xFFFF8A65),Color(0xFFFF6FAE),Color(0xFFFFC857)])
+                GestureDetector(onTap: () => prefs.setAccent(color), child: AnimatedContainer(duration: const Duration(milliseconds: 180), width: 34, height: 34, decoration: BoxDecoration(color: color, shape: BoxShape.circle, border: Border.all(color: prefs.accent.toARGB32() == color.toARGB32() ? Theme.of(ctx).colorScheme.onSurface : Colors.transparent, width: 3), boxShadow: [BoxShadow(color: color.withValues(alpha: .25), blurRadius: 10)]), child: prefs.accent.toARGB32() == color.toARGB32() ? const Icon(Icons.check_rounded, size: 18, color: Colors.black) : null)),
+            ]),
+            const SizedBox(height: 12),
+            SwitchListTile.adaptive(
+              contentPadding: EdgeInsets.zero, value: prefs.fastMode,
+              onChanged: prefs.setFastMode,
+              secondary: const Icon(Icons.speed_rounded, color: cBlue),
+              title: Text(binerText('حالت سریع برای گوشی‌های ضعیف', en:'Fast mode for low-end phones', ar:'الوضع السريع للهواتف الضعيفة', tr:'Düşük donanımlı telefonlar için hızlı mod')),
+              subtitle: Text(binerText('کاهش افکت‌های سنگین و محوشدگی برای روان‌تر شدن برنامه', en:'Reduce heavy effects and blur for smoother performance', ar:'تقليل المؤثرات الثقيلة والضبابية لتحسين الأداء', tr:'Daha akıcı kullanım için ağır efektleri ve bulanıklığı azaltır')),
+            ),
+          ]),
+        ),
+      ),
+    );
   }
 
   Widget _profileMetric(String label, String count) => Container(
