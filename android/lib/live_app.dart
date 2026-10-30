@@ -166,13 +166,76 @@ class LiveHome extends StatefulWidget {
 class _LiveHomeState extends State<LiveHome> {
   int tab = 0; bool loading = true, posting = false, followingFeed = false; String? error;
   final posts = <Map<String, dynamic>>[];
+  final storyItems = <Map<String, dynamic>>[];
   final savedPosts = <Map<String, dynamic>>[];
   Map<String, dynamic>? me;
   String exploreQuery = '';
   bool showingSaved = false;
   Future<List<dynamic>>? exploreResults;
   final Set<String> _postActionsInFlight = <String>{};
-  @override void initState() { super.initState(); refresh(); loadProfile(); loadSavedPosts(); }
+  @override void initState() { super.initState(); refresh(); loadProfile(); loadSavedPosts(); loadStories(); }
+  Future<void> loadStories() async {
+    try {
+      final result = await widget.api.stories();
+      if (mounted) setState(() { storyItems..clear()..addAll(result); });
+    } on ApiException catch (e) { if (mounted) toast(e.message); }
+  }
+
+  Future<void> createStory() async {
+    try {
+      final file = await ImagePicker().pickMedia();
+      if (file == null || !mounted) return;
+      toast('در حال بارگذاری استوری…');
+      final uploaded = await widget.api.uploadMedia(file);
+      final mediaId = int.tryParse(uploaded['id'].toString());
+      if (mediaId == null) throw const ApiException('شناسه رسانه دریافت نشد.');
+      await widget.api.createStory(mediaId);
+      await loadStories();
+      if (mounted) toast('استوری تا ۲۴ ساعت نمایش داده می‌شود.');
+    } on ApiException catch (e) { if (mounted) toast(e.message); }
+  }
+
+  Future<void> openStory(Map<String,dynamic> story) async {
+    final url = value(story,'media_url');
+    if (!url.startsWith('https://')) return;
+    final mime = value(story,'mime_type');
+    if (mime.startsWith('video/')) {
+      await launchUrl(Uri.parse(url), mode: LaunchMode.externalApplication);
+      return;
+    }
+    if (!mounted) return;
+    await showDialog<void>(context: context, builder: (ctx) => Dialog(
+      backgroundColor: Colors.black,
+      insetPadding: const EdgeInsets.all(12),
+      child: Column(mainAxisSize: MainAxisSize.min, children: [
+        Align(alignment: Alignment.centerRight, child: IconButton(onPressed: () => Navigator.pop(ctx), icon: const Icon(Icons.close,color:Colors.white))),
+        ClipRRect(borderRadius: BorderRadius.circular(16), child: Image.network(url, fit: BoxFit.contain, errorBuilder: (_,__,___) => const Padding(padding: EdgeInsets.all(30),child: Icon(Icons.broken_image,color:Colors.white)))),
+        if (value(story,'caption').isNotEmpty) Padding(padding: const EdgeInsets.all(12), child: Text(value(story,'caption'),style: const TextStyle(color:Colors.white))),
+      ]),
+    ));
+  }
+
+  Widget storyStrip() {
+    final dark = Theme.of(context).brightness == Brightness.dark;
+    return SizedBox(height: 112, child: ListView(
+      scrollDirection: Axis.horizontal,
+      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
+      children: [
+        GestureDetector(onTap: createStory, child: SizedBox(width: 76, child: Column(children: [
+          Container(width: 58,height: 58,padding: const EdgeInsets.all(3),decoration: BoxDecoration(shape: BoxShape.circle,border: Border.all(color:cBlue,width:2)),child: CircleAvatar(backgroundColor: dark?const Color(0xFF15243A):const Color(0xFFEAF3FF),child: const Icon(Icons.add_rounded,color:cBlue,size:28))),
+          const SizedBox(height:6),Text(binerText('استوری من',en:'Your story',ar:'قصتك',tr:'Hikayen'),maxLines:1,overflow:TextOverflow.ellipsis,style:const TextStyle(fontSize:10,fontWeight:FontWeight.w700)),
+        ]))),
+        ...storyItems.map((story) {
+          final name=value(story,'display_name',value(story,'username','کاربر'));
+          return GestureDetector(onTap:()=>openStory(story),child:SizedBox(width:76,child:Column(children:[
+            Container(width:58,height:58,padding:const EdgeInsets.all(3),decoration:const BoxDecoration(shape:BoxShape.circle,gradient:LinearGradient(colors:[cBlue,Color(0xFF9B8CFF),Color(0xFFFF78B8)])),child:CircleAvatar(backgroundColor:dark?const Color(0xFF111722):Colors.white,child:Icon(value(story,'mime_type').startsWith('video/')?Icons.play_arrow_rounded:Icons.photo_rounded,color:cBlue))),
+            const SizedBox(height:6),Text(name,maxLines:1,overflow:TextOverflow.ellipsis,style:const TextStyle(fontSize:10,fontWeight:FontWeight.w600)),
+          ])));
+        }),
+      ],
+    ));
+  }
+
   Future<void> loadSavedPosts() async {
     final prefs = await SharedPreferences.getInstance();
     final encoded = prefs.getStringList('biner_saved_posts') ?? const <String>[];
@@ -677,17 +740,17 @@ class _LiveHomeState extends State<LiveHome> {
     if (posts.isEmpty) {
       return RefreshIndicator(
         onRefresh: refresh,
-        child: ListView(children: const [
-          SizedBox(height: 100),
+        child: ListView(children: [
+          storyStrip(),
+          const SizedBox(height: 70),
           Center(child: Text('هنوز پستی وجود ندارد.')),
         ]),
       );
     }
     return RefreshIndicator(
       onRefresh: refresh,
-      child: ListView.builder(
-        itemCount: posts.length,
-        itemBuilder: (_, i) => card(posts[i]),
+      child: ListView(
+        children: [storyStrip(), ...posts.map(card)],
       ),
     );
   }
