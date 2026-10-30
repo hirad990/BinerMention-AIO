@@ -82,7 +82,7 @@ class _LiveAuthState extends State<LiveAuth> with TickerProviderStateMixin {
   final form = GlobalKey<FormState>();
   final username = TextEditingController(), email = TextEditingController(), password = TextEditingController(), displayName = TextEditingController();
   bool register = false, busy = false, hide = true; String? error;
-  late final AnimationController ambient = AnimationController(vsync:this,duration:const Duration(seconds:7))..repeat(reverse:true);
+  late final AnimationController ambient = AnimationController(vsync:this,duration:const Duration(seconds:7))..forward();
   @override void dispose() { ambient.dispose(); username.dispose(); email.dispose(); password.dispose(); displayName.dispose(); super.dispose(); }
   Future<void> submit() async {
     if (!form.currentState!.validate() || busy) return;
