@@ -14,6 +14,7 @@ import 'profile_page.dart';
 import 'media_editor.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:url_launcher/url_launcher.dart';
+import 'package:video_player/video_player.dart';
 
 const cBg = Color(0xFF000000), cPanel = Color(0xF20A0A0C), cLine = Color(0x4439C5FF), cBlue = Color(0xFF54C8FF), cMuted = Color(0xFF9A9AA8), cGlass = Color(0xAA101014);
 
@@ -170,7 +171,18 @@ class _StoryViewerState extends State<_StoryViewer> {
   late int likes = int.tryParse(widget.story['likes_count']?.toString() ?? '') ?? 0;
   late Future<List<Map<String,dynamic>>> comments = widget.api.storyComments(int.parse(widget.story['id'].toString()));
   bool sending = false;
-  @override void dispose() { comment.dispose(); super.dispose(); }
+  VideoPlayerController? video;
+  @override void initState() {
+    super.initState();
+    final mime = widget.story['mime_type']?.toString() ?? '';
+    if (mime.startsWith('video/')) {
+      video = VideoPlayerController.networkUrl(Uri.parse(widget.story['media_url'].toString()))
+        ..initialize().then((_) { if (mounted) setState(() {}); })
+        ..setLooping(true)
+        ..play();
+    }
+  }
+  @override void dispose() { video?.dispose(); comment.dispose(); super.dispose(); }
   Future<void> toggleLike() async {
     final next = !liked;
     setState(() { liked = next; likes += next ? 1 : -1; });
@@ -191,7 +203,11 @@ class _StoryViewerState extends State<_StoryViewer> {
     backgroundColor: const Color(0xFF090B12), insetPadding: const EdgeInsets.all(10),
     child: ConstrainedBox(constraints: BoxConstraints(maxHeight: MediaQuery.of(context).size.height * .88), child: Column(mainAxisSize: MainAxisSize.min, children: [
       Row(children: [Expanded(child: Padding(padding: const EdgeInsets.all(14), child: Text(widget.story['display_name']?.toString() ?? widget.story['username']?.toString() ?? binerText('استوری',en:'Story',ar:'قصة',tr:'Hikâye'), style: const TextStyle(color: Colors.white, fontWeight: FontWeight.w800)))), IconButton(onPressed: () => Navigator.pop(context), icon: const Icon(Icons.close,color:Colors.white))]),
-      Flexible(child: InteractiveViewer(child: Image.network(widget.story['media_url'].toString(), fit: BoxFit.contain, errorBuilder: (_,__,___) => const Icon(Icons.broken_image,color:Colors.white,size:42)))),
+      Flexible(child: video == null
+        ? InteractiveViewer(child: Image.network(widget.story['media_url'].toString(), fit: BoxFit.contain, errorBuilder: (_,__,___) => const Icon(Icons.broken_image,color:Colors.white,size:42)))
+        : (video!.value.isInitialized
+            ? GestureDetector(onTap: () => setState(() => video!.value.isPlaying ? video!.pause() : video!.play()), child: AspectRatio(aspectRatio: video!.value.aspectRatio, child: VideoPlayer(video!)))
+            : const Center(child: CircularProgressIndicator(color: Colors.white)))),
       if ((widget.story['caption'] ?? '').toString().isNotEmpty) Padding(padding: const EdgeInsets.all(10), child: Text(widget.story['caption'].toString(),style: const TextStyle(color:Colors.white))),
       Row(children: [IconButton(onPressed: toggleLike, icon: Icon(liked ? Icons.favorite : Icons.favorite_border, color: liked ? Colors.pinkAccent : Colors.white)), Text('$likes',style: const TextStyle(color:Colors.white)), const SizedBox(width:12), const Icon(Icons.chat_bubble_outline,color:Colors.white,size:19), const SizedBox(width:5), Text(binerText('دیدگاه‌ها',en:'Comments',ar:'التعليقات',tr:'Yorumlar'),style: TextStyle(color:Colors.white))]),
       Flexible(child: FutureBuilder<List<Map<String,dynamic>>>(future: comments,builder: (context,s) {
@@ -247,10 +263,6 @@ class _LiveHomeState extends State<LiveHome> {
     final url = value(story,'media_url');
     if (!url.startsWith('https://')) return;
     final mime = value(story,'mime_type');
-    if (mime.startsWith('video/')) {
-      await launchUrl(Uri.parse(url), mode: LaunchMode.externalApplication);
-      return;
-    }
     if (!mounted) return;
     await showDialog<void>(context: context, builder: (ctx) => _StoryViewer(api: widget.api, story: story));
   }
