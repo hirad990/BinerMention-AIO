@@ -1,6 +1,6 @@
 import { defineConfig, devices } from "@playwright/test";
 
-const appUrl = "http://127.0.0.1:3000/mention";
+const appUrl = "http://127.0.0.1:3000/mention/";
 
 export default defineConfig({
   testDir: "./e2e",
@@ -8,7 +8,7 @@ export default defineConfig({
   forbidOnly: !!process.env.CI,
   retries: process.env.CI ? 2 : 0,
   reporter: process.env.CI ? "github" : "list",
-  use: { baseURL: appUrl, trace: "retain-on-failure" },
+  use: { baseURL: "http://127.0.0.1:3000", trace: "retain-on-failure" },
   projects: [{ name: "chromium", use: { ...devices["Desktop Chrome"] } }],
   webServer: {
     command: "npm run dev",
