@@ -86,7 +86,8 @@ try {
   if($method==='GET'){$q=$db->prepare('SELECT c.id,c.body,c.created_at,u.id user_id,u.username,u.display_name FROM story_comments c JOIN users u ON u.id=c.user_id WHERE c.story_id=? ORDER BY c.id ASC LIMIT 100');$q->execute([$sid]);out(['ok'=>true,'comments'=>$q->fetchAll()]);}
   if($method==='POST'){$body=txt($b['body']??'',500);if($body==='')err('Comment cannot be empty.',422);$q=$db->prepare('INSERT INTO story_comments(story_id,user_id,body) VALUES(?,?,?)');$q->execute([$sid,$u['id'],$body]);$id=(int)$db->lastInsertId();if((int)$owner!==(int)$u['id'])note($db,(int)$owner,(int)$u['id'],'story_comment');$q=$db->prepare('SELECT c.id,c.body,c.created_at,u.id user_id,u.username,u.display_name FROM story_comments c JOIN users u ON u.id=c.user_id WHERE c.id=?');$q->execute([$id]);out(['ok'=>true,'comment'=>$q->fetch()],201);}
  }
-\n if($path==='/v1/stories'&&$method==='GET'){
+
+ if($path==='/v1/stories'&&$method==='GET'){
   $u=auth($db);
   $q=$db->prepare('SELECT s.id,s.user_id,s.media_id,s.caption,s.created_at,s.expires_at,u.username,u.display_name,m.stored_name,m.mime_type,(SELECT COUNT(*) FROM story_likes sl WHERE sl.story_id=s.id) likes_count,(SELECT COUNT(*) FROM story_comments sc WHERE sc.story_id=s.id) comments_count,EXISTS(SELECT 1 FROM story_likes sl2 WHERE sl2.story_id=s.id AND sl2.user_id=? ) is_liked FROM stories s JOIN users u ON u.id=s.user_id JOIN media m ON m.id=s.media_id WHERE s.expires_at>UTC_TIMESTAMP() AND (s.user_id=? OR s.user_id IN (SELECT following_id FROM follows WHERE follower_id=?)) ORDER BY s.created_at DESC LIMIT 100');
   $q->execute([$u['id'],$u['id'],$u['id']]);$items=[];
