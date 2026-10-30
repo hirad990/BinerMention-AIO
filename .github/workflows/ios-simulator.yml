@@ -1,0 +1,93 @@
+name: iOS Simulator Build
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'android/**'
+      - '.github/workflows/ios-simulator.yml'
+  pull_request:
+    paths:
+      - 'android/**'
+      - '.github/workflows/ios-simulator.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ios-simulator-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  build-ios-simulator:
+    name: Build BinerMention for iOS Simulator
+    runs-on: macos-latest
+    timeout-minutes: 45
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          channel: stable
+          cache: true
+          cache-key: flutter-${{ runner.os }}-${{ hashFiles('android/pubspec.yaml') }}
+
+      - name: Generate iOS platform scaffold
+        run: flutter create --platforms=ios --org ir.binercraft --project-name binerm_mention "$RUNNER_TEMP/binerm_mention"
+
+      - name: Inject Flutter app source
+        run: |
+          cp android/pubspec.yaml "$RUNNER_TEMP/binerm_mention/pubspec.yaml"
+          rm -rf "$RUNNER_TEMP/binerm_mention/lib" "$RUNNER_TEMP/binerm_mention/test"
+          cp -R android/lib "$RUNNER_TEMP/binerm_mention/lib"
+          if [ -d android/test ]; then cp -R android/test "$RUNNER_TEMP/binerm_mention/test"; fi
+          PLIST="$RUNNER_TEMP/binerm_mention/ios/Runner/Info.plist" python3 - <<'PY'
+          import os
+          import plistlib
+          from pathlib import Path
+
+          path = Path(os.environ["PLIST"])
+          with path.open("rb") as stream:
+              data = plistlib.load(stream)
+          data["CFBundleDisplayName"] = "BinerMention"
+          with path.open("wb") as stream:
+              plistlib.dump(data, stream)
+          PY
+
+      - name: Resolve Flutter and iOS dependencies
+        working-directory: ${{ runner.temp }}/binerm_mention
+        run: flutter pub get
+
+      - name: Format Dart sources
+        working-directory: ${{ runner.temp }}/binerm_mention
+        run: dart format lib test
+
+      - name: Analyze Dart sources
+        working-directory: ${{ runner.temp }}/binerm_mention
+        run: flutter analyze --no-fatal-infos
+
+      - name: Run Flutter tests
+        working-directory: ${{ runner.temp }}/binerm_mention
+        run: flutter test --reporter expanded
+
+      - name: Build iOS Simulator app
+        working-directory: ${{ runner.temp }}/binerm_mention
+        run: flutter build ios --simulator --no-codesign
+
+      - name: Package Simulator app
+        run: |
+          APP="$RUNNER_TEMP/binerm_mention/build/ios/iphonesimulator/Runner.app"
+          test -d "$APP"
+          ditto -c -k --sequesterRsrc --keepParent "$APP" "$RUNNER_TEMP/BinerMention-iOS-Simulator.zip"
+          test -s "$RUNNER_TEMP/BinerMention-iOS-Simulator.zip"
+
+      - name: Upload iOS Simulator artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: BinerMention-iOS-Simulator
+          path: ${{ runner.temp }}/BinerMention-iOS-Simulator.zip
+          if-no-files-found: error
+          retention-days: 14
