@@ -1,36 +1,70 @@
-name: BinerMention Web CI and Dist
+name: BinerMention Web Dist
+
 on:
   push:
     branches: [main]
-    paths: ["web/**", ".github/workflows/binerm-mention-web.yml"]
+    paths:
+      - "web/**"
+      - ".github/workflows/binerm-mention-web.yml"
   pull_request:
-    paths: ["web/**", ".github/workflows/binerm-mention-web.yml"]
+    paths:
+      - "web/**"
+      - ".github/workflows/binerm-mention-web.yml"
   workflow_dispatch:
+
 permissions:
   contents: read
+
 concurrency:
   group: binerm-mention-web-${{ github.ref }}
   cancel-in-progress: false
+
 jobs:
   build:
+    name: Test and export /mention
     runs-on: ubuntu-latest
     defaults:
       run:
         working-directory: web
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
         with:
           node-version: 22
-      - run: npm install
-      - run: npm run typecheck
-      - run: npm test
-      - run: npx playwright install --with-deps chromium
-      - run: npm run test:e2e
-      - run: npm run build
-      - uses: actions/upload-artifact@v4
+          cache: npm
+          cache-dependency-path: web/package-lock.json
+
+      - name: Install dependencies
+        run: npm install
+
+      - name: Type check
+        run: npm run typecheck
+
+      - name: Unit tests
+        run: npm test
+
+      - name: Install Playwright Chromium
+        run: npx playwright install --with-deps chromium
+
+      - name: End-to-end tests
+        run: npm run test:e2e
+
+      - name: Build static website
+        run: npm run build
+
+      - name: Verify static export
+        run: |
+          test -s out/index.html
+          test -d out/_next
+          echo "Static export ready for https://binercraft.ir/mention/"
+
+      - name: Upload DIST artifact
+        uses: actions/upload-artifact@v4
         with:
-          name: BinerMention-web-dist
+          name: BinerMention-DIST-mention
           path: web/out/
           if-no-files-found: error
           retention-days: 14
