@@ -178,7 +178,7 @@ class BinerLiquidGlass extends StatelessWidget {
               boxShadow: [
                 BoxShadow(
                   color: (dark ? binerBlue : const Color(0xFF4777AA)).withValues(alpha: .10),
-                  blurRadius: 28,
+                  blurRadius: BinerPreferences.instance.fastMode ? 0 : 28,
                   offset: const Offset(0, 10),
                 ),
               ],
