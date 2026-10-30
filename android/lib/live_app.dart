@@ -33,6 +33,7 @@ class _BinerLiveAppState extends State<BinerLiveApp> {
   }
   @override void initState() { super.initState(); init(); }
   Future<void> init() async {
+    await BinerMediaEditor.recoverLostData();
     await BinerPreferences.instance.load();
     final prefs = await SharedPreferences.getInstance();
     themeMode = prefs.getBool('biner_theme_dark') == false ? ThemeMode.light : ThemeMode.dark;
