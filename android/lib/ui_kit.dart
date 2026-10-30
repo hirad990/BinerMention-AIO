@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:shimmer/shimmer.dart';
+import 'app_preferences.dart';
 
 const binerBlue = Color(0xFF54C8FF);
 const binerViolet = Color(0xFF9B8CFF);
@@ -155,7 +156,7 @@ class BinerLiquidGlass extends StatelessWidget {
       child: ClipRRect(
         borderRadius: borderRadius,
         child: BackdropFilter(
-          filter: ImageFilter.blur(sigmaX: 12, sigmaY: 12),
+          filter: ImageFilter.blur(sigmaX: BinerPreferences.instance.fastMode ? 0 : 12, sigmaY: BinerPreferences.instance.fastMode ? 0 : 12),
           child: AnimatedContainer(
             duration: const Duration(milliseconds: 260),
             curve: Curves.easeOutCubic,
