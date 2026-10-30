@@ -699,14 +699,14 @@ class _LiveHomeState extends State<LiveHome> {
         Expanded(child: InkWell(
           onTap: () { if (followingFeed) { setState(() => followingFeed = false); refresh(); } },
           child: Column(children: [
-            Padding(padding: const EdgeInsets.symmetric(vertical: 12), child: Text('برای تو', style: TextStyle(fontWeight: FontWeight.bold, color: followingFeed ? cMuted : Theme.of(context).colorScheme.onSurface))),
+            Padding(padding: const EdgeInsets.symmetric(vertical: 12), child: Text(binerText('برای تو', en:'For you', ar:'لك', tr:'Sana özel'), style: TextStyle(fontWeight: FontWeight.bold, color: followingFeed ? cMuted : Theme.of(context).colorScheme.onSurface))),
             Container(height: 3, width: 82, decoration: BoxDecoration(color: followingFeed ? Colors.transparent : cBlue, borderRadius: BorderRadius.circular(3))),
           ]),
         )),
         Expanded(child: InkWell(
           onTap: () { if (!followingFeed) { setState(() => followingFeed = true); refresh(); } },
           child: Column(children: [
-            Padding(padding: const EdgeInsets.symmetric(vertical: 12), child: Text('دنبال‌شونده‌ها', style: TextStyle(fontWeight: FontWeight.bold, color: followingFeed ? Theme.of(context).colorScheme.onSurface : cMuted))),
+            Padding(padding: const EdgeInsets.symmetric(vertical: 12), child: Text(binerText('دنبال‌شونده‌ها', en:'Following', ar:'المتابَعون', tr:'Takip edilenler'), style: TextStyle(fontWeight: FontWeight.bold, color: followingFeed ? Theme.of(context).colorScheme.onSurface : cMuted))),
             Container(height: 3, width: 112, decoration: BoxDecoration(color: followingFeed ? cBlue : Colors.transparent, borderRadius: BorderRadius.circular(3))),
           ]),
         )),
@@ -1112,11 +1112,11 @@ class _LiveHomeState extends State<LiveHome> {
             selectedIndex: tab,
             onDestinationSelected: (i) { if (i != tab) setState(() => tab = i); },
             destinations: const [
-              NavigationDestination(icon: Icon(Icons.home_outlined), selectedIcon: Icon(Icons.home_rounded, color: cBlue), label: 'خانه'),
-              NavigationDestination(icon: Icon(Icons.search_rounded), selectedIcon: Icon(Icons.search_rounded, color: cBlue), label: 'کاوش'),
-              NavigationDestination(icon: Icon(Icons.notifications_none_rounded), selectedIcon: Icon(Icons.notifications_rounded, color: cBlue), label: 'اعلان‌ها'),
-              NavigationDestination(icon: Icon(Icons.mail_outline_rounded), selectedIcon: Icon(Icons.mail_rounded, color: cBlue), label: 'پیام‌ها'),
-              NavigationDestination(icon: Icon(Icons.person_outline_rounded), selectedIcon: Icon(Icons.person_rounded, color: cBlue), label: 'پروفایل'),
+              NavigationDestination(icon: Icon(Icons.home_outlined), selectedIcon: Icon(Icons.home_rounded, color: cBlue), label: binerText('خانه', en:'Home', ar:'الرئيسية', tr:'Ana sayfa')),
+              NavigationDestination(icon: Icon(Icons.search_rounded), selectedIcon: Icon(Icons.search_rounded, color: cBlue), label: binerText('کاوش', en:'Explore', ar:'استكشاف', tr:'Keşfet')),
+              NavigationDestination(icon: Icon(Icons.notifications_none_rounded), selectedIcon: Icon(Icons.notifications_rounded, color: cBlue), label: binerText('اعلان‌ها', en:'Alerts', ar:'الإشعارات', tr:'Bildirimler')),
+              NavigationDestination(icon: Icon(Icons.mail_outline_rounded), selectedIcon: Icon(Icons.mail_rounded, color: cBlue), label: binerText('پیام‌ها', en:'Messages', ar:'الرسائل', tr:'Mesajlar')),
+              NavigationDestination(icon: Icon(Icons.person_outline_rounded), selectedIcon: Icon(Icons.person_rounded, color: cBlue), label: binerText('پروفایل', en:'Profile', ar:'الملف الشخصي', tr:'Profil')),
             ],
           ),
         ),
@@ -1442,7 +1442,7 @@ class _ChatPageState extends State<ChatPage> {
                     maxLines: 5,
                     textInputAction: TextInputAction.newline,
                     decoration: InputDecoration(
-                      hintText: 'پیامت را بنویس...',
+                      hintText: binerText('پیامت را بنویس...', en:'Write a message...', ar:'اكتب رسالة...', tr:'Mesaj yaz...'),
                       filled: true,
                       fillColor: Theme.of(context).colorScheme.surface,
                       border: OutlineInputBorder(
