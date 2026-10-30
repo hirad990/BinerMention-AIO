@@ -12,6 +12,7 @@ import 'api_client.dart';
 import 'ui_kit.dart';
 import 'profile_page.dart';
 import 'package:image_picker/image_picker.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 const cBg = Color(0xFF000000), cPanel = Color(0xF20A0A0C), cLine = Color(0x4439C5FF), cBlue = Color(0xFF54C8FF), cMuted = Color(0xFF9A9AA8), cGlass = Color(0xAA101014);
 
@@ -128,7 +129,7 @@ class _LiveAuthState extends State<LiveAuth> with TickerProviderStateMixin {
               if(error!=null) Padding(padding:const EdgeInsets.only(bottom:12),child:Text(error!,style:const TextStyle(color:Colors.redAccent))),
               SizedBox(height:54,child:FilledButton(onPressed:busy?null:submit,style:FilledButton.styleFrom(backgroundColor:prefs.accent,foregroundColor:const Color(0xFF06111D),shape:RoundedRectangleBorder(borderRadius:BorderRadius.circular(18))),child:AnimatedSwitcher(duration:const Duration(milliseconds:180),child:busy?const SizedBox(key:ValueKey('busy'),width:22,height:22,child:CircularProgressIndicator(strokeWidth:2,color:Color(0xFF06111D))):Row(key:const ValueKey('label'),mainAxisAlignment:MainAxisAlignment.center,children:[Text(register?binerText('ثبت‌نام',en:'Create account',ar:'إنشاء حساب',tr:'Kaydol'):binerText('ورود امن',en:'Sign in securely',ar:'دخول آمن',tr:'Güvenli giriş'),style:const TextStyle(fontWeight:FontWeight.w800)),const SizedBox(width:8),const Icon(Icons.arrow_forward_rounded,size:19)])))),
               const SizedBox(height:10),
-              Center(child:TextButton(onPressed:busy?null:()=>setState(()=>{register=!register;error=null}),child:Text(register?binerText('حساب داری؟ وارد شو',en:'Already have an account? Sign in',ar:'لديك حساب؟ سجّل الدخول',tr:'Hesabın var mı? Giriş yap'):binerText('حساب نداری؟ ثبت‌نام کن',en:'New here? Create an account',ar:'ليس لديك حساب؟ أنشئ حساباً',tr:'Yeni misin? Hesap oluştur')))),
+              Center(child:TextButton(onPressed:busy?null:()=>setState(() { register = !register; error = null; }),child:Text(register?binerText('حساب داری؟ وارد شو',en:'Already have an account? Sign in',ar:'لديك حساب؟ سجّل الدخول',tr:'Hesabın var mı? Giriş yap'):binerText('حساب نداری؟ ثبت‌نام کن',en:'New here? Create an account',ar:'ليس لديك حساب؟ أنشئ حساباً',tr:'Yeni misin? Hesap oluştur')))),
             ]))),
             const SizedBox(height:18),
             Center(child:Wrap(alignment:WrapAlignment.center,spacing:8,children:[
@@ -1105,9 +1106,9 @@ class _ChatPageState extends State<ChatPage> {
     }
   }
 
-  Future<void> send() async {
+  Future<void> send({XFile? attachment}) async {
     final raw = controller.text.trim();
-    if (raw.isEmpty || sending) return;
+    if ((raw.isEmpty && attachment == null) || sending) return;
     final reply = replyingTo;
     final text = reply == null ? raw : '↪ پاسخ به ${reply['sender_name'] ?? 'کاربر'}: "${(reply['body'] ?? '').toString().replaceAll('\n', ' ')}"\n$raw';
     controller.clear();
@@ -1115,7 +1116,13 @@ class _ChatPageState extends State<ChatPage> {
     setState(() => replyingTo = null);
     setState(() => sending = true);
     try {
-      final item = await widget.api.sendMessage(widget.conversationId, text);
+      int? mediaId;
+      if (attachment != null) {
+        final uploaded = await widget.api.uploadMedia(attachment);
+        mediaId = int.tryParse(uploaded['id'].toString());
+        if (mediaId == null) throw const ApiException('شناسه فایل از سرور دریافت نشد.');
+      }
+      final item = await widget.api.sendMessage(widget.conversationId, text, mediaId: mediaId);
       if (!mounted) return;
       setState(() => items.add(item));
       WidgetsBinding.instance.addPostFrameCallback((_) {
@@ -1168,6 +1175,23 @@ class _ChatPageState extends State<ChatPage> {
     }
   }
 
+  Future<void> showTextTool(String source, {required bool translate}) async {
+    if (source.trim().isEmpty) { toast('متنی برای پردازش وجود ندارد.'); return; }
+    showDialog<void>(context: context, barrierDismissible: false, builder: (_) => const Center(child: CircularProgressIndicator(color: cBlue)));
+    try {
+      final result = translate ? await BinerTextTools.translate(source, BinerPreferences.instance.locale.languageCode) : BinerTextTools.summarize(source);
+      if (!mounted) return;
+      Navigator.of(context, rootNavigator: true).pop();
+      await showDialog<void>(context: context, builder: (ctx) => AlertDialog(
+        title: Text(translate ? binerText('ترجمه پیام',en:'Message translation',ar:'ترجمة الرسالة',tr:'Mesaj çevirisi') : binerText('خلاصه پیام',en:'Message summary',ar:'ملخص الرسالة',tr:'Mesaj özeti')),
+        content: SelectableText(result),
+        actions: [TextButton(onPressed: () => Navigator.pop(ctx), child: Text(binerText('بستن',en:'Close',ar:'إغلاق',tr:'Kapat')))],
+      ));
+    } catch (e) {
+      if (mounted) { Navigator.of(context, rootNavigator: true).pop(); toast('پردازش متن انجام نشد: $e'); }
+    }
+  }
+
   Future<void> messageActions(Map<String, dynamic> item) async {
     final action = await showModalBottomSheet<String>(
       context: context, backgroundColor: Colors.transparent, useSafeArea: true,
@@ -1184,6 +1208,8 @@ class _ChatPageState extends State<ChatPage> {
               ListTile(leading: const Icon(Icons.reply_rounded, color: cBlue), title: const Text('پاسخ به پیام'), subtitle: Text((item['body'] ?? '').toString(), maxLines: 1, overflow: TextOverflow.ellipsis), onTap: () => Navigator.pop(ctx, 'reply')),
               ListTile(leading: const Icon(Icons.forward_rounded, color: Color(0xFF9B8CFF)), title: const Text('بازارسال به گفت‌وگوی دیگر'), subtitle: const Text('انتخاب مقصد'), onTap: () => Navigator.pop(ctx, 'forward')),
               ListTile(leading: const Icon(Icons.copy_rounded, color: cMuted), title: const Text('کپی متن پیام'), onTap: () => Navigator.pop(ctx, 'copy')),
+               ListTile(leading: const Icon(Icons.summarize_rounded, color: cBlue), title: const Text('خلاصه‌سازی پیام'), onTap: () => Navigator.pop(ctx, 'summary')),
+               ListTile(leading: const Icon(Icons.translate_rounded, color: Color(0xFF9B8CFF)), title: const Text('ترجمه پیام'), onTap: () => Navigator.pop(ctx, 'translate')),
             ]),
           ),
         ),
@@ -1197,6 +1223,10 @@ class _ChatPageState extends State<ChatPage> {
     } else if (action == 'copy') {
       await Clipboard.setData(ClipboardData(text: body));
       if (mounted) ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('متن پیام کپی شد.')));
+    } else if (action == 'summary') {
+      await showTextTool(body, translate: false);
+    } else if (action == 'translate') {
+      await showTextTool(body, translate: true);
     } else if (action == 'forward') {
       try {
         final conversations = await widget.api.conversations();
@@ -1292,7 +1322,13 @@ class _ChatPageState extends State<ChatPage> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(item['body']?.toString() ?? '', style: const TextStyle(fontSize: 15, height: 1.42)),
+                if ((item['media_url']?.toString() ?? '').startsWith('https://')) ...[
+                  if (RegExp(r'\\.(mp4|webm)(\\?|$)', caseSensitive: false).hasMatch(item['media_url'].toString()))
+                    Container(width: 190,height: 116,decoration: BoxDecoration(color: Colors.black26,borderRadius: BorderRadius.circular(14)),child: Center(child: IconButton.filled(onPressed: () => launchUrl(Uri.parse(item['media_url'].toString()), mode: LaunchMode.externalApplication), icon: const Icon(Icons.play_arrow_rounded))))
+                  else ClipRRect(borderRadius: BorderRadius.circular(14),child: Image.network(item['media_url'].toString(),width: 210,height: 170,fit: BoxFit.cover,errorBuilder: (_,__,___)=>const Icon(Icons.broken_image_outlined))),
+                  const SizedBox(height: 7),
+                ],
+                if ((item['body']?.toString() ?? '').isNotEmpty) Text(item['body']?.toString() ?? '', style: const TextStyle(fontSize: 15, height: 1.42)),
                 const SizedBox(height: 4),
                 Text(item['created_at']?.toString() ?? '', style: const TextStyle(color: cMuted, fontSize: 10)),
               ],
@@ -1328,6 +1364,14 @@ class _ChatPageState extends State<ChatPage> {
             child: Row(
               crossAxisAlignment: CrossAxisAlignment.end,
               children: [
+                IconButton(
+                  tooltip: 'ارسال عکس یا ویدیو',
+                  onPressed: sending ? null : () async {
+                    final picked = await ImagePicker().pickMedia();
+                    if (picked != null && mounted) await send(attachment: picked);
+                  },
+                  icon: const Icon(Icons.add_photo_alternate_rounded, color: cBlue),
+                ),
                 Expanded(
                   child: TextField(
                     controller: controller,
