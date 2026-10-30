@@ -88,8 +88,8 @@ try {
  }
 \n if($path==='/v1/stories'&&$method==='GET'){
   $u=auth($db);
-  $q=$db->prepare('SELECT s.id,s.user_id,s.media_id,s.caption,s.created_at,s.expires_at,u.username,u.display_name,m.stored_name,m.mime_type FROM stories s JOIN users u ON u.id=s.user_id JOIN media m ON m.id=s.media_id WHERE s.expires_at>UTC_TIMESTAMP() AND (s.user_id=? OR s.user_id IN (SELECT following_id FROM follows WHERE follower_id=?)) ORDER BY s.created_at DESC LIMIT 100');
-  $q->execute([$u['id'],$u['id']]);$items=[];
+  $q=$db->prepare('SELECT s.id,s.user_id,s.media_id,s.caption,s.created_at,s.expires_at,u.username,u.display_name,m.stored_name,m.mime_type,(SELECT COUNT(*) FROM story_likes sl WHERE sl.story_id=s.id) likes_count,(SELECT COUNT(*) FROM story_comments sc WHERE sc.story_id=s.id) comments_count,EXISTS(SELECT 1 FROM story_likes sl2 WHERE sl2.story_id=s.id AND sl2.user_id=? ) is_liked FROM stories s JOIN users u ON u.id=s.user_id JOIN media m ON m.id=s.media_id WHERE s.expires_at>UTC_TIMESTAMP() AND (s.user_id=? OR s.user_id IN (SELECT following_id FROM follows WHERE follower_id=?)) ORDER BY s.created_at DESC LIMIT 100');
+  $q->execute([$u['id'],$u['id'],$u['id']]);$items=[];
   foreach($q->fetchAll() as $row){$row['media_url']=rtrim((string)$config['upload_url'],'/').'/'.$row['stored_name'];unset($row['stored_name']);$items[]=$row;}
   out(['ok'=>true,'stories'=>$items]);
  }
