@@ -472,7 +472,7 @@ class _LiveHomeState extends State<LiveHome> {
                 IconButton(tooltip: 'افزودن هشتگ', onPressed: () => insertToken('#'), icon: const Icon(Icons.tag_rounded, color: cBlue)),
                 IconButton(tooltip: 'منشن کردن کاربر', onPressed: () => insertToken('@'), icon: const Icon(Icons.alternate_email_rounded, color: Color(0xFF9B8CFF))),
                 IconButton(
-                  tooltip: 'افزودن تصویر',
+                  tooltip: 'افزودن عکس یا ویدیو',
                   onPressed: () async {
                     final picked = await ImagePicker().pickMedia(imageQuality: 86);
                     if (picked != null) sheetSetState(() => attachment = picked);
@@ -669,7 +669,10 @@ class _LiveHomeState extends State<LiveHome> {
             ),
         ]),
         if (body.isNotEmpty) Padding(padding: const EdgeInsets.only(top: 8, right: 2), child: richPostBody(body)),
-        if (value(p, 'media_url').startsWith('https://')) Padding(padding: const EdgeInsets.only(top: 10), child: ClipRRect(borderRadius: BorderRadius.circular(14), child: Image.network(value(p, 'media_url'), fit: BoxFit.cover, errorBuilder: (_, __, ___) => const SizedBox.shrink()))),
+        if (value(p, 'media_url').startsWith('https://'))
+          Padding(padding: const EdgeInsets.only(top: 10), child: RegExp(r'\.(mp4|webm)(\?|$)', caseSensitive: false).hasMatch(value(p, 'media_url'))
+            ? Container(height: 170, decoration: BoxDecoration(color: Colors.black26, borderRadius: BorderRadius.circular(14)), child: Center(child: IconButton.filled(onPressed: () => launchUrl(Uri.parse(value(p, 'media_url')), mode: LaunchMode.externalApplication), icon: const Icon(Icons.play_arrow_rounded))))
+            : ClipRRect(borderRadius: BorderRadius.circular(14), child: Image.network(value(p, 'media_url'), fit: BoxFit.cover, errorBuilder: (_, __, ___) => const SizedBox.shrink()))),
         const SizedBox(height: 10),
         Wrap(alignment: WrapAlignment.spaceBetween, crossAxisAlignment: WrapCrossAlignment.center, runSpacing: 0, children: [
           TextButton.icon(style: TextButton.styleFrom(foregroundColor: cMuted, visualDensity: VisualDensity.compact, padding: const EdgeInsets.symmetric(horizontal: 5)), onPressed: () => showReplies(p), icon: const Icon(Icons.chat_bubble_outline, size: 17), label: Text(fmt(p['replies_count'] ?? 0))),
