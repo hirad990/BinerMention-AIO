@@ -30,4 +30,26 @@ class BinerMediaEditor {
     if (cropped == null) return null;
     return XFile(cropped.path, name: selected.name, mimeType: mime.isEmpty ? null : mime);
   }
+
+  static Future<XFile?> pickImage() async {
+    final selected = await ImagePicker().pickImage(source: ImageSource.gallery, imageQuality: 94, maxWidth: 1800);
+    if (selected == null) return null;
+    final cropped = await ImageCropper().cropImage(
+      sourcePath: selected.path,
+      compressQuality: 92,
+      uiSettings: [
+        AndroidUiSettings(
+          toolbarTitle: 'Edit image',
+          toolbarColor: const Color(0xFF54C8FF),
+          activeControlsWidgetColor: const Color(0xFF54C8FF),
+          statusBarColor: const Color(0xFF080B12),
+          backgroundColor: const Color(0xFF080B12),
+          lockAspectRatio: false,
+        ),
+      ],
+    );
+    if (cropped == null) return null;
+    return XFile(cropped.path, name: selected.name, mimeType: selected.mimeType);
+  }
+
 }
