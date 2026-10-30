@@ -262,7 +262,6 @@ class _LiveHomeState extends State<LiveHome> {
   Future<void> openStory(Map<String,dynamic> story) async {
     final url = value(story,'media_url');
     if (!url.startsWith('https://')) return;
-    final mime = value(story,'mime_type');
     if (!mounted) return;
     await showDialog<void>(context: context, builder: (ctx) => _StoryViewer(api: widget.api, story: story));
   }
