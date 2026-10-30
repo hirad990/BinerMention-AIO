@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'api_client.dart';
 import 'ui_kit.dart';
+import 'app_preferences.dart';
 
 class UserProfilePage extends StatefulWidget {
   const UserProfilePage({super.key, required this.api, required this.username});
@@ -142,7 +143,7 @@ class _UserProfilePageState extends State<UserProfilePage> {
             child: Row(children: [
               Icon(followers ? Icons.people_alt_rounded : Icons.person_add_alt_1_rounded, color: binerBlue),
               const SizedBox(width: 10),
-              Text(followers ? 'دنبال‌کنندگان' : 'دنبال‌شوندگان', style: const TextStyle(fontSize: 20, fontWeight: FontWeight.w800)),
+              Text(followers ? binerText('دنبال‌کنندگان',en:'Followers',ar:'المتابعون',tr:'Takipçiler') : binerText('دنبال‌شوندگان',en:'Following',ar:'المتابَعون',tr:'Takip edilenler'), style: const TextStyle(fontSize: 20, fontWeight: FontWeight.w800)),
             ]),
           ),
           Expanded(
@@ -152,7 +153,7 @@ class _UserProfilePageState extends State<UserProfilePage> {
                 if (snapshot.connectionState == ConnectionState.waiting) return const Center(child: CircularProgressIndicator());
                 if (snapshot.hasError) return Center(child: Text(snapshot.error.toString(), textAlign: TextAlign.center));
                 final users = snapshot.data ?? const <Map<String, dynamic>>[];
-                if (users.isEmpty) return const Center(child: Text('هنوز کسی اینجا نیست.'));
+                if (users.isEmpty) return Center(child: Text(binerText('هنوز کسی اینجا نیست.',en:'Nothing here yet.',ar:'لا يوجد شيء هنا بعد.',tr:'Henüz burada kimse yok.')));
                 return ListView.separated(
                   itemCount: users.length,
                   separatorBuilder: (_, __) => Divider(height: 1, color: binerBlue.withValues(alpha: .12)),
@@ -237,7 +238,7 @@ class _UserProfilePageState extends State<UserProfilePage> {
                 ? Center(child: Padding(padding: const EdgeInsets.all(24), child: Column(mainAxisSize: MainAxisSize.min, children: [
                     Text(error!, textAlign: TextAlign.center),
                     const SizedBox(height: 12),
-                    FilledButton.icon(onPressed: load, icon: const Icon(Icons.refresh_rounded), label: const Text('تلاش دوباره')),
+                    FilledButton.icon(onPressed: load, icon: const Icon(Icons.refresh_rounded), label: const Text(binerText('تلاش دوباره',en:'Try again',ar:'حاول مرة أخرى',tr:'Tekrar dene'))),
                   ])))
                 : RefreshIndicator(
                     onRefresh: load,
@@ -284,16 +285,16 @@ class _UserProfilePageState extends State<UserProfilePage> {
                             ])),
                             const SizedBox(height: 10),
                             Row(children: [
-                              connectionCount('پست', 'posts_count', false),
-                              connectionCount('دنبال‌کننده', 'followers_count', true),
-                              connectionCount('دنبال‌شونده', 'following_count', false),
+                              connectionCount(binerText('پست',en:'Posts',ar:'المنشورات',tr:'Gönderi'), 'posts_count', false),
+                              connectionCount(binerText('دنبال‌کننده',en:'Followers',ar:'المتابعون',tr:'Takipçi'), 'followers_count', true),
+                              connectionCount(binerText('دنبال‌شونده',en:'Following',ar:'المتابَعون',tr:'Takip edilen'), 'following_count', false),
                             ]),
                             if (!isSelf) SizedBox(
                               height: 46,
                               child: FilledButton.icon(
                                 onPressed: followingBusy ? null : toggleFollow,
                                 icon: Icon(isFollowing ? Icons.person_remove_alt_1_rounded : Icons.person_add_alt_1_rounded),
-                                label: Text(followingBusy ? 'کمی صبر کن…' : isFollowing ? 'دنبال می‌کنی' : 'دنبال‌کردن'),
+                                label: Text(followingBusy ? binerText('کمی صبر کن…',en:'Please wait…',ar:'يرجى الانتظار…',tr:'Lütfen bekle…') : isFollowing ? binerText('دنبال می‌کنی',en:'Following',ar:'تتابعه',tr:'Takip ediliyor') : binerText('دنبال‌کردن',en:'Follow',ar:'متابعة',tr:'Takip et')),
                                 style: FilledButton.styleFrom(
                                   backgroundColor: isFollowing ? (dark ? const Color(0xFF25364A) : const Color(0xFFE6EEF8)) : binerBlue,
                                   foregroundColor: isFollowing ? Theme.of(context).colorScheme.onSurface : const Color(0xFF06111D),
@@ -310,7 +311,7 @@ class _UserProfilePageState extends State<UserProfilePage> {
                           child: Row(children: [
                             const Icon(Icons.grid_view_rounded, color: binerBlue),
                             const SizedBox(width: 8),
-                            const Text('پست‌ها', style: TextStyle(fontSize: 20, fontWeight: FontWeight.w900)),
+                            Text(binerText('پست‌ها',en:'Posts',ar:'المنشورات',tr:'Gönderiler'), style: const TextStyle(fontSize: 20, fontWeight: FontWeight.w900)),
                             const Spacer(),
                             Text('${posts.length}', style: TextStyle(color: muted, fontWeight: FontWeight.w700)),
                           ]),
