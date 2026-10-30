@@ -52,7 +52,7 @@ class _BinerLiveAppState extends State<BinerLiveApp> {
     theme: buildBinerTheme(Brightness.light, seedColor: BinerPreferences.instance.accent),
     darkTheme: buildBinerTheme(Brightness.dark, seedColor: BinerPreferences.instance.accent),
     themeMode: themeMode,
-    builder: (context, child) => BinerBackdrop(child: child ?? const SizedBox.shrink()),
+    builder: (context, child) => Directionality(textDirection: BinerPreferences.instance.direction, child: BinerBackdrop(child: child ?? const SizedBox.shrink())),
     home: AnimatedSwitcher(
       duration: const Duration(milliseconds: 320),
       switchInCurve: Curves.easeOutCubic,
@@ -474,7 +474,7 @@ class _LiveHomeState extends State<LiveHome> {
                 IconButton(
                   tooltip: 'افزودن تصویر',
                   onPressed: () async {
-                    final picked = await ImagePicker().pickImage(source: ImageSource.gallery, imageQuality: 86, maxWidth: 2048);
+                    final picked = await ImagePicker().pickMedia(imageQuality: 86);
                     if (picked != null) sheetSetState(() => attachment = picked);
                   },
                   icon: const Icon(Icons.image_outlined, color: cBlue),
