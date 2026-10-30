@@ -156,6 +156,53 @@ class _AuthGlowPainter extends CustomPainter {
   @override bool shouldRepaint(covariant _AuthGlowPainter old)=>old.phase!=phase||old.dark!=dark;
 }
 
+
+class _StoryViewer extends StatefulWidget {
+  const _StoryViewer({required this.api, required this.story});
+  final BinerApi api;
+  final Map<String,dynamic> story;
+  @override State<_StoryViewer> createState() => _StoryViewerState();
+}
+class _StoryViewerState extends State<_StoryViewer> {
+  final comment = TextEditingController();
+  late bool liked = widget.story['is_liked'] == true || widget.story['is_liked']?.toString() == '1';
+  late int likes = int.tryParse(widget.story['likes_count']?.toString() ?? '') ?? 0;
+  late Future<List<Map<String,dynamic>>> comments = widget.api.storyComments(int.parse(widget.story['id'].toString()));
+  bool sending = false;
+  @override void dispose() { comment.dispose(); super.dispose(); }
+  Future<void> toggleLike() async {
+    final next = !liked;
+    setState(() { liked = next; likes += next ? 1 : -1; });
+    try { await widget.api.toggleStoryLike(int.parse(widget.story['id'].toString()), next); }
+    catch (_) { if (mounted) setState(() { liked = !next; likes += next ? -1 : 1; }); }
+  }
+  Future<void> sendComment() async {
+    final body = comment.text.trim(); if (body.isEmpty || sending) return;
+    setState(() => sending = true);
+    try {
+      await widget.api.addStoryComment(int.parse(widget.story['id'].toString()), body);
+      comment.clear();
+      setState(() => comments = widget.api.storyComments(int.parse(widget.story['id'].toString())));
+    } catch (e) { if (mounted) ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(e.toString()))); }
+    finally { if (mounted) setState(() => sending = false); }
+  }
+  @override Widget build(BuildContext context) => Dialog(
+    backgroundColor: const Color(0xFF090B12), insetPadding: const EdgeInsets.all(10),
+    child: ConstrainedBox(constraints: BoxConstraints(maxHeight: MediaQuery.of(context).size.height * .88), child: Column(mainAxisSize: MainAxisSize.min, children: [
+      Row(children: [Expanded(child: Padding(padding: const EdgeInsets.all(14), child: Text(widget.story['display_name']?.toString() ?? widget.story['username']?.toString() ?? 'Story', style: const TextStyle(color: Colors.white, fontWeight: FontWeight.w800)))), IconButton(onPressed: () => Navigator.pop(context), icon: const Icon(Icons.close,color:Colors.white))]),
+      Flexible(child: InteractiveViewer(child: Image.network(widget.story['media_url'].toString(), fit: BoxFit.contain, errorBuilder: (_,__,___) => const Icon(Icons.broken_image,color:Colors.white,size:42)))),
+      if ((widget.story['caption'] ?? '').toString().isNotEmpty) Padding(padding: const EdgeInsets.all(10), child: Text(widget.story['caption'].toString(),style: const TextStyle(color:Colors.white))),
+      Row(children: [IconButton(onPressed: toggleLike, icon: Icon(liked ? Icons.favorite : Icons.favorite_border, color: liked ? Colors.pinkAccent : Colors.white)), Text('$likes',style: const TextStyle(color:Colors.white)), const SizedBox(width:12), const Icon(Icons.chat_bubble_outline,color:Colors.white,size:19), const SizedBox(width:5), const Text('Comments',style: TextStyle(color:Colors.white))]),
+      Flexible(child: FutureBuilder<List<Map<String,dynamic>>>(future: comments,builder: (context,s) {
+        if(s.connectionState==ConnectionState.waiting) return const Padding(padding: EdgeInsets.all(12),child:LinearProgressIndicator());
+        final rows=s.data??[];
+        return ListView(shrinkWrap:true, children: rows.map((c)=>ListTile(dense:true,title:Text(c['display_name']?.toString()??c['username']?.toString()??'User',style:const TextStyle(color:Colors.white,fontWeight:FontWeight.w700)),subtitle:Text(c['body']?.toString()??'',style:const TextStyle(color:Colors.white70)))).toList());
+      })),
+      SafeArea(top:false,child:Padding(padding:const EdgeInsets.fromLTRB(10,4,10,10),child:Row(children:[Expanded(child:TextField(controller:comment,style:const TextStyle(color:Colors.white),decoration:const InputDecoration(hintText:'Write a comment…',hintStyle:TextStyle(color:Colors.white54),filled:true,fillColor:Color(0xFF171B27),border:OutlineInputBorder(borderRadius:BorderRadius.all(Radius.circular(20)),borderSide:BorderSide.none)))),IconButton(onPressed:sending?null:sendComment,icon:const Icon(Icons.send_rounded,color:cBlue))]))),
+    ])),
+  );
+}
+
 class LiveHome extends StatefulWidget {
   const LiveHome({super.key, required this.api, required this.logout, required this.onToggleTheme, required this.isDark});
   final BinerApi api; final Future<void> Function() logout;
@@ -204,15 +251,7 @@ class _LiveHomeState extends State<LiveHome> {
       return;
     }
     if (!mounted) return;
-    await showDialog<void>(context: context, builder: (ctx) => Dialog(
-      backgroundColor: Colors.black,
-      insetPadding: const EdgeInsets.all(12),
-      child: Column(mainAxisSize: MainAxisSize.min, children: [
-        Align(alignment: Alignment.centerRight, child: IconButton(onPressed: () => Navigator.pop(ctx), icon: const Icon(Icons.close,color:Colors.white))),
-        ClipRRect(borderRadius: BorderRadius.circular(16), child: Image.network(url, fit: BoxFit.contain, errorBuilder: (_,__,___) => const Padding(padding: EdgeInsets.all(30),child: Icon(Icons.broken_image,color:Colors.white)))),
-        if (value(story,'caption').isNotEmpty) Padding(padding: const EdgeInsets.all(12), child: Text(value(story,'caption'),style: const TextStyle(color:Colors.white))),
-      ]),
-    ));
+    await showDialog<void>(context: context, builder: (ctx) => _StoryViewer(api: widget.api, story: story));
   }
 
   Widget storyStrip() {
