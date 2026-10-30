@@ -198,3 +198,5 @@ CREATE TABLE IF NOT EXISTS story_comments (
   CONSTRAINT fk_story_comments_story FOREIGN KEY (story_id) REFERENCES stories(id) ON DELETE CASCADE,
   CONSTRAINT fk_story_comments_user FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+ALTER TABLE notifications MODIFY type ENUM('like','repost','follow','reply','message','mention','story_like','story_comment') NOT NULL;
