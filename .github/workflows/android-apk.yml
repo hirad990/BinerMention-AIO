@@ -78,6 +78,41 @@ jobs:
         working-directory: ${{ runner.temp }}/binerm_mention
         run: flutter pub get
 
+      - name: Align Android plugin compile SDK
+        working-directory: ${{ runner.temp }}/binerm_mention
+        run: |
+          python3 <<'PY'
+          import re
+          from pathlib import Path
+
+          cache = Path.home() / ".pub-cache" / "hosted"
+          changed = []
+          patterns = [
+              (re.compile(r"(compileSdkVersion\\s+)(\\d+)"), r"\\g<1>36"),
+              (re.compile(r"(compileSdkVersion\\s*=\\s*)(\\d+)"), r"\\g<1>36"),
+              (re.compile(r"(compileSdk\\s*=\\s*)(\\d+)"), r"\\g<1>36"),
+          ]
+          for gradle in cache.glob("**/android/build.gradle"):
+              source = gradle.read_text()
+              updated = source
+              for pattern, replacement in patterns:
+                  updated = pattern.sub(replacement, updated)
+              if updated != source:
+                  gradle.write_text(updated)
+                  changed.append(str(gradle))
+          for gradle in cache.glob("**/android/build.gradle.kts"):
+              source = gradle.read_text()
+              updated = source
+              for pattern, replacement in patterns:
+                  updated = pattern.sub(replacement, updated)
+              if updated != source:
+                  gradle.write_text(updated)
+                  changed.append(str(gradle))
+          print("Updated plugin Gradle files:", len(changed))
+          for path in changed:
+              print(path)
+          PY
+
       - name: Format Dart sources
         working-directory: ${{ runner.temp }}/binerm_mention
         run: dart format lib test
