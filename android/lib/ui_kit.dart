@@ -34,7 +34,7 @@ ThemeData buildBinerTheme(Brightness brightness, {Color seedColor = binerBlue}) 
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(18), side: BorderSide(color: seedColor.withValues(alpha: .38))),
       textStyle: TextStyle(color: dark ? const Color(0xFFF5F5F7) : const Color(0xFF142033)),
     ),
-    snackBarTheme: SnackBarThemeData(behavior: SnackBarBehavior.floating, backgroundColor: const Color(0xF21A1A20), elevation: 0, shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(18), side: BorderSide(color: binerBlue.withValues(alpha: .38))), insetPadding: const EdgeInsets.fromLTRB(16, 0, 16, 12), contentTextStyle: TextStyle(color: dark ? const Color(0xFFF5F5F7) : const Color(0xFF142033), fontWeight: FontWeight.w600)),
+    snackBarTheme: SnackBarThemeData(behavior: SnackBarBehavior.floating, backgroundColor: const Color(0xF21A1A20), elevation: 0, shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(18), side: BorderSide(color: seedColor.withValues(alpha: .38))), insetPadding: const EdgeInsets.fromLTRB(16, 0, 16, 12), contentTextStyle: TextStyle(color: dark ? const Color(0xFFF5F5F7) : const Color(0xFF142033), fontWeight: FontWeight.w600)),
     splashFactory: InkSparkle.splashFactory,
     pageTransitionsTheme: const PageTransitionsTheme(builders: {
       TargetPlatform.android: CupertinoPageTransitionsBuilder(),
@@ -49,11 +49,11 @@ ThemeData buildBinerTheme(Brightness brightness, {Color seedColor = binerBlue}) 
       contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
       border: OutlineInputBorder(
         borderRadius: BorderRadius.circular(18),
-        borderSide: BorderSide(color: dark ? const Color(0x5537BFFF) : const Color(0x553D7DB5)),
+        borderSide: BorderSide(color: seedColor.withValues(alpha: .34)),
       ),
       enabledBorder: OutlineInputBorder(
         borderRadius: BorderRadius.circular(18),
-        borderSide: BorderSide(color: dark ? const Color(0x5537BFFF) : const Color(0x443D7DB5)),
+        borderSide: BorderSide(color: seedColor.withValues(alpha: .28)),
       ),
       focusedBorder: OutlineInputBorder(
         borderRadius: BorderRadius.circular(18),
