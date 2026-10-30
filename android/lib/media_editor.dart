@@ -1,55 +1,79 @@
-import 'package:flutter/material.dart';
-import 'package:image_cropper/image_cropper.dart';
+import 'dart:io';
+
+import 'package:flutter/services.dart';
 import 'package:image_picker/image_picker.dart';
 
+/// Centralized media selection with Android activity-recreation recovery.
+///
+/// On Android the OS may destroy the Flutter activity while the system photo
+/// picker is open, especially on devices with limited memory. The result must
+/// be recovered with retrieveLostData when the app is recreated.
 class BinerMediaEditor {
+  static final ImagePicker _picker = ImagePicker();
+  static XFile? _recoveredFile;
+
+  static Future<void> recoverLostData() async {
+    if (!Platform.isAndroid) return;
+    try {
+      final response = await _picker.retrieveLostData();
+      if (response.isEmpty) return;
+      final files = response.files;
+      if (files != null && files.isNotEmpty) {
+        _recoveredFile = files.first;
+      }
+    } on PlatformException {
+      // Some OEM gallery implementations do not support lost-data recovery.
+      // Keep startup reliable; the user can retry selecting media.
+    } on MissingPluginException {
+      // Defensive fallback for partially initialized plugin registrants.
+    }
+  }
+
   static Future<XFile?> pickMedia() async {
-    final selected = await ImagePicker().pickMedia(imageQuality: 94);
-    if (selected == null) return null;
-    final mime = selected.mimeType ?? '';
-    final name = selected.name.toLowerCase();
-    final isImage = mime.startsWith('image/') ||
-        name.endsWith('.jpg') || name.endsWith('.jpeg') ||
-        name.endsWith('.png') || name.endsWith('.webp') ||
-        name.endsWith('.heic');
-    if (!isImage) return selected;
-    final cropped = await ImageCropper().cropImage(
-      sourcePath: selected.path,
-      compressQuality: 92,
-      uiSettings: [
-        AndroidUiSettings(
-          toolbarTitle: 'Edit image',
-          toolbarColor: const Color(0xFF54C8FF),
-          activeControlsWidgetColor: const Color(0xFF54C8FF),
-          statusBarColor: const Color(0xFF080B12),
-          backgroundColor: const Color(0xFF080B12),
-          lockAspectRatio: false,
-        ),
-      ],
-    );
-    if (cropped == null) return null;
-    return XFile(cropped.path, name: selected.name, mimeType: mime.isEmpty ? null : mime);
+    final recovered = _takeRecoveredFile();
+    if (recovered != null) return recovered;
+
+    try {
+      return await _picker.pickMedia(imageQuality: 85);
+    } on PlatformException catch (error) {
+      if (_isCancellation(error)) return null;
+      rethrow;
+    } on MissingPluginException {
+      return null;
+    } on FileSystemException {
+      return null;
+    }
   }
 
   static Future<XFile?> pickImage() async {
-    final selected = await ImagePicker().pickImage(source: ImageSource.gallery, imageQuality: 94, maxWidth: 1800);
-    if (selected == null) return null;
-    final cropped = await ImageCropper().cropImage(
-      sourcePath: selected.path,
-      compressQuality: 92,
-      uiSettings: [
-        AndroidUiSettings(
-          toolbarTitle: 'Edit image',
-          toolbarColor: const Color(0xFF54C8FF),
-          activeControlsWidgetColor: const Color(0xFF54C8FF),
-          statusBarColor: const Color(0xFF080B12),
-          backgroundColor: const Color(0xFF080B12),
-          lockAspectRatio: false,
-        ),
-      ],
-    );
-    if (cropped == null) return null;
-    return XFile(cropped.path, name: selected.name, mimeType: selected.mimeType);
+    final recovered = _takeRecoveredFile();
+    if (recovered != null) return recovered;
+
+    try {
+      return await _picker.pickImage(
+        source: ImageSource.gallery,
+        imageQuality: 82,
+        maxWidth: 1600,
+        maxHeight: 1600,
+      );
+    } on PlatformException catch (error) {
+      if (_isCancellation(error)) return null;
+      rethrow;
+    } on MissingPluginException {
+      return null;
+    } on FileSystemException {
+      return null;
+    }
   }
 
+  static XFile? _takeRecoveredFile() {
+    final file = _recoveredFile;
+    _recoveredFile = null;
+    return file;
+  }
+
+  static bool _isCancellation(PlatformException error) {
+    final code = error.code.toLowerCase();
+    return code.contains('cancel') || code == 'photo_access_denied';
+  }
 }
