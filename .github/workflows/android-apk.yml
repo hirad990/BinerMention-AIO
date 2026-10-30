@@ -51,9 +51,10 @@ jobs:
           from pathlib import Path
           path = Path(sys.argv[1])
           source = path.read_text()
-          source, count = re.subn(r"compileSdk\s*=\s*[^\n]+", "compileSdk = 36", source, count=1)
-          if count != 1:
-              raise SystemExit(f"Could not safely update compileSdk in {path}")
+          source, compile_count = re.subn(r"compileSdk\s*=\s*[^\n]+", "compileSdk = 36", source, count=1)
+          source, min_count = re.subn(r"minSdk\s*=\s*[^\n]+", "minSdk = 21", source, count=1)
+          if compile_count != 1 or min_count != 1:
+              raise SystemExit(f"Could not safely set compileSdk/minSdk in {path}: compile={compile_count}, min={min_count}")
           path.write_text(source)
           PY
       - name: Inject app source, tests and network permission
