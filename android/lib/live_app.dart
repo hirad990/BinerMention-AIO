@@ -2,6 +2,9 @@ import 'dart:io';
 import 'dart:ui';
 import 'dart:convert';
 import 'package:flutter/services.dart';
+import 'package:flutter_localizations/flutter_localizations.dart';
+import 'app_preferences.dart';
+import 'text_tools.dart';
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:flutter_animate/flutter_animate.dart';
@@ -27,6 +30,7 @@ class _BinerLiveAppState extends State<BinerLiveApp> {
   }
   @override void initState() { super.initState(); init(); }
   Future<void> init() async {
+    await BinerPreferences.instance.load();
     final prefs = await SharedPreferences.getInstance();
     themeMode = prefs.getBool('biner_theme_dark') == false ? ThemeMode.light : ThemeMode.dark;
     await api.restoreSession();
@@ -36,11 +40,16 @@ class _BinerLiveAppState extends State<BinerLiveApp> {
   void signedIn() => setState(() => loggedIn = true);
   Future<void> logout() async { await api.logout(); if (mounted) setState(() => loggedIn = false); }
   @override void dispose() { api.dispose(); super.dispose(); }
-  @override Widget build(BuildContext context) => MaterialApp(
+  @override Widget build(BuildContext context) => AnimatedBuilder(
+    animation: BinerPreferences.instance,
+    builder: (context, _) => MaterialApp(
+    locale: BinerPreferences.instance.locale,
+    supportedLocales: const [Locale('fa'), Locale('en'), Locale('ar'), Locale('tr')],
+    localizationsDelegates: GlobalMaterialLocalizations.delegates,
     title: 'BinerMention',
     debugShowCheckedModeBanner: false,
-    theme: buildBinerTheme(Brightness.light),
-    darkTheme: buildBinerTheme(Brightness.dark),
+    theme: buildBinerTheme(Brightness.light, seedColor: BinerPreferences.instance.accent),
+    darkTheme: buildBinerTheme(Brightness.dark, seedColor: BinerPreferences.instance.accent),
     themeMode: themeMode,
     builder: (context, child) => BinerBackdrop(child: child ?? const SizedBox.shrink()),
     home: AnimatedSwitcher(
@@ -60,7 +69,7 @@ class _BinerLiveAppState extends State<BinerLiveApp> {
               ? LiveHome(key: const ValueKey('home'), api: api, logout: logout, onToggleTheme: toggleTheme, isDark: themeMode == ThemeMode.dark)
               : LiveAuth(key: const ValueKey('auth'), api: api, onDone: signedIn),
     ),
-  );
+  ));
 }
 
 class LiveAuth extends StatefulWidget {
@@ -68,13 +77,14 @@ class LiveAuth extends StatefulWidget {
   final BinerApi api; final VoidCallback onDone;
   @override State<LiveAuth> createState() => _LiveAuthState();
 }
-class _LiveAuthState extends State<LiveAuth> {
+class _LiveAuthState extends State<LiveAuth> with TickerProviderStateMixin {
   final form = GlobalKey<FormState>();
   final username = TextEditingController(), email = TextEditingController(), password = TextEditingController(), displayName = TextEditingController();
   bool register = false, busy = false, hide = true; String? error;
-  @override void dispose() { username.dispose(); email.dispose(); password.dispose(); displayName.dispose(); super.dispose(); }
+  late final AnimationController ambient = AnimationController(vsync:this,duration:const Duration(seconds:7))..repeat(reverse:true);
+  @override void dispose() { ambient.dispose(); username.dispose(); email.dispose(); password.dispose(); displayName.dispose(); super.dispose(); }
   Future<void> submit() async {
-    if (!form.currentState!.validate()) return;
+    if (!form.currentState!.validate() || busy) return;
     setState(() { busy = true; error = null; });
     try {
       if (register) {
@@ -84,26 +94,65 @@ class _LiveAuthState extends State<LiveAuth> {
     } on ApiException catch (e) { if (mounted) setState(() => error = e.message); }
     finally { if (mounted) setState(() => busy = false); }
   }
-  @override Widget build(BuildContext context) => Scaffold(body: SafeArea(child: Center(child: SingleChildScrollView(padding: const EdgeInsets.all(24), child: ConstrainedBox(
-    constraints: const BoxConstraints(maxWidth: 440), child: Form(key: form, child: Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
-      Center(child: ClipPath(clipper: BinerHeroClipper(), child: Container(width: 78, height: 78, decoration: BoxDecoration(borderRadius: BorderRadius.circular(24), gradient: const LinearGradient(colors: [cBlue, Color(0xFF2554E8)])), child: const Icon(Icons.bolt, size: 48)))),
-      const SizedBox(height: 18), const Center(child: Brand()),
-      const SizedBox(height: 8), Text(register ? 'به جامعه‌ات بپیوند.' : 'صدای تو. دنیای تو.', textAlign: TextAlign.center, style: const TextStyle(color: cMuted)),
-      const SizedBox(height: 30),
-      if (register) ...[TextFormField(controller: displayName, decoration: const InputDecoration(labelText: 'نام نمایشی'), validator: (v) => v != null && v.length > 80 ? 'حداکثر ۸۰ نویسه.' : null), const SizedBox(height: 12)],
-      TextFormField(controller: username, autocorrect: false, decoration: InputDecoration(labelText: register ? 'نام کاربری' : 'نام کاربری یا ایمیل'), validator: (v) {
-        if (v == null || v.trim().isEmpty) return 'این فیلد الزامی است.';
-        if (register && !RegExp(r'^[a-zA-Z0-9_]{3,24}$').hasMatch(v.trim())) return 'نام کاربری ۳ تا ۲۴ نویسه باشد.';
-        return null;
-      }),
-      if (register) ...[const SizedBox(height: 12), TextFormField(controller: email, keyboardType: TextInputType.emailAddress, decoration: const InputDecoration(labelText: 'ایمیل'), validator: (v) => v == null || !RegExp(r'^[^\s@]+@[^\s@]+\.[^\s@]+$').hasMatch(v.trim()) ? 'ایمیل معتبر وارد کن.' : null)],
-      const SizedBox(height: 12),
-      TextFormField(controller: password, obscureText: hide, decoration: InputDecoration(labelText: 'رمز عبور', suffixIcon: IconButton(onPressed: () => setState(() => hide = !hide), icon: Icon(hide ? Icons.visibility : Icons.visibility_off))), validator: (v) => v == null || v.isEmpty ? 'رمز عبور الزامی است.' : register && v.length < 10 ? 'حداقل ۱۰ نویسه وارد کن.' : null, onFieldSubmitted: (_) => submit()),
-      if (error != null) ...[const SizedBox(height: 12), Text(error!, style: const TextStyle(color: Colors.redAccent))],
-      const SizedBox(height: 18), SizedBox(height: 50, child: FilledButton(onPressed: busy ? null : submit, child: busy ? const SizedBox(width: 22, height: 22, child: CircularProgressIndicator(strokeWidth: 2)) : Text(register ? 'ساخت حساب' : 'ورود'))),
-      TextButton(onPressed: busy ? null : () => setState(() { register = !register; error = null; }), child: Text(register ? 'حساب داری؟ وارد شو' : 'حساب نداری؟ ثبت‌نام کن')),
-    ])),
-  )))));
+  Widget field(Widget child) => Padding(padding: const EdgeInsets.only(bottom:12),child: child);
+  @override Widget build(BuildContext context) {
+    final dark=Theme.of(context).brightness==Brightness.dark;
+    final prefs=BinerPreferences.instance;
+    return Scaffold(
+      body: Stack(children:[
+        Positioned.fill(child: AnimatedBuilder(animation:ambient,builder:(context,_)=>CustomPaint(painter:_AuthGlowPainter(ambient.value,dark)))),
+        SafeArea(child: Center(child: SingleChildScrollView(padding:const EdgeInsets.fromLTRB(22,26,22,30),child:ConstrainedBox(
+          constraints:const BoxConstraints(maxWidth:440),
+          child: Column(crossAxisAlignment:CrossAxisAlignment.stretch,children:[
+            const SizedBox(height:8),
+            Center(child: Container(width:94,height:94,decoration:BoxDecoration(borderRadius:BorderRadius.circular(30),gradient:LinearGradient(colors:[prefs.accent,const Color(0xFF7059FF)]),boxShadow:[BoxShadow(color:prefs.accent.withValues(alpha:.35),blurRadius:34,spreadRadius:2)]),child:const Icon(Icons.bolt_rounded,size:58,color:Color(0xFF06111D)))).animate().fadeIn(duration:500.ms).scale(begin:const Offset(.72,.72),curve:Curves.easeOutBack),
+            const SizedBox(height:20),
+            const Center(child:Brand()),
+            const SizedBox(height:8),
+            Text(register?binerText('یک حساب تازه، یک شروع تازه. ',en:'A fresh account. A fresh start.',ar:'حساب جديد وبداية جديدة.',tr:'Yeni hesap, yeni başlangıç.'):binerText('به دنیای BinerMention خوش آمدی',en:'Welcome to BinerMention',ar:'مرحباً بك في BinerMention',tr:'BinerMention dünyasına hoş geldin'),textAlign:TextAlign.center,style:TextStyle(color:dark?const Color(0xFFB6C5D9):const Color(0xFF65758B),fontSize:14)),
+            const SizedBox(height:28),
+            BinerLiquidGlass(borderRadius:BorderRadius.circular(30),padding:const EdgeInsets.fromLTRB(20,22,20,18),child:Form(key:form,child:Column(crossAxisAlignment:CrossAxisAlignment.stretch,children:[
+              Row(children:[
+                Expanded(child:Text(register?binerText('ساخت حساب',en:'Create account',ar:'إنشاء حساب',tr:'Hesap oluştur'):binerText('ورود',en:'Sign in',ar:'تسجيل الدخول',tr:'Giriş yap'),style:const TextStyle(fontSize:25,fontWeight:FontWeight.w900))),
+                Container(padding:const EdgeInsets.all(4),decoration:BoxDecoration(color:prefs.accent.withValues(alpha:.12),borderRadius:BorderRadius.circular(15)),child:Icon(Icons.shield_moon_rounded,color:prefs.accent)),
+              ]),
+              const SizedBox(height:6),
+              Text(register?binerText('اطلاعاتت را وارد کن تا عضو شوی.',en:'Enter your details to join.',ar:'أدخل بياناتك للانضمام.',tr:'Katılmak için bilgilerini gir.'):binerText('برای ادامه وارد حساب خودت شو.',en:'Sign in to continue.',ar:'سجّل الدخول للمتابعة.',tr:'Devam etmek için giriş yap.'),style:const TextStyle(color:cMuted,fontSize:12)),
+              const SizedBox(height:22),
+              AnimatedSize(duration:const Duration(milliseconds:320),curve:Curves.easeInOutCubic,child:Column(children:[
+                if(register) field(TextFormField(controller:displayName,decoration:InputDecoration(labelText:binerText('نام نمایشی',en:'Display name',ar:'الاسم الظاهر',tr:'Görünen ad'),prefixIcon:const Icon(Icons.badge_outlined)),validator:(v)=>v!=null&&v.length>80?binerText('حداکثر ۸۰ نویسه.',en:'Maximum 80 characters.'):null)),
+                field(TextFormField(controller:username,autocorrect:false,decoration:InputDecoration(labelText:register?binerText('نام کاربری',en:'Username',ar:'اسم المستخدم',tr:'Kullanıcı adı'):binerText('نام کاربری یا ایمیل',en:'Username or email',ar:'اسم المستخدم أو البريد',tr:'Kullanıcı adı veya e-posta'),prefixIcon:const Icon(Icons.alternate_email_rounded)),validator:(v){if(v==null||v.trim().isEmpty)return binerText('این فیلد الزامی است.',en:'This field is required.',ar:'هذا الحقل مطلوب.',tr:'Bu alan zorunludur.');if(register&&!RegExp(r'^[a-zA-Z0-9_]{3,24}$').hasMatch(v.trim()))return binerText('نام کاربری ۳ تا ۲۴ نویسه باشد.',en:'Username must be 3–24 characters.',ar:'يجب أن يكون اسم المستخدم من 3 إلى 24 حرفاً.',tr:'Kullanıcı adı 3–24 karakter olmalı.');return null;})),
+                if(register) field(TextFormField(controller:email,keyboardType:TextInputType.emailAddress,decoration:InputDecoration(labelText:binerText('ایمیل',en:'Email',ar:'البريد الإلكتروني',tr:'E-posta'),prefixIcon:const Icon(Icons.mail_outline_rounded)),validator:(v)=>v==null||!RegExp(r'^[^\s@]+@[^\s@]+\.[^\s@]+$').hasMatch(v.trim())?binerText('ایمیل معتبر وارد کن.',en:'Enter a valid email.',ar:'أدخل بريداً إلكترونياً صالحاً.',tr:'Geçerli bir e-posta gir.'):null)),
+                field(TextFormField(controller:password,obscureText:hide,decoration:InputDecoration(labelText:binerText('رمز عبور',en:'Password',ar:'كلمة المرور',tr:'Şifre'),prefixIcon:const Icon(Icons.lock_outline_rounded),suffixIcon:IconButton(onPressed:()=>setState(()=>hide=!hide),icon:Icon(hide?Icons.visibility_rounded:Icons.visibility_off_rounded))),validator:(v)=>v==null||v.isEmpty?binerText('رمز عبور الزامی است.',en:'Password is required.',ar:'كلمة المرور مطلوبة.',tr:'Şifre gerekli.'):register&&v.length<10?binerText('حداقل ۱۰ نویسه وارد کن.',en:'Use at least 10 characters.',ar:'استخدم 10 أحرف على الأقل.',tr:'En az 10 karakter kullan.'):null,onFieldSubmitted:(_)=>submit())),
+              ])),
+              if(error!=null) Padding(padding:const EdgeInsets.only(bottom:12),child:Text(error!,style:const TextStyle(color:Colors.redAccent))),
+              SizedBox(height:54,child:FilledButton(onPressed:busy?null:submit,style:FilledButton.styleFrom(backgroundColor:prefs.accent,foregroundColor:const Color(0xFF06111D),shape:RoundedRectangleBorder(borderRadius:BorderRadius.circular(18))),child:AnimatedSwitcher(duration:const Duration(milliseconds:180),child:busy?const SizedBox(key:ValueKey('busy'),width:22,height:22,child:CircularProgressIndicator(strokeWidth:2,color:Color(0xFF06111D))):Row(key:const ValueKey('label'),mainAxisAlignment:MainAxisAlignment.center,children:[Text(register?binerText('ثبت‌نام',en:'Create account',ar:'إنشاء حساب',tr:'Kaydol'):binerText('ورود امن',en:'Sign in securely',ar:'دخول آمن',tr:'Güvenli giriş'),style:const TextStyle(fontWeight:FontWeight.w800)),const SizedBox(width:8),const Icon(Icons.arrow_forward_rounded,size:19)])))),
+              const SizedBox(height:10),
+              Center(child:TextButton(onPressed:busy?null:()=>setState(()=>{register=!register;error=null}),child:Text(register?binerText('حساب داری؟ وارد شو',en:'Already have an account? Sign in',ar:'لديك حساب؟ سجّل الدخول',tr:'Hesabın var mı? Giriş yap'):binerText('حساب نداری؟ ثبت‌نام کن',en:'New here? Create an account',ar:'ليس لديك حساب؟ أنشئ حساباً',tr:'Yeni misin? Hesap oluştur')))),
+            ]))),
+            const SizedBox(height:18),
+            Center(child:Wrap(alignment:WrapAlignment.center,spacing:8,children:[
+              for(final item in const [('fa','فارسی'),('en','English'),('ar','العربية'),('tr','Türkçe')])
+                ChoiceChip(label:Text(item.$2,style:const TextStyle(fontSize:11)),selected:prefs.locale.languageCode==item.$1,onSelected:busy?null:(_)=>prefs.setLanguage(item.$1),visualDensity:VisualDensity.compact),
+            ])),
+            const SizedBox(height:10),
+            Center(child:Text('BINER / CONNECT WITHOUT LIMITS',style:TextStyle(color:cMuted.withValues(alpha:.7),fontSize:9,letterSpacing:2,fontWeight:FontWeight.w800))),
+          ]).animate().fadeIn(duration:420.ms).slideY(begin:.035,duration:420.ms,curve:Curves.easeOutCubic),
+        )))),
+      ]),
+    );
+  }
+}
+class _AuthGlowPainter extends CustomPainter {
+  const _AuthGlowPainter(this.phase,this.dark);
+  final double phase; final bool dark;
+  @override void paint(Canvas canvas,Size size){
+    final p=Paint()..shader=RadialGradient(colors:[const Color(0xFF54C8FF).withValues(alpha:dark?.18:.12),Colors.transparent]).createShader(Rect.fromCircle(center:Offset(size.width*(.15+.7*phase),size.height*.18),radius:size.width*.72));
+    canvas.drawCircle(Offset(size.width*(.15+.7*phase),size.height*.18),size.width*.72,p);
+    final v=Paint()..shader=RadialGradient(colors:[const Color(0xFF9B8CFF).withValues(alpha:dark?.12:.08),Colors.transparent]).createShader(Rect.fromCircle(center:Offset(size.width*.08,size.height*.9),radius:size.width*.5));
+    canvas.drawCircle(Offset(size.width*.08,size.height*.9),size.width*.5,v);
+  }
+  @override bool shouldRepaint(covariant _AuthGlowPainter old)=>old.phase!=phase||old.dark!=dark;
 }
 
 class LiveHome extends StatefulWidget {
