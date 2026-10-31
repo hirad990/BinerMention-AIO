@@ -6,6 +6,7 @@ on:
     paths:
       - "admin/**"
       - "PHP-API/admin.php"
+      - "PHP-API/index.php"
       - "PHP-API/.htaccess"
       - ".github/workflows/binerm-mention-admin.yml"
   pull_request:
@@ -39,6 +40,12 @@ jobs:
         run: npm install
       - name: Type check
         run: npm run typecheck
+      - name: Setup PHP for API syntax validation
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: "8.2"
+      - name: Validate PHP API syntax
+        run: php -l ../PHP-API/admin.php && php -l ../PHP-API/index.php
       - name: Build static admin panel
         run: npm run build
       - name: Verify export
