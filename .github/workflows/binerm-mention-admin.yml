@@ -1,0 +1,57 @@
+name: BinerMention Admin DIST
+
+on:
+  push:
+    branches: [main, feature/binermention-admin]
+    paths:
+      - "admin/**"
+      - "PHP-API/admin.php"
+      - "PHP-API/.htaccess"
+      - ".github/workflows/binerm-mention-admin.yml"
+  pull_request:
+    paths:
+      - "admin/**"
+      - "PHP-API/admin.php"
+      - "PHP-API/.htaccess"
+      - ".github/workflows/binerm-mention-admin.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: binerm-mention-admin-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  build:
+    name: Typecheck and export /madmin
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: admin
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: admin/package.json
+      - name: Install dependencies
+        run: npm install
+      - name: Type check
+        run: npm run typecheck
+      - name: Build static admin panel
+        run: npm run build
+      - name: Verify export
+        run: |
+          test -s out/index.html
+          test -d out/_next
+          echo "Admin static export ready for https://binercraft.ir/madmin/"
+      - name: Upload admin DIST
+        uses: actions/upload-artifact@v4
+        with:
+          name: BinerMention-ADMIN-DIST-madmin
+          path: admin/out/
+          if-no-files-found: error
+          retention-days: 14
