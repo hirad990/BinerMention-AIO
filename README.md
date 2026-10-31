@@ -5,6 +5,7 @@ BinerMention is a dark, blue-accented social network inspired by the interaction
 - `web/` — web client
 - `android/` — Flutter Android client source
 - `PHP-API/` — PHP API intended for deployment at `https://binercraft.ir/mention-api-pub/`
+- `admin/` — independent Next.js admin panel for `https://binercraft.ir/madmin/`
 
 ## Android build
 
@@ -13,6 +14,10 @@ The GitHub Actions workflow at `.github/workflows/android-apk.yml` creates a Flu
 ## Backend
 
 Set the API base URL to `https://binercraft.ir/mention-api-pub`. Deploy the contents of `PHP-API/` to the matching cPanel document root. Review `PHP-API/README.md` before deployment and configure database credentials outside version control.
+
+## Admin panel
+
+See `admin/README.md` for setup. Import `admin/admin-schema.sql` into the existing MariaDB database after taking a backup, then grant an existing user access through `admin_roles`. The admin API is served at `/mention-api-pub/admin-api`. The admin workflow exports `BinerMention-ADMIN-DIST-madmin` independently of the public web build.
 
 ## Current status
 
