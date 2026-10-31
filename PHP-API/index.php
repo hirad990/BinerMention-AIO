@@ -10,6 +10,14 @@ $uri = parse_url($_SERVER['REQUEST_URI'] ?? '/', PHP_URL_PATH) ?: '/';
 $base = rtrim(str_replace('\\', '/', dirname($_SERVER['SCRIPT_NAME'] ?? '/index.php')), '/');
 if ($base && $base !== '/' && str_starts_with($uri, $base)) $uri = substr($uri, strlen($base));
 $path = '/' . trim($uri, '/'); if ($path === '//') $path = '/';
+// Route admin requests through admin.php even when the hosting rewrite rules
+// send unmatched requests to index.php instead of applying the admin-api rule.
+if ($path === '/admin-api' || str_starts_with($path, '/admin-api/')) {
+    $adminRoute = substr($path, strlen('/admin-api'));
+    $_GET['route'] = $adminRoute === '' ? '/' : $adminRoute;
+    require __DIR__ . '/admin.php';
+    exit;
+}
 $method = strtoupper($_SERVER['REQUEST_METHOD'] ?? 'GET');
 function out(array $d, int $s=200): never { http_response_code($s); echo json_encode($d, JSON_UNESCAPED_SLASHES|JSON_UNESCAPED_UNICODE|JSON_INVALID_UTF8_SUBSTITUTE); exit; }
 function err(string $m,int $s=400,string $c='bad_request'): never { out(['ok'=>false,'error'=>$c,'message'=>$m],$s); }
