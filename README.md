@@ -21,4 +21,4 @@ See `admin/README.md` for setup. Import `admin/admin-schema.sql` into the existi
 
 ## Current status
 
-This repository was empty when bootstrapping began. The first milestone establishes the project layout and Android UI foundation. Features requiring persistent accounts, posts, media, follows, and notifications need the deployed API and database configured.
+The repository contains separate Android, public web, PHP API and admin applications. Production readiness still depends on deploying the API, importing the database schema/migration, configuring private database credentials and validating the services on the target cPanel host.
