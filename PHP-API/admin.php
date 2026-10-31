@@ -16,7 +16,7 @@ function post_row(PDO $db,int $id):?array{$q=$db->prepare('SELECT p.id,p.user_id
 try{
  if(empty($config['db_name'])||empty($config['db_user']))af('Database is not configured.',503);
  $db=new PDO("mysql:host={$config['db_host']};dbname={$config['db_name']};charset=utf8mb4",$config['db_user'],$config['db_pass'],[PDO::ATTR_ERRMODE=>PDO::ERRMODE_EXCEPTION,PDO::ATTR_DEFAULT_FETCH_MODE=>PDO::FETCH_ASSOC,PDO::ATTR_EMULATE_PREPARES=>false]);
- $uri=parse_url($_SERVER['REQUEST_URI']??'/',PHP_URL_PATH)?:'/';$base=rtrim(dirname(str_replace('\\','/',$_SERVER['SCRIPT_NAME']??'/admin.php')),'/');$path=$base!==''&&str_starts_with($uri,$base)?substr($uri,strlen($base)):$uri;$path='/'.trim($path,'/');if($path==='//')$path='/';
+ $uri=parse_url($_SERVER['REQUEST_URI']??'/',PHP_URL_PATH)?:'/';$route=$_GET['route']??null;$path=is_string($route)?'/'.trim($route,'/'):$uri;$path='/'.trim($path,'/');if($path==='//')$path='/';
  $method=strtoupper($_SERVER['REQUEST_METHOD']??'GET');$b=in_array($method,['POST','PATCH'],true)?ab():[];
  if($method==='POST'&&$path==='/login'){
   $identity=strtolower(at($b['identity']??'',190));$pw=is_string($b['password']??null)?$b['password']:'';
