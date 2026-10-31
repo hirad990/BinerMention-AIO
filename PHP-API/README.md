@@ -53,3 +53,11 @@ Content-Type: application/json
 ```
 
 The API is not considered production-ready until schema import, DB credentials, PHP extensions, file permissions, real HTTP requests and security checks have all been verified on the target host. The Android client has not yet been wired to every endpoint.
+
+## Admin panel
+
+The separate Next.js admin frontend is in `../admin/` and uses `admin.php` through `/admin-api`. Import `../admin/admin-schema.sql` only after backing up the existing database and after the original schema is installed. Promote trusted existing users through the `admin_roles` table; see `../admin/README.md` for the exact SQL and deployment sequence.
+
+The admin migration creates admin roles/sessions, audit logs, account archives and post comments, and extends posts/reports for moderation. It is a one-time migration: do not re-run its ALTER TABLE statements after a successful import.
+
+Public post comments are available at `GET/POST /v1/posts/{id}/comments`; an owner or comment author can delete a comment with `DELETE /v1/posts/{id}/comments/{comment_id}`. Admin moderation can soft-delete and restore comments.
