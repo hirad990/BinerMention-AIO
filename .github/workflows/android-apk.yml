@@ -5,10 +5,12 @@ on:
     branches: [main]
     paths:
       - 'android/**'
+      - 'f9ce68bae32185e60d387b03ed84504f88a5cc7c.png'
       - '.github/workflows/android-apk.yml'
   pull_request:
     paths:
       - 'android/**'
+      - 'f9ce68bae32185e60d387b03ed84504f88a5cc7c.png'
       - '.github/workflows/android-apk.yml'
   workflow_dispatch:
 
@@ -21,9 +23,9 @@ concurrency:
 
 jobs:
   validate-and-build:
-    name: Validate Flutter app and build APK
+    name: Validate Flutter app and build signed release APK
     runs-on: ubuntu-latest
-    timeout-minutes: 30
+    timeout-minutes: 40
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
@@ -38,26 +40,100 @@ jobs:
       - name: Generate Android platform scaffold
         run: flutter create --platforms=android --org ir.binercraft --project-name binerm_mention "$RUNNER_TEMP/binerm_mention"
 
-      - name: Configure Android compile SDK
+      - name: Configure Android compile SDK 36
         run: |
           SDKMANAGER="${ANDROID_HOME}/cmdline-tools/latest/bin/sdkmanager"
           if [ ! -x "$SDKMANAGER" ]; then SDKMANAGER="${ANDROID_HOME}/cmdline-tools/bin/sdkmanager"; fi
           yes | "$SDKMANAGER" --licenses >/dev/null
           "$SDKMANAGER" "platforms;android-36" "build-tools;36.0.0"
-          BUILD_FILE="$RUNNER_TEMP/binerm_mention/android/app/build.gradle"
-          if [ ! -f "$BUILD_FILE" ]; then BUILD_FILE="$RUNNER_TEMP/binerm_mention/android/app/build.gradle.kts"; fi
+          BUILD_FILE="$RUNNER_TEMP/binerm_mention/android/app/build.gradle.kts"
+          if [ ! -f "$BUILD_FILE" ]; then BUILD_FILE="$RUNNER_TEMP/binerm_mention/android/app/build.gradle"; fi
           python3 - "$BUILD_FILE" <<'PY'
           import re, sys
           from pathlib import Path
           path = Path(sys.argv[1])
           source = path.read_text()
-          source, compile_count = re.subn(r"compileSdk\s*=\s*[^\n]+", "compileSdk = 36", source, count=1)
-          source, min_count = re.subn(r"minSdk\s*=\s*[^\n]+", "minSdk = 21", source, count=1)
+          source, compile_count = re.subn(r"compileSdk\s*=\s*[^\\n]+", "compileSdk = 36", source, count=1)
+          source, min_count = re.subn(r"minSdk\s*=\s*[^\\n]+", "minSdk = 21", source, count=1)
           if compile_count != 1 or min_count != 1:
-              raise SystemExit(f"Could not safely set compileSdk/minSdk in {path}: compile={compile_count}, min={min_count}")
+              raise SystemExit(f"Could not safely set SDK values in {path}: compile={compile_count}, min={min_count}")
           path.write_text(source)
           PY
-      - name: Inject app source, tests and network permission
+
+      - name: Prepare release signing key when configured
+        env:
+          ANDROID_KEYSTORE_BASE64: ${{ secrets.ANDROID_KEYSTORE_BASE64 }}
+          ANDROID_KEYSTORE_PASSWORD: ${{ secrets.ANDROID_KEYSTORE_PASSWORD }}
+          ANDROID_KEY_ALIAS: ${{ secrets.ANDROID_KEY_ALIAS }}
+          ANDROID_KEY_PASSWORD: ${{ secrets.ANDROID_KEY_PASSWORD }}
+        run: |
+          PROJECT="$RUNNER_TEMP/binerm_mention/android"
+          if [ -n "$ANDROID_KEYSTORE_BASE64" ] && [ -n "$ANDROID_KEYSTORE_PASSWORD" ] && [ -n "$ANDROID_KEY_ALIAS" ] && [ -n "$ANDROID_KEY_PASSWORD" ]; then
+            echo "$ANDROID_KEYSTORE_BASE64" | base64 --decode > "$PROJECT/app/binermention-release.jks"
+            cat > "$PROJECT/key.properties" <<EOF
+          storePassword=$ANDROID_KEYSTORE_PASSWORD
+          keyPassword=$ANDROID_KEY_PASSWORD
+          keyAlias=$ANDROID_KEY_ALIAS
+          storeFile=app/binermention-release.jks
+          EOF
+            echo "Release signing key configured."
+          else
+            echo "Signing secrets are not configured; building a debug-signed APK for validation only."
+          fi
+          BUILD_FILE="$PROJECT/app/build.gradle.kts"
+          if [ ! -f "$BUILD_FILE" ]; then BUILD_FILE="$PROJECT/app/build.gradle"; fi
+          python3 - "$BUILD_FILE" <<'PY'
+          import sys
+          from pathlib import Path
+          p = Path(sys.argv[1])
+          s = p.read_text()
+          if p.suffix == ".kts":
+              imports = 'import java.util.Properties\\nimport java.io.FileInputStream\\n'
+              if "import java.util.Properties" not in s:
+                  s = imports + s
+              signing = '''
+          signingConfigs {
+              create("release") {
+                  val propsFile = rootProject.file("key.properties")
+                  if (propsFile.exists()) {
+                      val props = Properties()
+                      props.load(FileInputStream(propsFile))
+                      keyAlias = props["keyAlias"] as String
+                      keyPassword = props["keyPassword"] as String
+                      storeFile = file(props["storeFile"] as String)
+                      storePassword = props["storePassword"] as String
+                  }
+              }
+          }
+          '''
+              if "create(\\"release\\")" not in s:
+                  s = s.replace("    buildTypes {", signing + "\\n    buildTypes {", 1)
+              start = s.find("    buildTypes {")
+              pos = s.find("        getByName(\\"release\\") {", start)
+              if pos < 0:
+                  pos = s.find("        release {", start)
+              if pos < 0:
+                  raise SystemExit("Could not locate release buildType in Kotlin Gradle file")
+              brace = s.find("{", pos)
+              depth, end = 0, None
+              for i in range(brace, len(s)):
+                  if s[i] == "{": depth += 1
+                  elif s[i] == "}":
+                      depth -= 1
+                      if depth == 0:
+                          end = i
+                          break
+              block = s[pos:end+1]
+              import re
+              block = re.sub(r"signingConfig\\s*=.*\\n", "", block)
+              block = block[:-1] + '            signingConfig = if (rootProject.file("key.properties").exists()) signingConfigs.getByName("release") else signingConfigs.getByName("debug")\\n        }'
+              s = s[:pos] + block + s[end+1:]
+          else:
+              raise SystemExit("Generated Gradle file is not Kotlin DSL; refusing unsafe signing patch")
+          p.write_text(s)
+          PY
+
+      - name: Inject app source, tests, icon and network permission
         run: |
           cp android/pubspec.yaml "$RUNNER_TEMP/binerm_mention/pubspec.yaml"
           mkdir -p "$RUNNER_TEMP/binerm_mention/assets"
@@ -72,7 +148,7 @@ jobs:
           content = manifest.read_text()
           permission = '<uses-permission android:name="android.permission.INTERNET"/>'
           if permission not in content:
-              content = content.replace('<application', permission + '\n    <application', 1)
+              content = content.replace('<application', permission + '\\n    <application', 1)
           content = content.replace('android:label="binerm_mention"', 'android:label="BinerMention"')
           manifest.write_text(content)
           PY
@@ -81,39 +157,29 @@ jobs:
         working-directory: ${{ runner.temp }}/binerm_mention
         run: flutter pub get
 
+      - name: Generate launcher icons
+        working-directory: ${{ runner.temp }}/binerm_mention
+        run: dart run flutter_launcher_icons
+
       - name: Align Android plugin compile SDK
         working-directory: ${{ runner.temp }}/binerm_mention
         run: |
           python3 <<'PY'
           import re
           from pathlib import Path
-
           cache = Path.home() / ".pub-cache" / "hosted"
-          changed = []
           patterns = [
-              (re.compile(r"(compileSdkVersion\s+)(\d+)"), r"\g<1>36"),
-              (re.compile(r"(compileSdkVersion\s*=\s*)(\d+)"), r"\g<1>36"),
-              (re.compile(r"(compileSdk\s*=\s*)(\d+)"), r"\g<1>36"),
+              (re.compile(r"(compileSdkVersion\\s+)(\\d+)"), r"\\g<1>36"),
+              (re.compile(r"(compileSdkVersion\\s*=\\s*)(\\d+)"), r"\\g<1>36"),
+              (re.compile(r"(compileSdk\\s*=\\s*)(\\d+)"), r"\\g<1>36"),
           ]
-          for gradle in cache.glob("**/android/build.gradle"):
+          for gradle in list(cache.glob("**/android/build.gradle")) + list(cache.glob("**/android/build.gradle.kts")):
               source = gradle.read_text()
               updated = source
               for pattern, replacement in patterns:
                   updated = pattern.sub(replacement, updated)
               if updated != source:
                   gradle.write_text(updated)
-                  changed.append(str(gradle))
-          for gradle in cache.glob("**/android/build.gradle.kts"):
-              source = gradle.read_text()
-              updated = source
-              for pattern, replacement in patterns:
-                  updated = pattern.sub(replacement, updated)
-              if updated != source:
-                  gradle.write_text(updated)
-                  changed.append(str(gradle))
-          print("Updated plugin Gradle files:", len(changed))
-          for path in changed:
-              print(path)
           PY
 
       - name: Format Dart sources
@@ -142,4 +208,4 @@ jobs:
           name: BinerMention-Android-release
           path: ${{ runner.temp }}/binerm_mention/build/app/outputs/flutter-apk/app-release.apk
           if-no-files-found: error
-          retention-days: 14
+          retention-days: 30
