@@ -74,7 +74,7 @@ jobs:
           storePassword=$ANDROID_KEYSTORE_PASSWORD
           keyPassword=$ANDROID_KEY_PASSWORD
           keyAlias=$ANDROID_KEY_ALIAS
-          storeFile=app/binermention-release.jks
+          storeFile=binermention-release.jks
           EOF
             echo "Release signing key configured."
           else
@@ -184,7 +184,9 @@ jobs:
 
       - name: Format Dart sources
         working-directory: ${{ runner.temp }}/binerm_mention
-        run: dart format lib test
+        run: |
+          dart format lib
+          if [ -d test ]; then dart format test; fi
 
       - name: Analyze Dart sources
         working-directory: ${{ runner.temp }}/binerm_mention
@@ -192,7 +194,8 @@ jobs:
 
       - name: Run Flutter tests
         working-directory: ${{ runner.temp }}/binerm_mention
-        run: flutter test --reporter expanded
+        run: |
+          if [ -d test ]; then flutter test --reporter expanded; else echo 'No Flutter tests directory; skipping.'; fi
 
       - name: Build release APK
         working-directory: ${{ runner.temp }}/binerm_mention
