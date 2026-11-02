@@ -53,3 +53,23 @@ Content-Type: application/json
 ```
 
 The API is not considered production-ready until schema import, DB credentials, PHP extensions, file permissions, real HTTP requests and security checks have all been verified on the target host. The Android client has not yet been wired to every endpoint.
+
+
+## Persistent bookmarks (2026-11-02)
+
+The Android client now syncs saved posts with the authenticated API.
+
+For an existing database, run the additive migration once:
+
+```sql
+SOURCE migrations/2026_11_02_bookmarks.sql;
+```
+
+Alternatively, execute the SQL statements in that migration using phpMyAdmin. Do not drop or recreate the existing database.
+
+Endpoints:
+- `GET /v1/bookmarks` — list the signed-in user's saved posts.
+- `POST /v1/posts/{id}/bookmark` — save a post.
+- `DELETE /v1/posts/{id}/bookmark` — remove a saved post.
+
+The full-install `schema.sql` also includes the bookmarks table for new installations.
