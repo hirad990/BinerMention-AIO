@@ -375,7 +375,7 @@ class _LiveHomeState extends State<LiveHome> {
         ),
       )),
       if (showingSaved) ...[
-        if (savedPosts.isEmpty) const Padding(padding: EdgeInsets.all(34), child: Center(child: Text(binerText('هنوز پستی ذخیره نکردی.',en:'You have no saved posts yet.',ar:'لا توجد منشورات محفوظة بعد.',tr:'Henüz kaydedilmiş gönderin yok.')))),
+        if (savedPosts.isEmpty) Padding(padding: const EdgeInsets.all(34), child: Center(child: Text(binerText('هنوز پستی ذخیره نکردی.',en:'You have no saved posts yet.',ar:'لا توجد منشورات محفوظة بعد.',tr:'Henüz kaydedilmiş gönderin yok.')))),
         ...savedPosts.map(card),
       ] else if (exploreQuery.isEmpty) ...[
         Padding(padding: const EdgeInsets.fromLTRB(18, 22, 18, 10), child: Row(children: [
@@ -386,7 +386,7 @@ class _LiveHomeState extends State<LiveHome> {
           Text(binerText('از پست‌های بارگذاری‌شده',en:'From recent posts',ar:'من المنشورات الحديثة',tr:'Son gönderilerden'), style: TextStyle(color: cMuted, fontSize: 11)),
         ])),
         if (trending.isEmpty)
-          const Padding(padding: EdgeInsets.fromLTRB(18, 4, 18, 18), child: Text(binerText('با انتشار پست‌های دارای هشتگ، این بخش پر می‌شود.',en:'Posts with hashtags will appear here.',ar:'ستظهر هنا المنشورات التي تحتوي على وسوم.',tr:'Etiket içeren gönderiler burada görünür.')), style: TextStyle(color: cMuted)))
+          Padding(padding: const EdgeInsets.fromLTRB(18, 4, 18, 18), child: Text(binerText('با انتشار پست‌های دارای هشتگ، این بخش پر می‌شود.',en:'Posts with hashtags will appear here.',ar:'ستظهر هنا المنشورات التي تحتوي على وسوم.',tr:'Etiket içeren gönderiler burada görünür.'), style: const TextStyle(color: cMuted)))
         else
           Padding(padding: const EdgeInsets.symmetric(horizontal: 16), child: Wrap(
             spacing: 8, runSpacing: 8,
@@ -396,7 +396,7 @@ class _LiveHomeState extends State<LiveHome> {
               onPressed: () => updateExploreQuery(entry.key),
             )).toList(),
           )),
-        const Padding(padding: EdgeInsets.fromLTRB(18, 24, 18, 8), child: Row(children: [
+        Padding(padding: const EdgeInsets.fromLTRB(18, 24, 18, 8), child: Row(children: [
           Icon(Icons.bolt_rounded, color: cBlue),
           SizedBox(width: 8),
           Text(binerText('پست‌های پیشنهادی',en:'Suggested posts',ar:'منشورات مقترحة',tr:'Önerilen gönderiler'), style: TextStyle(fontSize: 18, fontWeight: FontWeight.w800)),
@@ -411,7 +411,7 @@ class _LiveHomeState extends State<LiveHome> {
             final users = snapshot.data != null && snapshot.data!.isNotEmpty ? snapshot.data![0] as List<Map<String, dynamic>> : <Map<String, dynamic>>[];
             final foundPosts = snapshot.data != null && snapshot.data!.length > 1 ? snapshot.data![1] as List<Map<String, dynamic>> : <Map<String, dynamic>>[];
             return Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
-              if (users.isNotEmpty) const Padding(padding: EdgeInsets.fromLTRB(18, 18, 18, 4), child: Text(binerText('آدم‌ها',en:'People',ar:'الأشخاص',tr:'Kişiler'), style: TextStyle(fontSize: 18, fontWeight: FontWeight.w800))),
+              if (users.isNotEmpty) Padding(padding: const EdgeInsets.fromLTRB(18, 18, 18, 4), child: Text(binerText('آدم‌ها',en:'People',ar:'الأشخاص',tr:'Kişiler'), style: TextStyle(fontSize: 18, fontWeight: FontWeight.w800))),
               ...users.take(8).map((user) => ListTile(
                 leading: avatar(value(user, 'display_name', value(user, 'username', 'کاربر')), user, 22),
                 title: Text(value(user, 'display_name', value(user, 'username', 'کاربر'))),
@@ -419,9 +419,9 @@ class _LiveHomeState extends State<LiveHome> {
                 trailing: const Icon(Icons.chevron_right_rounded, color: cBlue),
                 onTap: () => openUserProfile(value(user, 'username')),
               )),
-              if (foundPosts.isNotEmpty) const Padding(padding: EdgeInsets.fromLTRB(18, 18, 18, 4), child: Text(binerText('پست‌ها',en:'Posts',ar:'المنشورات',tr:'Gönderiler'), style: TextStyle(fontSize: 18, fontWeight: FontWeight.w800))),
+              if (foundPosts.isNotEmpty) Padding(padding: const EdgeInsets.fromLTRB(18, 18, 18, 4), child: Text(binerText('پست‌ها',en:'Posts',ar:'المنشورات',tr:'Gönderiler'), style: TextStyle(fontSize: 18, fontWeight: FontWeight.w800))),
               ...foundPosts.map(card),
-              if (users.isEmpty && foundPosts.isEmpty) const Padding(padding: EdgeInsets.all(32), child: Center(child: Text(binerText('نتیجه‌ای پیدا نشد.',en:'No results found.',ar:'لم يتم العثور على نتائج.',tr:'Sonuç bulunamadı.')))),
+              if (users.isEmpty && foundPosts.isEmpty) Padding(padding: const EdgeInsets.all(32), child: Center(child: Text(binerText('نتیجه‌ای پیدا نشد.',en:'No results found.',ar:'لم يتم العثور على نتائج.',tr:'Sonuç bulunamadı.')))),
             ]);
           },
         ),
