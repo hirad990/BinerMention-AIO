@@ -513,7 +513,8 @@ class _LiveHomeState extends State<LiveHome> {
     return RichText(text: TextSpan(style: TextStyle(color: Theme.of(context).colorScheme.onSurface, fontSize: 15, height: 1.48, letterSpacing: .05), children: spans));
   }
   Future<void> compose({int? replyToId, int? quotePostId}) async {
-    final controller = TextEditingController();
+    final prefs = await SharedPreferences.getInstance();
+    final controller = TextEditingController(text: prefs.getString('biner_post_draft') ?? '');
     final pollControllers = [TextEditingController(), TextEditingController()];
     bool pollEnabled = false;
     XFile? attachment;
@@ -542,7 +543,7 @@ class _LiveHomeState extends State<LiveHome> {
             children: [
               Text(replyToId != null ? 'پاسخ به پست #$replyToId' : quotePostId != null ? 'نقل‌قول پست #$quotePostId' : 'پست جدید',
                   style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
-              TextField(controller: controller, autofocus: true, minLines: 3, maxLines: 5, maxLength: 280,
+              TextField(controller: controller, autofocus: true, minLines: 3, maxLines: 5, maxLength: 280, onChanged: (value) { prefs.setString('biner_post_draft', value); },
                   decoration: const InputDecoration(hintText: 'چه خبر؟  #هشتگ  @منشن', border: InputBorder.none)),
               if (pollEnabled) ...[
                 const SizedBox(height: 8),
@@ -593,6 +594,7 @@ class _LiveHomeState extends State<LiveHome> {
         mediaId = int.tryParse(media['id'].toString());
       }
       final item = await widget.api.createPost(text, mediaId: mediaId, replyToId: replyToId, quotePostId: quotePostId, pollOptions: pollOptions);
+      await prefs.remove('biner_post_draft');
       if (mounted) setState(() => posts.insert(0, item));
       if (replyToId != null && mounted) toast('پاسخ منتشر شد.');
     } on ApiException catch (e) {
@@ -914,7 +916,7 @@ class _LiveHomeState extends State<LiveHome> {
     if (s.connectionState == ConnectionState.waiting) return const Center(child: CircularProgressIndicator(color: cBlue));
     if (s.hasError) return Center(child: Text(s.error.toString()));
     final items = s.data ?? [];
-    return ListView(children: [Padding(padding: const EdgeInsets.all(18), child: Text(binerText('اعلان‌ها',en:'Notifications',ar:'الإشعارات',tr:'Bildirimler'), style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold))),
+    return ListView(children: [Padding(padding: const EdgeInsets.all(18), child: Row(children: [Expanded(child: Text(binerText('اعلان‌ها',en:'Notifications',ar:'الإشعارات',tr:'Bildirimler'), style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold))), TextButton.icon(onPressed: () async { try { await widget.api.markAllNotificationsRead(); if (mounted) setState(() {}); } on ApiException catch (e) { if (mounted) toast(e.message); } }, icon: const Icon(Icons.done_all_rounded, size: 18), label: const Text('خواندن همه'))])),
       if (items.isEmpty) Center(child: Padding(padding: const EdgeInsets.all(24), child: Text(binerText('اعلان تازه‌ای نداری.',en:'No new notifications.',ar:'لا توجد إشعارات جديدة.',tr:'Yeni bildirimin yok.')))),
       ...items.map((n) { final kind = value(n, 'type'); final labels = {'mention': binerText('در یک پست منشن‌ات کرد',en:'Mentioned you in a post',ar:'أشار إليك في منشور',tr:'Bir gönderide senden bahsetti'), 'follow': binerText('دنبال‌ات کرد',en:'Followed you',ar:'تابعك',tr:'Seni takip etti'), 'like': binerText('پستت را پسندید',en:'Liked your post',ar:'أُعجب بمنشورك',tr:'Gönderini beğendi'), 'repost': binerText('پستت را بازنشر کرد',en:'Reposted your post',ar:'أعاد نشر منشورك',tr:'Gönderini yeniden paylaştı'), 'reply': binerText('به پستت پاسخ داد',en:'Replied to your post',ar:'رد على منشورك',tr:'Gönderine yanıt verdi'), 'message': binerText('پیام فرستاد',en:'Sent you a message',ar:'أرسل إليك رسالة',tr:'Sana mesaj gönderdi')}; return ListTile(leading: avatar(value(n, 'actor_display_name', value(n, 'actor_username', 'U'))), title: Text(value(n, 'actor_display_name', value(n, 'actor_username', 'کاربر')) + ' • ' + (labels[kind] ?? binerText('تعامل جدید',en:'New activity',ar:'نشاط جديد',tr:'Yeni etkinlik'))), subtitle: Text(value(n, 'created_at'), style: const TextStyle(color: cMuted))); }),
     ]);
