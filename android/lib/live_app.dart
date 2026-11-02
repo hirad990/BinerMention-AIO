@@ -200,7 +200,12 @@ class _StoryViewerState extends State<_StoryViewer> {
     } catch (e) { if (mounted) ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(e.toString()))); }
     finally { if (mounted) setState(() => sending = false); }
   }
-  @override Widget build(BuildContext context) => Dialog(
+  @override Widget build(BuildContext context) => AnimatedBuilder(
+    animation: BinerPreferences.instance,
+    builder: (context, _) => _buildDialog(),
+  );
+
+  Widget _buildDialog() => Dialog(
     backgroundColor: const Color(0xFF090B12), insetPadding: const EdgeInsets.all(10),
     child: ConstrainedBox(constraints: BoxConstraints(maxHeight: MediaQuery.of(context).size.height * .88), child: Column(mainAxisSize: MainAxisSize.min, children: [
       Row(children: [Expanded(child: Padding(padding: const EdgeInsets.all(14), child: Text(widget.story['display_name']?.toString() ?? widget.story['username']?.toString() ?? binerText('استوری',en:'Story',ar:'قصة',tr:'Hikâye'), style: const TextStyle(color: Colors.white, fontWeight: FontWeight.w800)))), IconButton(onPressed: () => Navigator.pop(context), icon: const Icon(Icons.close,color:Colors.white))]),
@@ -1482,7 +1487,12 @@ class _ChatPageState extends State<ChatPage> {
   }
 
   @override
-  Widget build(BuildContext context) => Scaffold(
+  Widget build(BuildContext context) => AnimatedBuilder(
+    animation: BinerPreferences.instance,
+    builder: (context, _) => _buildChat(),
+  );
+
+  Widget _buildChat() => Scaffold(
     appBar: AppBar(
       backgroundColor: const Color(0xFF050507),
       foregroundColor: Theme.of(context).colorScheme.onSurface,
