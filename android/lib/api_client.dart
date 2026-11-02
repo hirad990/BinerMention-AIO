@@ -156,12 +156,16 @@ class BinerApi {
         .toList();
   }
 
-  Future<Map<String, dynamic>> createPost(String text, {int? mediaId, int? replyToId}) async {
+  Future<Map<String, dynamic>> createPost(String text, {int? mediaId, int? replyToId, List<String>? pollOptions}) async {
     final body = <String, dynamic>{'body': text};
     if (mediaId != null) body['media_id'] = mediaId;
     if (replyToId != null) body['reply_to_id'] = replyToId;
+    if (pollOptions != null && pollOptions.isNotEmpty) body['poll_options'] = pollOptions;
     return Map<String, dynamic>.from((await _request('POST', 'v1/posts', body: body))['post'] as Map);
   }
+
+  Future<Map<String, dynamic>> votePoll(int pollId, int optionId) async =>
+      Map<String, dynamic>.from((await _request('POST', 'v1/polls/$pollId/vote', body: {'option_id': optionId}))['poll'] as Map);
 
   Future<Map<String, dynamic>> updateProfile({
     required String displayName,
