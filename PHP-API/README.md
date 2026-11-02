@@ -73,3 +73,16 @@ Endpoints:
 - `DELETE /v1/posts/{id}/bookmark` — remove a saved post.
 
 The full-install `schema.sql` also includes the bookmarks table for new installations.
+
+
+## Interactive polls (2026-11-02)
+
+Android supports creating a poll with 2–4 unique options in the post composer. The poll question is the post text. Vote totals and each option's result are returned in the post payload. A signed-in user can change their vote; one vote per user per poll is enforced by the database primary key.
+
+For an existing database, back it up and run `migrations/2026_11_02_polls.sql` once in phpMyAdmin. This migration only creates the poll tables and does not remove existing records.
+
+Endpoints:
+- `POST /v1/posts` with optional `poll_options: ["Option A", "Option B"]`
+- `POST /v1/polls/{pollId}/vote` with `{"option_id": 123}`
+
+The API validates that an option belongs to the specified poll. The full-install `schema.sql` includes all poll tables.
