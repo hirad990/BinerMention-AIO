@@ -289,25 +289,45 @@ class _LiveHomeState extends State<LiveHome> {
   }
 
   Future<void> loadSavedPosts() async {
-    final prefs = await SharedPreferences.getInstance();
-    final encoded = prefs.getStringList('biner_saved_posts') ?? const <String>[];
-    final restored = <Map<String, dynamic>>[];
-    for (final item in encoded) {
-      try { final decoded = jsonDecode(item); if (decoded is Map) restored.add(Map<String, dynamic>.from(decoded)); } catch (_) {}
+    try {
+      final remote = await widget.api.bookmarks();
+      if (mounted) {
+        setState(() { savedPosts..clear()..addAll(remote); });
+        final prefs = await SharedPreferences.getInstance();
+        await prefs.setStringList('biner_saved_posts', remote.map((item) => jsonEncode(item)).toList());
+      }
+    } on ApiException {
+      final prefs = await SharedPreferences.getInstance();
+      final encoded = prefs.getStringList('biner_saved_posts') ?? const <String>[];
+      final restored = <Map<String, dynamic>>[];
+      for (final item in encoded) {
+        try { final decoded = jsonDecode(item); if (decoded is Map) restored.add(Map<String, dynamic>.from(decoded)); } catch (_) {}
+      }
+      if (mounted) setState(() { savedPosts..clear()..addAll(restored); });
     }
-    if (mounted) setState(() { savedPosts..clear()..addAll(restored); });
   }
   Future<void> toggleSavedPost(Map<String, dynamic> post) async {
-    final id = value(post, 'id');
-    if (id.isEmpty) return;
-    final wasSaved = savedPosts.any((item) => value(item, 'id') == id);
+    final id = int.tryParse(value(post, 'id'));
+    if (id == null) return;
+    final wasSaved = savedPosts.any((item) => value(item, 'id') == '$id');
     setState(() {
-      if (wasSaved) { savedPosts.removeWhere((item) => value(item, 'id') == id); }
+      if (wasSaved) { savedPosts.removeWhere((item) => value(item, 'id') == '$id'); }
       else { savedPosts.insert(0, Map<String, dynamic>.from(post)); }
     });
-    final prefs = await SharedPreferences.getInstance();
-    await prefs.setStringList('biner_saved_posts', savedPosts.map((item) => jsonEncode(item)).toList());
-    if (mounted) toast(wasSaved ? 'از ذخیره‌ها حذف شد.' : 'پست در ذخیره‌ها قرار گرفت.');
+    try {
+      await widget.api.toggleBookmark(id, !wasSaved);
+      final prefs = await SharedPreferences.getInstance();
+      await prefs.setStringList('biner_saved_posts', savedPosts.map((item) => jsonEncode(item)).toList());
+      if (mounted) toast(binerText('ذخیره‌ها به‌روزرسانی شد.', en:'Bookmarks updated.', ar:'تم تحديث المحفوظات.', tr:'Yer işaretleri güncellendi.'));
+    } on ApiException catch (e) {
+      if (mounted) {
+        setState(() {
+          if (wasSaved) { savedPosts.insert(0, Map<String, dynamic>.from(post)); }
+          else { savedPosts.removeWhere((item) => value(item, 'id') == '$id'); }
+        });
+        toast(e.message);
+      }
+    }
   }
   Future<void> copyPost(Map<String, dynamic> post) async {
     final body = value(post, 'body');
@@ -339,15 +359,15 @@ class _LiveHomeState extends State<LiveHome> {
     final trending = tags.entries.toList()..sort((a, b) => b.value.compareTo(a.value));
     return ListView(padding: const EdgeInsets.only(bottom: 20), children: [
       Padding(padding: const EdgeInsets.fromLTRB(18, 18, 18, 10), child: Row(children: [
-        Expanded(child: Text(showingSaved ? 'پست‌های ذخیره‌شده' : 'کاوش و ترندها', style: const TextStyle(fontSize: 25, fontWeight: FontWeight.w900))),
-        IconButton(tooltip: showingSaved ? 'نمایش کاوش' : 'ذخیره‌ها', onPressed: () => setState(() { showingSaved = !showingSaved; exploreQuery = ''; exploreResults = null; }), icon: Icon(showingSaved ? Icons.explore_rounded : Icons.bookmarks_rounded, color: cBlue)),
+        Expanded(child: Text(showingSaved ? binerText('پست‌های ذخیره‌شده',en:'Saved posts',ar:'المنشورات المحفوظة',tr:'Kaydedilen gönderiler') : binerText('کاوش و ترندها',en:'Explore & trends',ar:'استكشاف والاتجاهات',tr:'Keşfet ve gündem'), style: const TextStyle(fontSize: 25, fontWeight: FontWeight.w900))),
+        IconButton(tooltip: showingSaved ? binerText('نمایش کاوش',en:'Show Explore',ar:'عرض الاستكشاف',tr:'Keşfeti göster') : binerText('ذخیره‌ها',en:'Saved posts',ar:'المحفوظات',tr:'Kaydedilenler'), onPressed: () => setState(() { showingSaved = !showingSaved; exploreQuery = ''; exploreResults = null; }), icon: Icon(showingSaved ? Icons.explore_rounded : Icons.bookmarks_rounded, color: cBlue)),
       ])),
       if (!showingSaved) Padding(padding: const EdgeInsets.symmetric(horizontal: 16), child: TextField(
         onChanged: updateExploreQuery,
         textInputAction: TextInputAction.search,
         decoration: InputDecoration(
           prefixIcon: const Icon(Icons.search_rounded),
-          hintText: 'جست‌وجوی پست، هشتگ یا کاربر…',
+          hintText: binerText('جست‌وجوی پست، هشتگ یا کاربر…',en:'Search posts, hashtags or people…',ar:'ابحث عن منشورات أو وسوم أو أشخاص…',tr:'Gönderi, etiket veya kişi ara…'),
           filled: true,
           fillColor: dark ? cGlass : const Color(0xF7FFFFFF),
           border: OutlineInputBorder(borderRadius: BorderRadius.circular(20), borderSide: BorderSide(color: cLine)),
@@ -355,7 +375,7 @@ class _LiveHomeState extends State<LiveHome> {
         ),
       )),
       if (showingSaved) ...[
-        if (savedPosts.isEmpty) const Padding(padding: EdgeInsets.all(34), child: Center(child: Text('هنوز پستی ذخیره نکردی.'))),
+        if (savedPosts.isEmpty) const Padding(padding: EdgeInsets.all(34), child: Center(child: Text(binerText('هنوز پستی ذخیره نکردی.',en:'You have no saved posts yet.',ar:'لا توجد منشورات محفوظة بعد.',tr:'Henüz kaydedilmiş gönderin yok.')))),
         ...savedPosts.map(card),
       ] else if (exploreQuery.isEmpty) ...[
         Padding(padding: const EdgeInsets.fromLTRB(18, 22, 18, 10), child: Row(children: [
@@ -366,7 +386,7 @@ class _LiveHomeState extends State<LiveHome> {
           Text(binerText('از پست‌های بارگذاری‌شده',en:'From recent posts',ar:'من المنشورات الحديثة',tr:'Son gönderilerden'), style: TextStyle(color: cMuted, fontSize: 11)),
         ])),
         if (trending.isEmpty)
-          const Padding(padding: EdgeInsets.fromLTRB(18, 4, 18, 18), child: Text('با انتشار پست‌های دارای هشتگ، این بخش پر می‌شود.', style: TextStyle(color: cMuted)))
+          const Padding(padding: EdgeInsets.fromLTRB(18, 4, 18, 18), child: Text(binerText('با انتشار پست‌های دارای هشتگ، این بخش پر می‌شود.',en:'Posts with hashtags will appear here.',ar:'ستظهر هنا المنشورات التي تحتوي على وسوم.',tr:'Etiket içeren gönderiler burada görünür.')), style: TextStyle(color: cMuted)))
         else
           Padding(padding: const EdgeInsets.symmetric(horizontal: 16), child: Wrap(
             spacing: 8, runSpacing: 8,
@@ -379,7 +399,7 @@ class _LiveHomeState extends State<LiveHome> {
         const Padding(padding: EdgeInsets.fromLTRB(18, 24, 18, 8), child: Row(children: [
           Icon(Icons.bolt_rounded, color: cBlue),
           SizedBox(width: 8),
-          Text('پست‌های پیشنهادی', style: TextStyle(fontSize: 18, fontWeight: FontWeight.w800)),
+          Text(binerText('پست‌های پیشنهادی',en:'Suggested posts',ar:'منشورات مقترحة',tr:'Önerilen gönderiler'), style: TextStyle(fontSize: 18, fontWeight: FontWeight.w800)),
         ])),
         ...posts.map(card),
       ] else if (exploreResults != null)
@@ -387,11 +407,11 @@ class _LiveHomeState extends State<LiveHome> {
           future: exploreResults,
           builder: (context, snapshot) {
             if (snapshot.connectionState == ConnectionState.waiting) return const Padding(padding: EdgeInsets.all(32), child: Center(child: CircularProgressIndicator(color: cBlue)));
-            if (snapshot.hasError) return Padding(padding: const EdgeInsets.all(24), child: Text('جست‌وجو انجام نشد: ${snapshot.error}', textAlign: TextAlign.center));
+            if (snapshot.hasError) return Padding(padding: const EdgeInsets.all(24), child: Text('${binerText('جست‌وجو انجام نشد',en:'Search failed',ar:'فشل البحث',tr:'Arama başarısız')}: ${snapshot.error}', textAlign: TextAlign.center));
             final users = snapshot.data != null && snapshot.data!.isNotEmpty ? snapshot.data![0] as List<Map<String, dynamic>> : <Map<String, dynamic>>[];
             final foundPosts = snapshot.data != null && snapshot.data!.length > 1 ? snapshot.data![1] as List<Map<String, dynamic>> : <Map<String, dynamic>>[];
             return Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
-              if (users.isNotEmpty) const Padding(padding: EdgeInsets.fromLTRB(18, 18, 18, 4), child: Text('آدم‌ها', style: TextStyle(fontSize: 18, fontWeight: FontWeight.w800))),
+              if (users.isNotEmpty) const Padding(padding: EdgeInsets.fromLTRB(18, 18, 18, 4), child: Text(binerText('آدم‌ها',en:'People',ar:'الأشخاص',tr:'Kişiler'), style: TextStyle(fontSize: 18, fontWeight: FontWeight.w800))),
               ...users.take(8).map((user) => ListTile(
                 leading: avatar(value(user, 'display_name', value(user, 'username', 'کاربر')), user, 22),
                 title: Text(value(user, 'display_name', value(user, 'username', 'کاربر'))),
@@ -399,9 +419,9 @@ class _LiveHomeState extends State<LiveHome> {
                 trailing: const Icon(Icons.chevron_right_rounded, color: cBlue),
                 onTap: () => openUserProfile(value(user, 'username')),
               )),
-              if (foundPosts.isNotEmpty) const Padding(padding: EdgeInsets.fromLTRB(18, 18, 18, 4), child: Text('پست‌ها', style: TextStyle(fontSize: 18, fontWeight: FontWeight.w800))),
+              if (foundPosts.isNotEmpty) const Padding(padding: EdgeInsets.fromLTRB(18, 18, 18, 4), child: Text(binerText('پست‌ها',en:'Posts',ar:'المنشورات',tr:'Gönderiler'), style: TextStyle(fontSize: 18, fontWeight: FontWeight.w800))),
               ...foundPosts.map(card),
-              if (users.isEmpty && foundPosts.isEmpty) const Padding(padding: EdgeInsets.all(32), child: Center(child: Text('نتیجه‌ای پیدا نشد.'))),
+              if (users.isEmpty && foundPosts.isEmpty) const Padding(padding: EdgeInsets.all(32), child: Center(child: Text(binerText('نتیجه‌ای پیدا نشد.',en:'No results found.',ar:'لم يتم العثور على نتائج.',tr:'Sonuç bulunamadı.')))),
             ]);
           },
         ),
@@ -1142,9 +1162,11 @@ class _LiveHomeState extends State<LiveHome> {
     name.dispose(); bio.dispose(); website.dispose();
   }
 
-  @override Widget build(BuildContext context) {
-    final pages = [home(), explore(), notifications(), conversations(), profile()];
-    return Scaffold(
+  @override Widget build(BuildContext context) => AnimatedBuilder(
+    animation: BinerPreferences.instance,
+    builder: (context, _) {
+      final pages = [home(), explore(), notifications(), conversations(), profile()];
+      return Scaffold(
       body: SafeArea(child: IndexedStack(index: tab, children: pages)),
       floatingActionButton: tab == 0
           ? FloatingActionButton(
@@ -1169,15 +1191,16 @@ class _LiveHomeState extends State<LiveHome> {
             destinations: [
               NavigationDestination(icon: Icon(Icons.home_outlined), selectedIcon: Icon(Icons.home_rounded, color: cBlue), label: binerText('خانه', en:'Home', ar:'الرئيسية', tr:'Ana sayfa')),
               NavigationDestination(icon: Icon(Icons.search_rounded), selectedIcon: Icon(Icons.search_rounded, color: cBlue), label: binerText('کاوش', en:'Explore', ar:'استكشاف', tr:'Keşfet')),
-              NavigationDestination(icon: Icon(Icons.notifications_none_rounded), selectedIcon: Icon(Icons.notifications_rounded, color: cBlue), label: binerText(binerText('اعلان‌ها',en:'Notifications',ar:'الإشعارات',tr:'Bildirimler'), en:'Alerts', ar:'الإشعارات', tr:'Bildirimler')),
+              NavigationDestination(icon: Icon(Icons.notifications_none_rounded), selectedIcon: Icon(Icons.notifications_rounded, color: cBlue), label: binerText('اعلان‌ها',en:'Notifications',ar:'الإشعارات',tr:'Bildirimler')),
               NavigationDestination(icon: Icon(Icons.mail_outline_rounded), selectedIcon: Icon(Icons.mail_rounded, color: cBlue), label: binerText('پیام‌ها', en:'Messages', ar:'الرسائل', tr:'Mesajlar')),
               NavigationDestination(icon: Icon(Icons.person_outline_rounded), selectedIcon: Icon(Icons.person_rounded, color: cBlue), label: binerText('پروفایل', en:'Profile', ar:'الملف الشخصي', tr:'Profil')),
             ],
           ),
         ),
       ),
-    );
-  }
+      );
+    },
+  );
 }
 class ChatPage extends StatefulWidget {
   const ChatPage({super.key, required this.api, required this.conversationId, required this.currentUserId, required this.title});
