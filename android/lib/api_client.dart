@@ -211,6 +211,18 @@ class BinerApi {
     await _request('DELETE', 'v1/posts/$postId');
   }
 
+  Future<List<Map<String, dynamic>>> bookmarks() async {
+    final result = await _request('GET', 'v1/bookmarks');
+    return (result['posts'] as List? ?? const [])
+        .whereType<Map>()
+        .map((item) => Map<String, dynamic>.from(item))
+        .toList();
+  }
+
+  Future<void> toggleBookmark(int postId, bool active) async {
+    await _request(active ? 'POST' : 'DELETE', 'v1/posts/$postId/bookmark');
+  }
+
   Future<void> togglePostAction(int postId, String action, bool active) async {
     if (action != 'like' && action != 'repost') throw const ApiException('Unsupported post action.');
     await _request(active ? 'POST' : 'DELETE', 'v1/posts/$postId/$action');
