@@ -514,6 +514,8 @@ class _LiveHomeState extends State<LiveHome> {
   }
   Future<void> compose({int? replyToId}) async {
     final controller = TextEditingController();
+    final pollControllers = [TextEditingController(), TextEditingController()];
+    bool pollEnabled = false;
     XFile? attachment;
     void insertToken(String token) {
       final current = controller.value;
@@ -542,12 +544,22 @@ class _LiveHomeState extends State<LiveHome> {
                   style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
               TextField(controller: controller, autofocus: true, minLines: 3, maxLines: 5, maxLength: 280,
                   decoration: const InputDecoration(hintText: 'چه خبر؟  #هشتگ  @منشن', border: InputBorder.none)),
+              if (pollEnabled) ...[
+                const SizedBox(height: 8),
+                Row(children: [const Icon(Icons.poll_outlined, color: cBlue), const SizedBox(width: 8), Expanded(child: Text(binerText('گزینه‌های نظرسنجی',en:'Poll options',ar:'خيارات الاستطلاع',tr:'Anket seçenekleri'), style: const TextStyle(fontWeight: FontWeight.w700))), IconButton(onPressed: () { if (pollControllers.length < 4) sheetSetState(() => pollControllers.add(TextEditingController())); }, icon: const Icon(Icons.add_circle_outline, color: cBlue))]),
+                ...List.generate(pollControllers.length, (index) => Padding(padding: const EdgeInsets.only(bottom: 6), child: TextField(controller: pollControllers[index], maxLength: 80, decoration: InputDecoration(counterText: '', hintText: binerText('گزینه ${index + 1}',en:'Option ${index + 1}',ar:'الخيار ${index + 1}',tr:'Seçenek ${index + 1}'), prefixIcon: const Icon(Icons.radio_button_unchecked, size: 18), suffixIcon: pollControllers.length > 2 ? IconButton(onPressed: () => sheetSetState(() { pollControllers.removeAt(index).dispose(); }), icon: const Icon(Icons.close, size: 18)) : null)))),
+              ],
               if (attachment != null)
                 ListTile(leading: const Icon(Icons.image, color: cBlue), title: Text(attachment!.name, maxLines: 1, overflow: TextOverflow.ellipsis),
                   trailing: IconButton(icon: const Icon(Icons.close), onPressed: () => sheetSetState(() => attachment = null))),
               Row(children: [
                 IconButton(tooltip: binerText('افزودن هشتگ',en:'Add hashtag',ar:'إضافة وسم',tr:'Etiket ekle'), onPressed: () => insertToken('#'), icon: const Icon(Icons.tag_rounded, color: cBlue)),
                 IconButton(tooltip: binerText('منشن کردن کاربر',en:'Mention user',ar:'الإشارة إلى مستخدم',tr:'Kullanıcıdan bahset'), onPressed: () => insertToken('@'), icon: const Icon(Icons.alternate_email_rounded, color: Color(0xFF9B8CFF))),
+                IconButton(
+                  tooltip: binerText('افزودن نظرسنجی',en:'Add a poll',ar:'إضافة استطلاع',tr:'Anket ekle'),
+                  onPressed: () => sheetSetState(() => pollEnabled = !pollEnabled),
+                  icon: Icon(Icons.poll_outlined, color: pollEnabled ? const Color(0xFF00BA7C) : cBlue),
+                ),
                 IconButton(
                   tooltip: binerText('افزودن عکس یا ویدیو',en:'Add photo or video',ar:'إضافة صورة أو فيديو',tr:'Fotoğraf veya video ekle'),
                   onPressed: () async {
@@ -557,7 +569,7 @@ class _LiveHomeState extends State<LiveHome> {
                   icon: const Icon(Icons.image_outlined, color: cBlue),
                 ),
                 const Spacer(),
-                FilledButton(onPressed: () => Navigator.pop(ctx, {'text': controller.text.trim(), 'attachment': attachment}),
+                FilledButton(onPressed: () => Navigator.pop(ctx, {'text': controller.text.trim(), 'attachment': attachment, 'poll_options': pollEnabled ? pollControllers.map((c) => c.text.trim()).where((v) => v.isNotEmpty).toList() : null}),
                     child: Text(binerText('انتشار',en:'Publish',ar:'نشر',tr:'Paylaş'))),
               ]),
             ],
@@ -566,10 +578,13 @@ class _LiveHomeState extends State<LiveHome> {
       ),
     );
     controller.dispose();
+    final pollOptions = (result?['poll_options'] as List?)?.whereType<String>().toList();
+    for (final item in pollControllers) { item.dispose(); }
     if (result == null || !mounted) return;
     final text = (result['text'] as String? ?? '').trim();
     final file = result['attachment'] as XFile?;
-    if (text.isEmpty && file == null) return;
+    if (pollOptions != null && (pollOptions.length < 2 || pollOptions.length > 4)) { toast(binerText('نظرسنجی باید ۲ تا ۴ گزینه داشته باشد.',en:'A poll needs 2 to 4 options.',ar:'يجب أن يحتوي الاستطلاع على خيارين إلى أربعة.',tr:'Anket 2-4 seçenek içermeli.')); return; }
+    if (text.isEmpty && file == null && (pollOptions == null || pollOptions.isEmpty)) return;
     setState(() => posting = true);
     try {
       int? mediaId;
@@ -577,7 +592,7 @@ class _LiveHomeState extends State<LiveHome> {
         final media = await widget.api.uploadMedia(file);
         mediaId = int.tryParse(media['id'].toString());
       }
-      final item = await widget.api.createPost(text, mediaId: mediaId, replyToId: replyToId);
+      final item = await widget.api.createPost(text, mediaId: mediaId, replyToId: replyToId, pollOptions: pollOptions);
       if (mounted) setState(() => posts.insert(0, item));
       if (replyToId != null && mounted) toast('پاسخ منتشر شد.');
     } on ApiException catch (e) {
@@ -718,6 +733,21 @@ class _LiveHomeState extends State<LiveHome> {
     );
   }
 
+  Widget pollCard(Map<String, dynamic> p) {
+    final poll = p['poll'];
+    if (poll is! Map) return const SizedBox.shrink();
+    final options = (poll['options'] as List? ?? const []).whereType<Map>().map((x) => Map<String, dynamic>.from(x)).toList();
+    final total = int.tryParse((poll['total_votes'] ?? 0).toString()) ?? 0;
+    final selected = int.tryParse((poll['my_vote_option_id'] ?? '').toString());
+    final pollId = int.tryParse((poll['id'] ?? '').toString());
+    return Container(margin: const EdgeInsets.only(top: 12), padding: const EdgeInsets.all(12), decoration: BoxDecoration(color: Theme.of(context).brightness == Brightness.dark ? const Color(0x8839C5FF) : const Color(0xEEF1F7FF), borderRadius: BorderRadius.circular(16), border: Border.all(color: cLine)), child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+      Row(children: [const Icon(Icons.poll_outlined, color: cBlue, size: 18), const SizedBox(width: 7), Text(binerText('نظرسنجی',en:'Poll',ar:'استطلاع',tr:'Anket'), style: const TextStyle(fontWeight: FontWeight.w800))]),
+      const SizedBox(height: 8),
+      ...options.map((option) { final id = int.tryParse((option['id'] ?? '').toString()); final votes = int.tryParse((option['votes_count'] ?? 0).toString()) ?? 0; final ratio = total == 0 ? 0.0 : votes / total; final chosen = selected != null && selected == id; return Padding(padding: const EdgeInsets.only(bottom: 7), child: InkWell(onTap: selected != null || id == null || pollId == null ? null : () async { try { final updated = await widget.api.votePoll(pollId, id); if (mounted) setState(() { p['poll'] = updated; }); } on ApiException catch (e) { if (mounted) toast(e.message); } }, borderRadius: BorderRadius.circular(12), child: Container(padding: const EdgeInsets.all(10), decoration: BoxDecoration(borderRadius: BorderRadius.circular(12), border: Border.all(color: chosen ? cBlue : cLine.withValues(alpha: .65))), child: Column(children: [Row(children: [Expanded(child: Text(option['option_text']?.toString() ?? '', style: TextStyle(fontWeight: chosen ? FontWeight.w800 : FontWeight.w500))), if (selected != null) Text('${(ratio * 100).round()}%', style: const TextStyle(color: cBlue, fontWeight: FontWeight.w800))]), if (selected != null) Padding(padding: const EdgeInsets.only(top: 7), child: ClipRRect(borderRadius: BorderRadius.circular(8), child: LinearProgressIndicator(value: ratio, minHeight: 6, backgroundColor: cMuted.withValues(alpha: .18), color: chosen ? const Color(0xFF00BA7C) : cBlue))) ])))); }),
+      Row(children: [Text('$total ${binerText('رأی',en:'votes',ar:'أصوات',tr:'oy')} ', style: const TextStyle(color: cMuted, fontSize: 12)), const Spacer(), Text(selected == null ? binerText('برای رأی دادن انتخاب کن',en:'Select an option to vote',ar:'اختر خيارًا للتصويت',tr:'Oy vermek için seç') : binerText('رأی ثبت شد',en:'Vote recorded',ar:'تم تسجيل التصويت',tr:'Oyun kaydedildi'), style: const TextStyle(color: cMuted, fontSize: 12))]),
+    ]));
+  }
+
   Widget card(Map<String, dynamic> p) {
     final name = value(p, 'display_name', value(p, 'username', 'کاربر'));
     final body = value(p, 'body');
@@ -746,6 +776,7 @@ class _LiveHomeState extends State<LiveHome> {
             ),
         ]),
         if (body.isNotEmpty) Padding(padding: const EdgeInsets.only(top: 8, right: 2), child: richPostBody(body)),
+        pollCard(p),
         if (value(p, 'media_url').startsWith('https://'))
           Padding(padding: const EdgeInsets.only(top: 10), child: RegExp(r'\.(mp4|webm)(\?|$)', caseSensitive: false).hasMatch(value(p, 'media_url'))
             ? Container(height: 170, decoration: BoxDecoration(color: Colors.black26, borderRadius: BorderRadius.circular(14)), child: Center(child: IconButton.filled(onPressed: () => launchUrl(Uri.parse(value(p, 'media_url')), mode: LaunchMode.externalApplication), icon: const Icon(Icons.play_arrow_rounded))))
