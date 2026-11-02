@@ -144,8 +144,8 @@ class BinerApi {
     }
   }
 
-  Future<List<Map<String, dynamic>>> posts({int limit = 20, int? beforeId, bool following = false, int? replyToId}) async {
-    final query = <String, String>{'limit': '$limit'};
+  Future<List<Map<String, dynamic>>> posts({int limit = 20, int? beforeId, bool following = false, int? replyToId, String sort = 'recent'}) async {
+    final query = <String, String>{'limit': '$limit', 'sort': sort};
     if (following) query['feed'] = 'following';
     if (beforeId != null) query['before_id'] = '$beforeId';
     if (replyToId != null) query['reply_to_id'] = '$replyToId';
@@ -156,10 +156,11 @@ class BinerApi {
         .toList();
   }
 
-  Future<Map<String, dynamic>> createPost(String text, {int? mediaId, int? replyToId, List<String>? pollOptions}) async {
+  Future<Map<String, dynamic>> createPost(String text, {int? mediaId, int? replyToId, int? quotePostId, List<String>? pollOptions}) async {
     final body = <String, dynamic>{'body': text};
     if (mediaId != null) body['media_id'] = mediaId;
     if (replyToId != null) body['reply_to_id'] = replyToId;
+    if (quotePostId != null) body['quote_post_id'] = quotePostId;
     if (pollOptions != null && pollOptions.isNotEmpty) body['poll_options'] = pollOptions;
     return Map<String, dynamic>.from((await _request('POST', 'v1/posts', body: body))['post'] as Map);
   }
@@ -238,6 +239,29 @@ class BinerApi {
         .whereType<Map>()
         .map((item) => Map<String, dynamic>.from(item))
         .toList();
+  }
+
+
+  Future<void> reportPost(int postId, String reason) async {
+    await _request('POST', 'v1/posts/$postId/report', body: {'reason': reason});
+  }
+
+  Future<void> pinPost(int postId) async {
+    await _request('POST', 'v1/me/pinned-post', body: {'post_id': postId});
+  }
+
+  Future<void> unpinPost() async {
+    await _request('DELETE', 'v1/me/pinned-post');
+  }
+
+  Future<Map<String, dynamic>?> pinnedPost(int userId) async {
+    final result = await _request('GET', 'v1/users/$userId/pinned-post');
+    final value = result['post'];
+    return value is Map ? Map<String, dynamic>.from(value) : null;
+  }
+
+  Future<void> markAllNotificationsRead() async {
+    await _request('POST', 'v1/notifications/read-all');
   }
 
   Future<List<Map<String, dynamic>>> conversations() async {

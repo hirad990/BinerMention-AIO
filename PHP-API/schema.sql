@@ -48,13 +48,43 @@ CREATE TABLE IF NOT EXISTS posts (
   body VARCHAR(280) NOT NULL DEFAULT '',
   media_id BIGINT UNSIGNED NULL,
   reply_to_id BIGINT UNSIGNED NULL,
+  quote_post_id BIGINT UNSIGNED NULL,
   is_deleted TINYINT(1) NOT NULL DEFAULT 0,
   created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
   updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-  PRIMARY KEY (id), KEY idx_posts_timeline (is_deleted, created_at, id), KEY idx_posts_user (user_id, created_at), KEY idx_posts_reply (reply_to_id),
+  PRIMARY KEY (id), KEY idx_posts_timeline (is_deleted, created_at, id), KEY idx_posts_user (user_id, created_at), KEY idx_posts_reply (reply_to_id), KEY idx_posts_quote (quote_post_id),
   CONSTRAINT fk_posts_user FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
   CONSTRAINT fk_posts_media FOREIGN KEY (media_id) REFERENCES media(id) ON DELETE SET NULL,
-  CONSTRAINT fk_posts_reply FOREIGN KEY (reply_to_id) REFERENCES posts(id) ON DELETE SET NULL
+  CONSTRAINT fk_posts_reply FOREIGN KEY (reply_to_id) REFERENCES posts(id) ON DELETE SET NULL,
+  CONSTRAINT fk_posts_quote FOREIGN KEY (quote_post_id) REFERENCES posts(id) ON DELETE SET NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+
+CREATE TABLE IF NOT EXISTS pinned_posts (
+  user_id BIGINT UNSIGNED NOT NULL,
+  post_id BIGINT UNSIGNED NOT NULL,
+  created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  PRIMARY KEY (user_id),
+  UNIQUE KEY uq_pinned_post (post_id),
+  CONSTRAINT fk_pinned_posts_user FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
+  CONSTRAINT fk_pinned_posts_post FOREIGN KEY (post_id) REFERENCES posts(id) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+CREATE TABLE IF NOT EXISTS post_reports (
+  id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
+  reporter_user_id BIGINT UNSIGNED NOT NULL,
+  post_id BIGINT UNSIGNED NOT NULL,
+  reported_user_id BIGINT UNSIGNED NOT NULL,
+  reason VARCHAR(500) NOT NULL,
+  status ENUM('pending','reviewed','dismissed') NOT NULL DEFAULT 'pending',
+  created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  PRIMARY KEY (id),
+  UNIQUE KEY uq_post_reporter (reporter_user_id, post_id),
+  KEY idx_post_reports_status (status, created_at),
+  KEY idx_post_reports_post (post_id, created_at),
+  CONSTRAINT fk_post_reports_reporter FOREIGN KEY (reporter_user_id) REFERENCES users(id) ON DELETE CASCADE,
+  CONSTRAINT fk_post_reports_post FOREIGN KEY (post_id) REFERENCES posts(id) ON DELETE CASCADE,
+  CONSTRAINT fk_post_reports_owner FOREIGN KEY (reported_user_id) REFERENCES users(id) ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 CREATE TABLE IF NOT EXISTS polls (

@@ -15,6 +15,7 @@ class UserProfilePage extends StatefulWidget {
 
 class _UserProfilePageState extends State<UserProfilePage> {
   Map<String, dynamic>? user;
+  Map<String, dynamic>? pinnedPost;
   List<Map<String, dynamic>> posts = [];
   bool loading = true, followingBusy = false;
   String? error;
@@ -42,11 +43,13 @@ class _UserProfilePageState extends State<UserProfilePage> {
       final id = int.tryParse(person['id'].toString());
       final mine = int.tryParse(me['id'].toString());
       final userPosts = id == null ? <Map<String, dynamic>>[] : await widget.api.postsByUser(id);
+      final pinned = id == null ? null : await widget.api.pinnedPost(id);
       if (!mounted) return;
       setState(() {
         user = person;
         myId = mine;
         posts = userPosts;
+        pinnedPost = pinned;
         person['posts_count'] = userPosts.length;
         loading = false;
       });
@@ -322,6 +325,7 @@ class _UserProfilePageState extends State<UserProfilePage> {
                           ]),
                         ),
                       ),
+                      if (pinnedPost != null) SliverToBoxAdapter(child: Padding(padding: const EdgeInsets.fromLTRB(12, 8, 12, 4), child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [Padding(padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4), child: Row(children: [const Icon(Icons.push_pin_rounded, size: 16, color: binerBlue), const SizedBox(width: 6), Text(binerText('پست سنجاق‌شده',en:'Pinned post',ar:'منشور مثبت',tr:'Sabitlenmiş gönderi'), style: const TextStyle(fontWeight: FontWeight.w800))])), postCard(pinnedPost!)]))),
                       if (posts.isEmpty)
                         SliverToBoxAdapter(child: Padding(padding: const EdgeInsets.all(34), child: Center(child: Text('هنوز پستی منتشر نشده.', style: TextStyle(color: muted)))))
                       else
