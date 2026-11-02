@@ -791,8 +791,7 @@ class _LiveHomeState extends State<LiveHome> {
             blueTick(p),
             GestureDetector(onTap: () => openUserProfile(value(p, 'username')), child: Text('@' + value(p, 'username', 'user'), style: const TextStyle(color: Color(0xFF8496AC), fontSize: 12))),
           ])),
-          if (value(p, 'user_id') == value(me ?? {}, 'id'))
-            PopupMenuButton<String>(
+          PopupMenuButton<String>(
               icon: const Icon(Icons.more_horiz, color: cMuted),
               onSelected: (action) {
                 final id = int.tryParse(value(p, 'id'));
