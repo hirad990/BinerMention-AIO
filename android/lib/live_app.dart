@@ -234,7 +234,7 @@ class LiveHome extends StatefulWidget {
   @override State<LiveHome> createState() => _LiveHomeState();
 }
 class _LiveHomeState extends State<LiveHome> {
-  int tab = 0; bool loading = true, posting = false, followingFeed = false; String? error;
+  int tab = 0; bool loading = true, posting = false, followingFeed = false; String feedSort = 'recent'; String? error;
   final posts = <Map<String, dynamic>>[];
   final storyItems = <Map<String, dynamic>>[];
   final savedPosts = <Map<String, dynamic>>[];
@@ -435,7 +435,7 @@ class _LiveHomeState extends State<LiveHome> {
   Future<void> loadProfile() async { try { final u = await widget.api.me(); if (mounted) setState(() => me = u); } on ApiException catch (e) { if (mounted) setState(() => error = e.message); } }
   Future<void> refresh() async {
     setState(() { loading = true; error = null; });
-    try { final data = await widget.api.posts(following: followingFeed); if (mounted) setState(() { posts..clear()..addAll(data); }); }
+    try { final data = await widget.api.posts(following: followingFeed, sort: feedSort); if (mounted) setState(() { posts..clear()..addAll(data); }); }
     on ApiException catch (e) { if (mounted) setState(() => error = e.message); }
     finally { if (mounted) setState(() => loading = false); }
   }
@@ -512,7 +512,7 @@ class _LiveHomeState extends State<LiveHome> {
     if (cursor < body.length) spans.add(TextSpan(text: body.substring(cursor)));
     return RichText(text: TextSpan(style: TextStyle(color: Theme.of(context).colorScheme.onSurface, fontSize: 15, height: 1.48, letterSpacing: .05), children: spans));
   }
-  Future<void> compose({int? replyToId}) async {
+  Future<void> compose({int? replyToId, int? quotePostId}) async {
     final controller = TextEditingController();
     final pollControllers = [TextEditingController(), TextEditingController()];
     bool pollEnabled = false;
@@ -540,7 +540,7 @@ class _LiveHomeState extends State<LiveHome> {
             mainAxisSize: MainAxisSize.min,
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
-              Text(replyToId == null ? 'پست جدید' : 'پاسخ به پست #$replyToId',
+              Text(replyToId != null ? 'پاسخ به پست #$replyToId' : quotePostId != null ? 'نقل‌قول پست #$quotePostId' : 'پست جدید',
                   style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
               TextField(controller: controller, autofocus: true, minLines: 3, maxLines: 5, maxLength: 280,
                   decoration: const InputDecoration(hintText: 'چه خبر؟  #هشتگ  @منشن', border: InputBorder.none)),
@@ -592,7 +592,7 @@ class _LiveHomeState extends State<LiveHome> {
         final media = await widget.api.uploadMedia(file);
         mediaId = int.tryParse(media['id'].toString());
       }
-      final item = await widget.api.createPost(text, mediaId: mediaId, replyToId: replyToId, pollOptions: pollOptions);
+      final item = await widget.api.createPost(text, mediaId: mediaId, replyToId: replyToId, quotePostId: quotePostId, pollOptions: pollOptions);
       if (mounted) setState(() => posts.insert(0, item));
       if (replyToId != null && mounted) toast('پاسخ منتشر شد.');
     } on ApiException catch (e) {
@@ -600,6 +600,35 @@ class _LiveHomeState extends State<LiveHome> {
     } finally {
       if (mounted) setState(() => posting = false);
     }
+  }
+
+
+  Future<void> reportPost(Map<String, dynamic> post) async {
+    final id = int.tryParse(value(post, 'id'));
+    if (id == null) return;
+    final reasonController = TextEditingController();
+    final reason = await showDialog<String>(context: context, builder: (ctx) => AlertDialog(
+      title: const Text('گزارش پست'),
+      content: TextField(controller: reasonController, maxLength: 500, maxLines: 3, decoration: const InputDecoration(hintText: 'دلیل گزارش را بنویس…')),
+      actions: [TextButton(onPressed: () => Navigator.pop(ctx), child: const Text('انصراف')), FilledButton(onPressed: () => Navigator.pop(ctx, reasonController.text.trim().isEmpty ? 'محتوای نامناسب' : reasonController.text.trim()), child: const Text('ارسال گزارش'))],
+    ));
+    reasonController.dispose();
+    if (reason == null || !mounted) return;
+    try { await widget.api.reportPost(id, reason); if (mounted) toast('گزارش پست ثبت شد.'); }
+    on ApiException catch (e) { if (mounted) toast(e.message); }
+  }
+
+  Future<void> pinPost(Map<String, dynamic> post) async {
+    final id = int.tryParse(value(post, 'id'));
+    if (id == null) return;
+    try { await widget.api.pinPost(id); if (mounted) toast('پست به پروفایلت سنجاق شد.'); }
+    on ApiException catch (e) { if (mounted) toast(e.message); }
+  }
+
+  Future<void> sharePost(Map<String, dynamic> post) async {
+    final id = value(post, 'id');
+    await Clipboard.setData(ClipboardData(text: 'https://binercraft.ir/mention/?post=$id'));
+    if (mounted) toast('پیوند مستقیم پست کپی شد.');
   }
 
   Future<void> editPost(Map<String, dynamic> post) async {
@@ -768,14 +797,25 @@ class _LiveHomeState extends State<LiveHome> {
                 if (id == null) return;
                 if (action == 'edit') editPost(p);
                 if (action == 'delete') deletePost(id);
+                if (action == 'quote') compose(quotePostId: id);
+                if (action == 'pin') pinPost(p);
+                if (action == 'report') reportPost(p);
+                if (action == 'share') sharePost(p);
               },
               itemBuilder: (_) => [
-                PopupMenuItem(value: 'edit', child: Text(binerText('ویرایش پست',en:'Edit post',ar:'تعديل المنشور',tr:'Gönderiyi düzenle'))),
-                const PopupMenuItem(value: 'delete', child: Text('حذف پست')),
+                const PopupMenuItem(value: 'quote', child: Text('نقل‌قول پست')),
+                const PopupMenuItem(value: 'share', child: Text('کپی پیوند پست')),
+                if (value(p, 'user_id') == value(me ?? {}, 'id')) ...[
+                  PopupMenuItem(value: 'edit', child: Text(binerText('ویرایش پست',en:'Edit post',ar:'تعديل المنشور',tr:'Gönderiyi düzenle'))),
+                  const PopupMenuItem(value: 'pin', child: Text('سنجاق به پروفایل')),
+                  const PopupMenuItem(value: 'delete', child: Text('حذف پست')),
+                ] else
+                  const PopupMenuItem(value: 'report', child: Text('گزارش پست')),
               ],
             ),
         ]),
         if (body.isNotEmpty) Padding(padding: const EdgeInsets.only(top: 8, right: 2), child: richPostBody(body)),
+        if (p['quote_post'] is Map) Container(margin: const EdgeInsets.only(top: 10), padding: const EdgeInsets.all(10), decoration: BoxDecoration(border: Border.all(color: cLine), borderRadius: BorderRadius.circular(14)), child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [Text('@${(p['quote_post'] as Map)['username'] ?? 'user'}', style: const TextStyle(color: cBlue, fontWeight: FontWeight.w700)), const SizedBox(height: 4), Text((p['quote_post'] as Map)['body']?.toString() ?? '')])),
         pollCard(p),
         if (value(p, 'media_url').startsWith('https://'))
           Padding(padding: const EdgeInsets.only(top: 10), child: RegExp(r'\.(mp4|webm)(\?|$)', caseSensitive: false).hasMatch(value(p, 'media_url'))
@@ -806,6 +846,10 @@ class _LiveHomeState extends State<LiveHome> {
         const SizedBox(width: 4),
         Hero(tag: 'biner-profile-avatar', child: Container(padding: const EdgeInsets.all(2), decoration: BoxDecoration(shape: BoxShape.circle, gradient: const LinearGradient(colors: [cBlue, Color(0xFF725BFF)])), child: CircleAvatar(radius: 17, backgroundColor: Theme.of(context).colorScheme.surface, backgroundImage: (me?['avatar_url']?.toString().startsWith('https://') ?? false) ? NetworkImage(me!['avatar_url'].toString()) : null, child: (me?['avatar_url']?.toString().startsWith('https://') ?? false) ? null : const Icon(Icons.person, size: 18)))),
       ])),
+      Row(children: [
+        Expanded(child: TextButton(onPressed: () { if (feedSort != 'recent') { setState(() => feedSort = 'recent'); refresh(); } }, child: Text(feedSort == 'recent' ? '● جدیدترین' : 'جدیدترین'))),
+        Expanded(child: TextButton(onPressed: () { if (feedSort != 'popular') { setState(() => feedSort = 'popular'); refresh(); } }, child: Text(feedSort == 'popular' ? '● محبوب‌ترین' : 'محبوب‌ترین'))),
+      ]),
       Row(children: [
         Expanded(child: InkWell(
           onTap: () { if (followingFeed) { setState(() => followingFeed = false); refresh(); } },
