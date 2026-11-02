@@ -228,7 +228,12 @@ class _UserProfilePageState extends State<UserProfilePage> {
   }
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context) => AnimatedBuilder(
+    animation: BinerPreferences.instance,
+    builder: (context, _) => _buildProfile(),
+  );
+
+  Widget _buildProfile() {
     final displayName = textOf('display_name', textOf('username', 'کاربر'));
     return Scaffold(
       body: SafeArea(
