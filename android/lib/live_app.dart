@@ -629,7 +629,7 @@ class _LiveHomeState extends State<LiveHome> {
 
   Future<void> sharePost(Map<String, dynamic> post) async {
     final id = value(post, 'id');
-    await Clipboard.setData(ClipboardData(text: 'https://binercraft.ir/mention/?post=$id'));
+    await Clipboard.setData(ClipboardData(text: 'https://binercraft.ir/mention/#post-$id'));
     if (mounted) toast('پیوند مستقیم پست کپی شد.');
   }
 
