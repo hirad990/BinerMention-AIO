@@ -86,3 +86,23 @@ Endpoints:
 - `POST /v1/polls/{pollId}/vote` with `{"option_id": 123}`
 
 The API validates that an option belongs to the specified poll. The full-install `schema.sql` includes all poll tables.
+
+
+## Cross-platform post features (2026-11-02)
+
+This feature branch adds:
+- Quote posts using the optional `quote_post_id` field. Quoted post details are hydrated in the regular post response.
+- Profile pinning: `POST /v1/me/pinned-post` with `post_id`, `DELETE /v1/me/pinned-post`, and `GET /v1/users/{id}/pinned-post`.
+- Post reports: `POST /v1/posts/{id}/report` with a `reason`. A user cannot report their own post; duplicate reports by the same account update the pending report instead of creating duplicates.
+- Popular feed sorting: `GET /v1/posts?sort=popular`; the default remains newest-first.
+- The existing poll and bookmark endpoints are now used by the web client as well as Android. Web bookmarks are account-synced rather than browser-only.
+- Web and Android composer drafts are stored locally on the device/browser. Drafts are not uploaded to the API.
+- Both clients expose post quoting, reporting, pinning, sharing, popular sorting, and mark-all-notifications-read controls.
+
+For an existing database, back it up and run the additive migration once:
+
+```sql
+SOURCE migrations/2026_11_02_cross_platform_features.sql;
+```
+
+The migration adds `posts.quote_post_id`, `pinned_posts`, and `post_reports`. It does not delete existing records. The updated `schema.sql` includes these structures for new installations.
