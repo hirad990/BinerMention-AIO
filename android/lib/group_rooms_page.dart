@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'api_client.dart';
+import 'biner_ai_page.dart';
 
 const _blue = Color(0xFF54C8FF);
 
@@ -111,7 +112,7 @@ class _GroupChatPageState extends State<GroupChatPage> {
   }
   @override
   Widget build(BuildContext context) => Scaffold(
-    appBar: AppBar(title: Text(widget.title, style: const TextStyle(fontWeight: FontWeight.w800)), actions: [IconButton(onPressed: _load, icon: const Icon(Icons.refresh_rounded))]),
+    appBar: AppBar(title: Text(widget.title, style: const TextStyle(fontWeight: FontWeight.w800)), actions: [IconButton(tooltip: 'BinerAI', onPressed: () => Navigator.of(context).push(MaterialPageRoute<void>(builder: (_) => BinerAIPage(api: widget.api))), icon: const Icon(Icons.auto_awesome_rounded, color: Color(0xFF9B8CFF))), IconButton(onPressed: _load, icon: const Icon(Icons.refresh_rounded))]),
     body: Column(children: [
       Expanded(child: _loading ? const Center(child: CircularProgressIndicator(color: _blue)) : ListView.builder(controller: _scroll, padding: const EdgeInsets.all(14), itemCount: _items.length, itemBuilder: (context, i) {
         final m = _items[i];
