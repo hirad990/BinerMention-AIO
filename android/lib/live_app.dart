@@ -11,6 +11,9 @@ import 'package:flutter_animate/flutter_animate.dart';
 import 'api_client.dart';
 import 'ui_kit.dart';
 import 'profile_page.dart';
+import 'biner_ai_page.dart';
+import 'insights_page.dart';
+import 'group_rooms_page.dart';
 import 'media_editor.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:url_launcher/url_launcher.dart';
@@ -440,6 +443,28 @@ class _LiveHomeState extends State<LiveHome> {
     finally { if (mounted) setState(() => loading = false); }
   }
   void toast(String s) => ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(s), behavior: SnackBarBehavior.floating, backgroundColor: const Color(0xF21A1A20), elevation: 0, shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(18), side: BorderSide(color: cLine.withValues(alpha: .65))), margin: const EdgeInsets.fromLTRB(16, 0, 16, 12)));
+  Future<void> openBinerAI() async {
+    await Navigator.of(context).push(MaterialPageRoute<void>(builder: (_) => BinerAIPage(api: widget.api)));
+  }
+  Future<void> openInsights() async {
+    await Navigator.of(context).push(MaterialPageRoute<void>(builder: (_) => InsightsPage(api: widget.api)));
+  }
+  Future<void> openGroupRooms() async {
+    await Navigator.of(context).push(MaterialPageRoute<void>(builder: (_) => GroupRoomsPage(api: widget.api)));
+  }
+  Future<void> openGroupInvite(String invite) async {
+    try {
+      final joined = await widget.api.joinGroup(invite);
+      final id = int.tryParse(joined['group_id'].toString());
+      final groups = await widget.api.groups();
+      Map<String, dynamic>? group;
+      for (final item in groups) { if (int.tryParse(item['id'].toString()) == id) { group = item; break; } }
+      if (!mounted || id == null) return;
+      if (group == null) { await openGroupRooms(); return; }
+      await Navigator.of(context).push(MaterialPageRoute<void>(builder: (_) => GroupChatPage(api: widget.api, groupId: id, title: group!['title']?.toString() ?? 'گروه')));
+    } on ApiException catch (e) { if (mounted) toast(e.message); }
+  }
+
 
   Future<void> openUserProfile(String username) async {
     final normalized = username.trim().replaceFirst(RegExp(r'^@'), '');
@@ -492,19 +517,20 @@ class _LiveHomeState extends State<LiveHome> {
 
   Widget richPostBody(String body) {
     final spans = <InlineSpan>[];
-    final pattern = RegExp(r'#[A-Za-z0-9_\u0600-\u06FF]{2,40}|@[A-Za-z0-9_]{3,24}');
+    final pattern = RegExp(r'bm:[a-fA-F0-9]{16}|#[A-Za-z0-9_\\u0600-\\u06FF]{2,40}|@[A-Za-z0-9_]{3,24}');
     var cursor = 0;
     for (final match in pattern.allMatches(body)) {
       if (match.start > cursor) spans.add(TextSpan(text: body.substring(cursor, match.start)));
       final token = match.group(0)!;
+      final isGroup = token.startsWith('bm:');
       final isTag = token.startsWith('#');
-      final value = token.substring(1);
+      final value = isGroup ? token.substring(3) : token.substring(1);
       spans.add(WidgetSpan(
         alignment: PlaceholderAlignment.baseline,
         baseline: TextBaseline.alphabetic,
         child: GestureDetector(
-          onTap: () => isTag ? openHashtag(value) : openUserProfile(value),
-          child: Text(token, style: TextStyle(color: isTag ? const Color(0xFF35A7F5) : const Color(0xFF9B8CFF), fontWeight: FontWeight.w700)),
+          onTap: () => isGroup ? openGroupInvite(value) : isTag ? openHashtag(value) : openUserProfile(value),
+          child: Text(token, style: TextStyle(color: isGroup ? cBlue : isTag ? const Color(0xFF35A7F5) : const Color(0xFF9B8CFF), fontWeight: FontWeight.w800, decoration: isGroup ? TextDecoration.underline : TextDecoration.none)),
         ),
       ));
       cursor = match.end;
@@ -796,6 +822,8 @@ class _LiveHomeState extends State<LiveHome> {
     children: [
       Padding(padding: const EdgeInsets.fromLTRB(16, 12, 16, 8), child: Row(children: [
         const Brand(), const Spacer(),
+        IconButton(tooltip: 'BinerAI', onPressed: openBinerAI, icon: const Icon(Icons.auto_awesome_rounded, color: Color(0xFF9B8CFF))),
+        IconButton(tooltip: 'Biner Insights', onPressed: openInsights, icon: const Icon(Icons.insights_rounded, color: cBlue)),
         Container(decoration: BoxDecoration(color: Theme.of(context).brightness == Brightness.dark ? cGlass : const Color(0xEFFFFFFF), borderRadius: BorderRadius.circular(18), border: Border.all(color: cLine)), child: IconButton(onPressed: searchUser, icon: const Icon(Icons.search_rounded, color: cBlue), tooltip: 'جست‌وجوی کاربر')),
         const SizedBox(width: 4),
         IconButton(
@@ -917,6 +945,7 @@ class _LiveHomeState extends State<LiveHome> {
       return ListView(children: [
         Padding(padding: const EdgeInsets.fromLTRB(18, 18, 8, 12), child: Row(children: [
           const Expanded(child: Text('پیام‌ها', style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold))),
+          IconButton(onPressed: openGroupRooms, icon: const Icon(Icons.groups_rounded, color: cBlue), tooltip: 'اتاق‌های گفتگو'),
           IconButton(onPressed: startConversation, icon: const Icon(Icons.edit_square, color: cBlue), tooltip: binerText('پیام جدید',en:'New message',ar:'رسالة جديدة',tr:'Yeni mesaj')),
         ])),
         if (items.isEmpty) Center(child: Padding(padding: const EdgeInsets.all(24), child: Text(binerText('هنوز گفت‌وگویی نداری. برای شروع روی پیام جدید بزن.',en:'No chats yet. Start with a new message.',ar:'لا توجد محادثات بعد. ابدأ برسالة جديدة.',tr:'Henüz sohbet yok. Yeni mesajla başla.')))),
