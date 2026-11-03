@@ -618,9 +618,11 @@ class _LiveHomeState extends State<LiveHome> {
         final media = await widget.api.uploadMedia(file);
         mediaId = int.tryParse(media['id'].toString());
       }
-      final item = await widget.api.createPost(text, mediaId: mediaId, replyToId: replyToId, pollOptions: pollOptions);
-      if (mounted) setState(() => posts.insert(0, item));
-      if (replyToId != null && mounted) toast('پاسخ منتشر شد.');
+      final item = replyToId == null
+          ? await widget.api.createPost(text, mediaId: mediaId, pollOptions: pollOptions)
+          : await widget.api.addComment(replyToId, text, mediaId: mediaId);
+      if (replyToId == null && mounted) setState(() => posts.insert(0, item));
+      if (replyToId != null && mounted) toast('کامنت ثبت شد.');
     } on ApiException catch (e) {
       if (mounted) toast(e.message);
     } finally {
@@ -725,25 +727,37 @@ class _LiveHomeState extends State<LiveHome> {
       useSafeArea: true,
       backgroundColor: Colors.transparent,
       builder: (ctx) => Container(
-        height: MediaQuery.of(ctx).size.height * .76,
-        decoration: BoxDecoration(color: Theme.of(ctx).brightness == Brightness.dark ? const Color(0xF20B1422) : const Color(0xF7FFFFFF), borderRadius: const BorderRadius.vertical(top: Radius.circular(28)), border: Border.all(color: cLine)),
+        height: MediaQuery.of(ctx).size.height * .84,
+        decoration: BoxDecoration(
+          color: Theme.of(ctx).brightness == Brightness.dark ? const Color(0xF20B1422) : const Color(0xF7FFFFFF),
+          borderRadius: const BorderRadius.vertical(top: Radius.circular(28)),
+          border: Border.all(color: cLine),
+        ),
         child: Column(children: [
           const SizedBox(height: 12),
           Container(width: 42, height: 4, decoration: BoxDecoration(color: cMuted.withValues(alpha: .5), borderRadius: BorderRadius.circular(4))),
           Padding(padding: const EdgeInsets.fromLTRB(18, 16, 18, 10), child: Row(children: [
-            const Expanded(child: Text('گفت‌وگوی پست', style: TextStyle(fontSize: 21, fontWeight: FontWeight.w800))),
-            Text(fmt(post['replies_count'] ?? 0) + ' پاسخ', style: const TextStyle(color: cMuted)),
+            const Expanded(child: Text('کامنت‌های این پست', style: TextStyle(fontSize: 21, fontWeight: FontWeight.w800))),
+            Text(fmt(post['replies_count'] ?? 0) + ' کامنت', style: const TextStyle(color: cMuted)),
           ])),
-          Container(margin: const EdgeInsets.symmetric(horizontal: 12), decoration: BoxDecoration(color: Theme.of(context).brightness == Brightness.dark ? cGlass : const Color(0xEFFFFFFF), borderRadius: BorderRadius.circular(20), border: Border.all(color: cLine)), child: card(post)),
+          Container(
+            constraints: BoxConstraints(maxHeight: MediaQuery.of(ctx).size.height * .27),
+            margin: const EdgeInsets.symmetric(horizontal: 12),
+            child: SingleChildScrollView(child: card(post)),
+          ),
           Expanded(
             child: FutureBuilder<List<Map<String, dynamic>>>(
-              future: widget.api.posts(limit: 50, replyToId: id),
+              future: widget.api.comments(id),
               builder: (context, snap) {
                 if (snap.connectionState == ConnectionState.waiting) return const Center(child: CircularProgressIndicator(color: cBlue));
-                if (snap.hasError) return Center(child: Text(snap.error.toString(), textAlign: TextAlign.center));
-                final replies = snap.data ?? [];
-                if (replies.isEmpty) return const Center(child: Text('هنوز پاسخی نیست؛ اولین نفر باش.', style: TextStyle(color: cMuted)));
-                return ListView.builder(itemCount: replies.length, itemBuilder: (_, i) => card(replies[i]));
+                if (snap.hasError) return Center(child: Padding(padding: const EdgeInsets.all(20), child: Text(snap.error.toString(), textAlign: TextAlign.center)));
+                final comments = snap.data ?? [];
+                if (comments.isEmpty) return const Center(child: Text('هنوز کامنتی ثبت نشده؛ اولین نفر باش.', style: TextStyle(color: cMuted)));
+                return ListView.builder(
+                  padding: const EdgeInsets.only(bottom: 12),
+                  itemCount: comments.length,
+                  itemBuilder: (_, i) => card(comments[i]),
+                );
               },
             ),
           ),
@@ -751,7 +765,8 @@ class _LiveHomeState extends State<LiveHome> {
             padding: const EdgeInsets.fromLTRB(16, 8, 16, 12),
             child: SizedBox(width: double.infinity, child: FilledButton.icon(
               onPressed: () { Navigator.pop(ctx); compose(replyToId: id); },
-              icon: const Icon(Icons.reply_rounded), label: Text(binerText('نوشتن پاسخ',en:'Write a reply',ar:'كتابة رد',tr:'Yanıt yaz')),
+              icon: const Icon(Icons.mode_comment_outlined),
+              label: Text(binerText('نوشتن کامنت',en:'Write a comment',ar:'اكتب تعليقاً',tr:'Yorum yaz')),
             )),
           )),
         ]),
@@ -806,7 +821,7 @@ class _LiveHomeState extends State<LiveHome> {
         if (value(p, 'media_url').startsWith('https://'))
           Padding(padding: const EdgeInsets.only(top: 10), child: RegExp(r'\.(mp4|webm)(\?|$)', caseSensitive: false).hasMatch(value(p, 'media_url'))
             ? Container(height: 170, decoration: BoxDecoration(color: Colors.black26, borderRadius: BorderRadius.circular(14)), child: Center(child: IconButton.filled(onPressed: () => launchUrl(Uri.parse(value(p, 'media_url')), mode: LaunchMode.externalApplication), icon: const Icon(Icons.play_arrow_rounded))))
-            : ClipRRect(borderRadius: BorderRadius.circular(14), child: Image.network(value(p, 'media_url'), fit: BoxFit.cover, errorBuilder: (_, __, ___) => const SizedBox.shrink()))),
+            : ClipRRect(borderRadius: BorderRadius.circular(14), child: ConstrainedBox(constraints: const BoxConstraints(maxHeight: 280, maxWidth: 520), child: Image.network(value(p, 'media_url'), width: double.infinity, fit: BoxFit.contain, errorBuilder: (_, __, ___) => const SizedBox.shrink())))),
         const SizedBox(height: 10),
         Wrap(alignment: WrapAlignment.spaceBetween, crossAxisAlignment: WrapCrossAlignment.center, runSpacing: 0, children: [
           TextButton.icon(style: TextButton.styleFrom(foregroundColor: cMuted, visualDensity: VisualDensity.compact, padding: const EdgeInsets.symmetric(horizontal: 5)), onPressed: () => showReplies(p), icon: const Icon(Icons.chat_bubble_outline, size: 17), label: Text(fmt(p['replies_count'] ?? 0))),
