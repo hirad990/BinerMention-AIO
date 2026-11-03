@@ -7,6 +7,7 @@ class BinerPreferences extends ChangeNotifier {
   Locale locale = const Locale('fa');
   Color accent = const Color(0xFF54C8FF);
   bool fastMode = false;
+  String fontFamily = 'noto';
   bool ready = false;
   Future<void> load() async {
     final p = await SharedPreferences.getInstance();
@@ -14,6 +15,7 @@ class BinerPreferences extends ChangeNotifier {
     locale = Locale(['fa','en','ar','tr'].contains(language) ? language : 'fa');
     accent = Color(p.getInt('biner_accent') ?? 0xFF54C8FF);
     fastMode = p.getBool('biner_fast_mode') ?? false;
+    fontFamily = ['system','vazir','noto'].contains(p.getString('biner_font_family')) ? p.getString('biner_font_family')! : 'noto';
     ready = true; notifyListeners();
   }
   Future<void> setLanguage(String code) async {
@@ -24,6 +26,13 @@ class BinerPreferences extends ChangeNotifier {
   Future<void> setAccent(Color color) async {
     accent = color; final p = await SharedPreferences.getInstance();
     await p.setInt('biner_accent', color.toARGB32()); notifyListeners();
+  }
+  Future<void> setFontFamily(String family) async {
+    if (!['system','vazir','noto'].contains(family)) return;
+    fontFamily = family;
+    final p = await SharedPreferences.getInstance();
+    await p.setString('biner_font_family', family);
+    notifyListeners();
   }
   Future<void> setFastMode(bool enabled) async {
     fastMode = enabled; final p = await SharedPreferences.getInstance();
