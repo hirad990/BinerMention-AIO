@@ -1622,6 +1622,7 @@ class _ChatPageState extends State<ChatPage> {
       foregroundColor: Theme.of(context).colorScheme.onSurface,
       title: Row(children: [Container(width: 34, height: 34, decoration: BoxDecoration(shape: BoxShape.circle, color: cBlue.withValues(alpha: .12), border: Border.all(color: cLine)), child: const Icon(Icons.person_rounded, color: cBlue, size: 20)), const SizedBox(width: 10), Expanded(child: Text(widget.title, maxLines: 1, overflow: TextOverflow.ellipsis, style: const TextStyle(fontWeight: FontWeight.w800, fontSize: 17)))]),
       actions: [
+        IconButton(tooltip: 'BinerAI', onPressed: () => Navigator.of(context).push(MaterialPageRoute<void>(builder: (_) => BinerAIPage(api: widget.api))), icon: const Icon(Icons.auto_awesome_rounded, color: Color(0xFF9B8CFF))),
         IconButton(tooltip: binerText('بارگذاری دوباره',en:'Refresh',ar:'تحديث',tr:'Yenile'), onPressed: loadMessages, icon: const Icon(Icons.refresh_rounded)),
         PopupMenuButton<String>(tooltip: binerText('گزینه‌های گفت‌وگو',en:'Chat options',ar:'خيارات المحادثة',tr:'Sohbet seçenekleri'), onSelected: handleChatSafetyAction, itemBuilder: (_) => const [
           PopupMenuItem(value: 'report', child: ListTile(dense: true, contentPadding: EdgeInsets.zero, leading: Icon(Icons.flag_outlined), title: Text('گزارش گفت‌وگو'))),
