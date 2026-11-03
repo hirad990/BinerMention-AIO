@@ -341,5 +341,56 @@ class BinerApi {
     await _request('POST', 'v1/conversations/$conversationId/report', body: {'reason': reason});
   }
 
+
+  Future<List<Map<String, dynamic>>> comments(int postId, {int limit = 50}) async {
+    final result = await _request('GET', 'v1/posts/$postId/comments', query: {'limit': '$limit'});
+    return (result['comments'] as List? ?? const []).whereType<Map>().map((x) => Map<String, dynamic>.from(x)).toList();
+  }
+
+  Future<Map<String, dynamic>> addComment(int postId, String body, {int? mediaId}) async {
+    final payload = <String, dynamic>{'body': body};
+    if (mediaId != null) payload['media_id'] = mediaId;
+    return Map<String, dynamic>.from((await _request('POST', 'v1/posts/$postId/comments', body: payload))['comment'] as Map);
+  }
+
+  Future<Map<String, dynamic>> insights() async =>
+      await _request('GET', 'v1/insights');
+
+  Future<Map<String, dynamic>> askBinerAI(String question, {String? username}) async {
+    final payload = <String, dynamic>{'question': question};
+    if (username != null && username.trim().isNotEmpty) payload['username'] = username.trim();
+    return await _request('POST', 'v1/ai/ask', body: payload);
+  }
+
+  Future<void> trackPostView(int postId, {int dwellMs = 0}) async {
+    await _request('POST', 'v1/analytics/events', body: {
+      'event_type': dwellMs > 0 ? 'post_dwell' : 'post_view',
+      'post_id': postId,
+      'dwell_ms': dwellMs.clamp(0, 120000),
+    });
+  }
+
+  Future<List<Map<String, dynamic>>> groups() async {
+    final result = await _request('GET', 'v1/groups');
+    return (result['groups'] as List? ?? const []).whereType<Map>().map((x) => Map<String, dynamic>.from(x)).toList();
+  }
+
+  Future<Map<String, dynamic>> createGroup(String title, {String description = ''}) async =>
+      Map<String, dynamic>.from((await _request('POST', 'v1/groups', body: {'title': title, 'description': description}))['group'] as Map);
+
+  Future<Map<String, dynamic>> joinGroup(String inviteCode) async =>
+      await _request('POST', 'v1/groups/join', body: {'invite_code': inviteCode.replaceFirst(RegExp(r'^bm:'), '')});
+
+  Future<List<Map<String, dynamic>>> groupMessages(int groupId) async {
+    final result = await _request('GET', 'v1/groups/$groupId/messages');
+    return (result['messages'] as List? ?? const []).whereType<Map>().map((x) => Map<String, dynamic>.from(x)).toList();
+  }
+
+  Future<Map<String, dynamic>> sendGroupMessage(int groupId, String body, {int? mediaId}) async {
+    final payload = <String, dynamic>{'body': body};
+    if (mediaId != null) payload['media_id'] = mediaId;
+    return Map<String, dynamic>.from((await _request('POST', 'v1/groups/$groupId/messages', body: payload))['message'] as Map);
+  }
+
   void dispose() => _client.close();
 }
