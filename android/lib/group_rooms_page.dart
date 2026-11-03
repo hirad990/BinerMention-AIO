@@ -140,7 +140,7 @@ class _GroupChatPageState extends State<GroupChatPage> {
               if (mounted) ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(e.message)));
             }
           },
-          child: const Text('bm:لینک گروه', style: TextStyle(color: _blue, fontWeight: FontWeight.w800, decoration: TextDecoration.underline)),
+          child: Text(token, style: const TextStyle(color: _blue, fontWeight: FontWeight.w800, decoration: TextDecoration.underline)),
         ),
       ));
       cursor = match.end;
