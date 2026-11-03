@@ -110,6 +110,45 @@ class _GroupChatPageState extends State<GroupChatPage> {
     on ApiException catch (e) { if (mounted) ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(e.message))); }
     finally { if (mounted) setState(() => _sending = false); }
   }
+
+  Widget _messageBody(String body) {
+    final spans = <InlineSpan>[];
+    final pattern = RegExp(r'bm:[a-fA-F0-9]{16}');
+    var cursor = 0;
+    for (final match in pattern.allMatches(body)) {
+      if (match.start > cursor) spans.add(TextSpan(text: body.substring(cursor, match.start)));
+      final token = match.group(0)!;
+      final code = token.substring(3);
+      spans.add(WidgetSpan(
+        alignment: PlaceholderAlignment.baseline,
+        baseline: TextBaseline.alphabetic,
+        child: GestureDetector(
+          onTap: () async {
+            try {
+              final joined = await widget.api.joinGroup(code);
+              final id = int.tryParse(joined['group_id'].toString());
+              final groups = await widget.api.groups();
+              Map<String, dynamic>? group;
+              for (final item in groups) {
+                if (int.tryParse(item['id'].toString()) == id) { group = item; break; }
+              }
+              if (!mounted || id == null || group == null) return;
+              await Navigator.of(context).push(MaterialPageRoute<void>(
+                builder: (_) => GroupChatPage(api: widget.api, groupId: id, title: group!['title']?.toString() ?? 'گروه'),
+              ));
+            } on ApiException catch (e) {
+              if (mounted) ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(e.message)));
+            }
+          },
+          child: const Text('bm:لینک گروه', style: TextStyle(color: _blue, fontWeight: FontWeight.w800, decoration: TextDecoration.underline)),
+        ),
+      ));
+      cursor = match.end;
+    }
+    if (cursor < body.length) spans.add(TextSpan(text: body.substring(cursor)));
+    return RichText(text: TextSpan(style: const TextStyle(fontSize: 15), children: spans));
+  }
+
   @override
   Widget build(BuildContext context) => Scaffold(
     appBar: AppBar(title: Text(widget.title, style: const TextStyle(fontWeight: FontWeight.w800)), actions: [IconButton(tooltip: 'BinerAI', onPressed: () => Navigator.of(context).push(MaterialPageRoute<void>(builder: (_) => BinerAIPage(api: widget.api))), icon: const Icon(Icons.auto_awesome_rounded, color: Color(0xFF9B8CFF))), IconButton(onPressed: _load, icon: const Icon(Icons.refresh_rounded))]),
@@ -118,7 +157,7 @@ class _GroupChatPageState extends State<GroupChatPage> {
         final m = _items[i];
         return Align(alignment: AlignmentDirectional.centerStart, child: Container(margin: const EdgeInsets.only(bottom: 8), padding: const EdgeInsets.all(12), constraints: const BoxConstraints(maxWidth: 330), decoration: BoxDecoration(color: Theme.of(context).colorScheme.surface, borderRadius: BorderRadius.circular(16), border: Border.all(color: _blue.withValues(alpha: .15))), child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
           Text(m['display_name']?.toString() ?? m['username']?.toString() ?? 'کاربر', style: const TextStyle(color: _blue, fontSize: 11, fontWeight: FontWeight.w800)),
-          const SizedBox(height: 4), Text(m['body']?.toString() ?? ''),
+          const SizedBox(height: 4), _messageBody(m['body']?.toString() ?? ''),
           const SizedBox(height: 4), Text(m['created_at']?.toString() ?? '', style: const TextStyle(color: Colors.grey, fontSize: 9)),
         ])));
       })),
