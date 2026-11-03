@@ -1151,6 +1151,13 @@ class _LiveHomeState extends State<LiveHome> {
                 ChoiceChip(label: Text(item.$2), selected: prefs.locale.languageCode == item.$1, onSelected: (_) => prefs.setLanguage(item.$1)),
             ]),
             const SizedBox(height: 16),
+            Text(binerText('فونت برنامه', en:'App font', ar:'خط التطبيق', tr:'Uygulama yazı tipi'), style: const TextStyle(fontWeight: FontWeight.w700)),
+            const SizedBox(height: 8),
+            Wrap(spacing: 8, runSpacing: 8, children: [
+              for (final item in const [('system','فونت گوشی'),('vazir','وزیرمتن'),('noto','فونت اصلی')])
+                ChoiceChip(label: Text(item.$2), selected: prefs.fontFamily == item.$1, onSelected: (_) => prefs.setFontFamily(item.$1)),
+            ]),
+            const SizedBox(height: 16),
             Text(binerText('رنگ اصلی', en:'Accent color', ar:'اللون الأساسي', tr:'Vurgu rengi'), style: const TextStyle(fontWeight: FontWeight.w700)),
             const SizedBox(height: 9),
             Wrap(spacing: 13, children: [
