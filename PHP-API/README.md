@@ -43,6 +43,32 @@ All paths below are relative to the API root. Protected routes require `Authoriz
 - `GET /v1/conversations`, `POST /v1/conversations` with `user_id`
 - `GET /v1/conversations/{id}/messages`, `POST /v1/conversations/{id}/messages`, `POST /v1/conversations/{id}/read`
 
+## Profile, comments, BinerAI, Insights and group rooms (2026-11-03)
+
+The Android profile page requests the public profile and the user's posts separately. The API now implements `GET /v1/users/{id}/posts`; this route was missing in the earlier API even though it was listed above, which caused the profile screen to show `Endpoint not found`.
+
+The main timeline now returns only top-level posts. Replies/comments remain attached to their parent and are fetched through:
+- `GET /v1/posts/{id}/comments`
+- `POST /v1/posts/{id}/comments` with `body` and optional owned `media_id`
+
+New endpoints:
+- `GET /v1/insights` — account totals and top posts, with a note explaining that historical views/reading time are only available after event tracking is enabled.
+- `POST /v1/analytics/events` — authenticated post-view / dwell event recording.
+- `POST /v1/ai/ask` — database-grounded BinerAI research for public BinerMention profiles and public posts.
+- `GET /v1/groups`, `POST /v1/groups` — list/create group rooms.
+- `POST /v1/groups/join` — join with the 16-character invite code.
+- `GET /v1/groups/{id}/messages`, `POST /v1/groups/{id}/messages` — group chat history and message sending.
+
+Group invite links use the `bm:` scheme, for example `bm:0123456789abcdef`. The invite code is generated with 64 bits of cryptographic randomness. Group membership is checked on every group message request. BinerMention currently supports group rooms, not broadcast channels.
+
+### Apply the additive migration
+
+Back up the MariaDB database, then run `migrations/2026_11_03_ai_groups_insights.sql` once in phpMyAdmin. This creates only the new group and analytics tables; it does not drop or recreate existing data. Deploy the updated contents of `PHP-API/` to the cPanel API directory after the backup.
+
+### BinerAI scope and verification
+
+This first BinerAI API iteration retrieves and summarizes records already available inside BinerMention. It does **not** browse the public web or independently verify a real-world political identity. A platform BlueTick is only the platform's own verification state; it must never be presented as proof of a person's real-world identity or public office. A future external research/LLM provider must be configured server-side with a secret key, source citations, rate limits and clear provenance before BinerAI can make web-wide claims.
+
 ## Register example
 
 ```http
