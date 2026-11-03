@@ -1296,6 +1296,48 @@ class _ChatPageState extends State<ChatPage> {
   final scroll = ScrollController();
   final items = <Map<String, dynamic>>[];
   String value(Map<String, dynamic> m, String k, [String fallback = '']) => m[k]?.toString() ?? fallback;
+
+  Widget messageBody(String body) {
+    final spans = <InlineSpan>[];
+    final pattern = RegExp(r'bm:[a-fA-F0-9]{16}');
+    var cursor = 0;
+    for (final match in pattern.allMatches(body)) {
+      if (match.start > cursor) spans.add(TextSpan(text: body.substring(cursor, match.start)));
+      final token = match.group(0)!;
+      final code = token.substring(3);
+      spans.add(WidgetSpan(
+        alignment: PlaceholderAlignment.baseline,
+        baseline: TextBaseline.alphabetic,
+        child: GestureDetector(
+          onTap: () async {
+            try {
+              final joined = await widget.api.joinGroup(code);
+              final id = int.tryParse(joined['group_id'].toString());
+              final groups = await widget.api.groups();
+              Map<String, dynamic>? group;
+              for (final item in groups) {
+                if (int.tryParse(item['id'].toString()) == id) { group = item; break; }
+              }
+              if (!mounted || id == null) return;
+              if (group == null) {
+                ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('به گروه اضافه شدی.')));
+                return;
+              }
+              await Navigator.of(context).push(MaterialPageRoute<void>(
+                builder: (_) => GroupChatPage(api: widget.api, groupId: id, title: group!['title']?.toString() ?? 'گروه'),
+              ));
+            } on ApiException catch (e) {
+              if (mounted) ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(e.message)));
+            }
+          },
+          child: Text(token, style: const TextStyle(color: cBlue, fontWeight: FontWeight.w800, decoration: TextDecoration.underline)),
+        ),
+      ));
+      cursor = match.end;
+    }
+    if (cursor < body.length) spans.add(TextSpan(text: body.substring(cursor)));
+    return RichText(text: TextSpan(style: const TextStyle(fontSize: 15, height: 1.42), children: spans));
+  }
   void toast(String message) => ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(message), behavior: SnackBarBehavior.floating, shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(18))));
   bool loading = true, sending = false;
   String? error;
@@ -1549,7 +1591,7 @@ class _ChatPageState extends State<ChatPage> {
                   else ClipRRect(borderRadius: BorderRadius.circular(14),child: Image.network(item['media_url'].toString(),width: 210,height: 170,fit: BoxFit.cover,errorBuilder: (_,__,___)=>const Icon(Icons.broken_image_outlined))),
                   const SizedBox(height: 7),
                 ],
-                if ((item['body']?.toString() ?? '').isNotEmpty) Text(item['body']?.toString() ?? '', style: const TextStyle(fontSize: 15, height: 1.42)),
+                if ((item['body']?.toString() ?? '').isNotEmpty) messageBody(item['body']?.toString() ?? ''),
                 const SizedBox(height: 4),
                 Text(item['created_at']?.toString() ?? '', style: const TextStyle(color: cMuted, fontSize: 10)),
               ],
