@@ -15,6 +15,11 @@ ThemeData buildBinerTheme(Brightness brightness, {Color seedColor = binerBlue}) 
   final dark = brightness == Brightness.dark;
   final base = dark ? ThemeData.dark(useMaterial3: true) : ThemeData.light(useMaterial3: true);
   final textColor = dark ? const Color(0xFFF4F7FF) : const Color(0xFF142033);
+  final selectedTextTheme = switch (BinerPreferences.instance.fontFamily) {
+    'system' => base.textTheme,
+    'vazir' => GoogleFonts.getTextTheme('Vazirmatn', base.textTheme),
+    _ => GoogleFonts.notoSansArabicTextTheme(base.textTheme),
+  };
   return base.copyWith(
     brightness: brightness,
     scaffoldBackgroundColor: Colors.transparent,
@@ -24,7 +29,7 @@ ThemeData buildBinerTheme(Brightness brightness, {Color seedColor = binerBlue}) 
       surface: dark ? const Color(0xFF08080B) : const Color(0xFFF8FAFF),
       secondary: binerViolet,
     ),
-    textTheme: GoogleFonts.notoSansArabicTextTheme(base.textTheme).apply(
+    textTheme: selectedTextTheme.apply(
       bodyColor: textColor,
       displayColor: textColor,
     ),
