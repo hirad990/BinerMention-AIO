@@ -165,69 +165,213 @@ class _AuthGlowPainter extends CustomPainter {
 
 
 class _StoryViewer extends StatefulWidget {
-  const _StoryViewer({required this.api, required this.story});
+  const _StoryViewer({required this.api, required this.stories, required this.initialIndex});
   final BinerApi api;
-  final Map<String,dynamic> story;
+  final List<Map<String, dynamic>> stories;
+  final int initialIndex;
   @override State<_StoryViewer> createState() => _StoryViewerState();
 }
+
 class _StoryViewerState extends State<_StoryViewer> {
-  final comment = TextEditingController();
-  late bool liked = widget.story['is_liked'] == true || widget.story['is_liked']?.toString() == '1';
-  late int likes = int.tryParse(widget.story['likes_count']?.toString() ?? '') ?? 0;
-  late Future<List<Map<String,dynamic>>> comments = widget.api.storyComments(int.parse(widget.story['id'].toString()));
-  bool sending = false;
-  VideoPlayerController? video;
-  @override void initState() {
+  late final PageController _page = PageController(initialPage: widget.initialIndex);
+  int _index = 0;
+  @override void initState() { super.initState(); _index = widget.initialIndex; }
+  @override void dispose() { _page.dispose(); super.dispose(); }
+
+  @override
+  Widget build(BuildContext context) => Scaffold(
+    backgroundColor: const Color(0xFF05070B),
+    body: PageView.builder(
+      controller: _page,
+      itemCount: widget.stories.length,
+      onPageChanged: (index) => setState(() => _index = index),
+      itemBuilder: (context, index) => _StorySlide(
+        key: ValueKey(widget.stories[index]['id']),
+        api: widget.api,
+        story: widget.stories[index],
+        onClose: () => Navigator.maybePop(context),
+      ),
+    ),
+  );
+}
+
+class _StorySlide extends StatefulWidget {
+  const _StorySlide({super.key, required this.api, required this.story, required this.onClose});
+  final BinerApi api;
+  final Map<String, dynamic> story;
+  final VoidCallback onClose;
+  @override State<_StorySlide> createState() => _StorySlideState();
+}
+
+class _StorySlideState extends State<_StorySlide> {
+  final _comment = TextEditingController();
+  VideoPlayerController? _video;
+  late bool _liked = widget.story['is_liked'] == true || widget.story['is_liked']?.toString() == '1';
+  late int _likes = int.tryParse(widget.story['likes_count']?.toString() ?? '') ?? 0;
+  late Future<List<Map<String, dynamic>>> _comments = widget.api.storyComments(int.parse(widget.story['id'].toString()));
+  bool _sending = false;
+
+  @override
+  void initState() {
     super.initState();
-    final mime = widget.story['mime_type']?.toString() ?? '';
-    if (mime.startsWith('video/')) {
-      video = VideoPlayerController.networkUrl(Uri.parse(widget.story['media_url'].toString()))
-        ..initialize().then((_) { if (mounted) setState(() {}); })
-        ..setLooping(true)
-        ..play();
+    if ((widget.story['mime_type']?.toString() ?? '').startsWith('video/')) {
+      final controller = VideoPlayerController.networkUrl(Uri.parse(widget.story['media_url'].toString()));
+      _video = controller;
+      controller.initialize().then((_) {
+        if (!mounted) return;
+        setState(() {});
+        controller.setLooping(true);
+        controller.play();
+      }).catchError((_) {});
     }
   }
-  @override void dispose() { video?.dispose(); comment.dispose(); super.dispose(); }
-  Future<void> toggleLike() async {
-    final next = !liked;
-    setState(() { liked = next; likes += next ? 1 : -1; });
-    try { await widget.api.toggleStoryLike(int.parse(widget.story['id'].toString()), next); }
-    catch (_) { if (mounted) setState(() { liked = !next; likes += next ? -1 : 1; }); }
+
+  @override
+  void dispose() { _video?.dispose(); _comment.dispose(); super.dispose(); }
+
+  Future<void> _toggleLike() async {
+    final next = !_liked;
+    setState(() { _liked = next; _likes = (_likes + (next ? 1 : -1)).clamp(0, 1 << 30); });
+    try {
+      await widget.api.toggleStoryLike(int.parse(widget.story['id'].toString()), next);
+    } catch (_) {
+      if (mounted) setState(() { _liked = !next; _likes = (_likes + (next ? -1 : 1)).clamp(0, 1 << 30); });
+    }
   }
-  Future<void> sendComment() async {
-    final body = comment.text.trim(); if (body.isEmpty || sending) return;
-    setState(() => sending = true);
+
+  Future<void> _sendComment() async {
+    final body = _comment.text.trim();
+    if (body.isEmpty || _sending) return;
+    setState(() => _sending = true);
     try {
       await widget.api.addStoryComment(int.parse(widget.story['id'].toString()), body);
-      comment.clear();
-      setState(() => comments = widget.api.storyComments(int.parse(widget.story['id'].toString())));
-    } catch (e) { if (mounted) ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(e.toString()))); }
-    finally { if (mounted) setState(() => sending = false); }
+      _comment.clear();
+      if (mounted) setState(() => _comments = widget.api.storyComments(int.parse(widget.story['id'].toString())));
+    } on ApiException catch (e) {
+      if (mounted) ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(e.message)));
+    } finally {
+      if (mounted) setState(() => _sending = false);
+    }
   }
-  @override Widget build(BuildContext context) => AnimatedBuilder(
-    animation: BinerPreferences.instance,
-    builder: (context, _) => _buildDialog(),
-  );
 
-  Widget _buildDialog() => Dialog(
-    backgroundColor: const Color(0xFF090B12), insetPadding: const EdgeInsets.all(10),
-    child: ConstrainedBox(constraints: BoxConstraints(maxHeight: MediaQuery.of(context).size.height * .88), child: Column(mainAxisSize: MainAxisSize.min, children: [
-      Row(children: [Expanded(child: Padding(padding: const EdgeInsets.all(14), child: Text(widget.story['display_name']?.toString() ?? widget.story['username']?.toString() ?? binerText('استوری',en:'Story',ar:'قصة',tr:'Hikâye'), style: const TextStyle(color: Colors.white, fontWeight: FontWeight.w800)))), IconButton(onPressed: () => Navigator.pop(context), icon: const Icon(Icons.close,color:Colors.white))]),
-      Flexible(child: video == null
-        ? InteractiveViewer(child: Image.network(widget.story['media_url'].toString(), fit: BoxFit.contain, errorBuilder: (_,__,___) => const Icon(Icons.broken_image,color:Colors.white,size:42)))
-        : (video!.value.isInitialized
-            ? GestureDetector(onTap: () => setState(() => video!.value.isPlaying ? video!.pause() : video!.play()), child: AspectRatio(aspectRatio: video!.value.aspectRatio, child: VideoPlayer(video!)))
-            : const Center(child: CircularProgressIndicator(color: Colors.white)))),
-      if ((widget.story['caption'] ?? '').toString().isNotEmpty) Padding(padding: const EdgeInsets.all(10), child: Text(widget.story['caption'].toString(),style: const TextStyle(color:Colors.white))),
-      Row(children: [IconButton(onPressed: toggleLike, icon: Icon(liked ? Icons.favorite : Icons.favorite_border, color: liked ? Colors.pinkAccent : Colors.white)), Text('$likes',style: const TextStyle(color:Colors.white)), const SizedBox(width:12), const Icon(Icons.chat_bubble_outline,color:Colors.white,size:19), const SizedBox(width:5), Text(binerText('دیدگاه‌ها',en:'Comments',ar:'التعليقات',tr:'Yorumlar'),style: TextStyle(color:Colors.white))]),
-      Flexible(child: FutureBuilder<List<Map<String,dynamic>>>(future: comments,builder: (context,s) {
-        if(s.connectionState==ConnectionState.waiting) return const Padding(padding: EdgeInsets.all(12),child:LinearProgressIndicator());
-        final rows=s.data??[];
-        return ListView(shrinkWrap:true, children: rows.map((c)=>ListTile(dense:true,title:Text(c['display_name']?.toString()??c['username']?.toString()??'User',style:const TextStyle(color:Colors.white,fontWeight:FontWeight.w700)),subtitle:Text(c['body']?.toString()??'',style:const TextStyle(color:Colors.white70)))).toList());
-      })),
-      SafeArea(top:false,child:Padding(padding:const EdgeInsets.fromLTRB(10,4,10,10),child:Row(children:[Expanded(child:TextField(controller:comment,style:const TextStyle(color:Colors.white),decoration:InputDecoration(hintText:binerText('دیدگاه بنویس…',en:'Write a comment…',ar:'اكتب تعليقاً…',tr:'Yorum yaz…'),hintStyle:TextStyle(color:Colors.white54),filled:true,fillColor:Color(0xFF171B27),border:OutlineInputBorder(borderRadius:BorderRadius.all(Radius.circular(20)),borderSide:BorderSide.none)))),IconButton(onPressed:sending?null:sendComment,icon:const Icon(Icons.send_rounded,color:cBlue))]))),
-    ])),
-  );
+  Future<void> _showComments() async {
+    await showModalBottomSheet<void>(
+      context: context,
+      isScrollControlled: true,
+      useSafeArea: true,
+      backgroundColor: Colors.transparent,
+      builder: (ctx) => Container(
+        height: MediaQuery.of(ctx).size.height * .62,
+        decoration: BoxDecoration(
+          color: Theme.of(ctx).brightness == Brightness.dark ? const Color(0xF20B1422) : const Color(0xF7FFFFFF),
+          borderRadius: const BorderRadius.vertical(top: Radius.circular(28)),
+          border: Border.all(color: cLine),
+        ),
+        child: Column(children: [
+          const SizedBox(height: 12),
+          Container(width: 42, height: 4, decoration: BoxDecoration(color: cMuted.withValues(alpha: .55), borderRadius: BorderRadius.circular(4))),
+          const Padding(padding: EdgeInsets.all(18), child: Align(alignment: AlignmentDirectional.centerStart, child: Text('پاسخ‌های استوری', style: TextStyle(fontSize: 18, fontWeight: FontWeight.w900)))),
+          Expanded(child: FutureBuilder<List<Map<String, dynamic>>>(
+            future: _comments,
+            builder: (context, snapshot) {
+              if (snapshot.connectionState == ConnectionState.waiting) return const Center(child: CircularProgressIndicator(color: cBlue));
+              if (snapshot.hasError) return const Center(child: Text('دریافت دیدگاه‌ها انجام نشد.'));
+              final rows = snapshot.data ?? [];
+              if (rows.isEmpty) return const BinerEmptyState(icon: Icons.chat_bubble_outline_rounded, title: 'هنوز پاسخی ثبت نشده');
+              return ListView.builder(
+                itemCount: rows.length,
+                itemBuilder: (_, i) => ListTile(
+                  leading: const CircleAvatar(child: Icon(Icons.person_outline_rounded)),
+                  title: Text(rows[i]['display_name']?.toString() ?? rows[i]['username']?.toString() ?? 'کاربر', style: const TextStyle(fontWeight: FontWeight.w800)),
+                  subtitle: Text(rows[i]['body']?.toString() ?? ''),
+                ),
+              );
+            },
+          )),
+        ]),
+      ),
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final video = _video;
+    final mime = widget.story['mime_type']?.toString() ?? '';
+    final isVideo = mime.startsWith('video/');
+    final name = widget.story['display_name']?.toString() ?? widget.story['username']?.toString() ?? 'استوری';
+    return Stack(
+      fit: StackFit.expand,
+      children: [
+        if (isVideo && video != null)
+          Center(child: video.value.isInitialized
+            ? GestureDetector(
+                onTap: () => setState(() => video.value.isPlaying ? video.pause() : video.play()),
+                child: AspectRatio(aspectRatio: video.value.aspectRatio > 0 ? video.value.aspectRatio : 9 / 16, child: VideoPlayer(video)),
+              )
+            : const CircularProgressIndicator(color: Colors.white))
+        else
+          Center(child: InteractiveViewer(
+            minScale: .8, maxScale: 4,
+            child: Image.network(widget.story['media_url']?.toString() ?? '', fit: BoxFit.contain, errorBuilder: (_, __, ___) => const Icon(Icons.broken_image_outlined, color: Colors.white, size: 46)),
+          )),
+        const IgnorePointer(child: DecoratedBox(decoration: BoxDecoration(gradient: LinearGradient(begin: Alignment.topCenter, end: Alignment.center, colors: [Color(0xCC000000), Colors.transparent])))),
+        const IgnorePointer(child: Align(alignment: Alignment.bottomCenter, child: SizedBox(height: 260, child: DecoratedBox(decoration: BoxDecoration(gradient: LinearGradient(begin: Alignment.bottomCenter, end: Alignment.topCenter, colors: [Color(0xE6000000), Colors.transparent])))))),
+        SafeArea(child: Column(children: [
+          Padding(
+            padding: const EdgeInsets.fromLTRB(12, 10, 12, 6),
+            child: Row(children: [
+              Expanded(child: Container(height: 3, decoration: BoxDecoration(color: Colors.white.withValues(alpha: .8), borderRadius: BorderRadius.circular(3)))),
+            ]),
+          ),
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
+            child: Row(children: [
+              const CircleAvatar(radius: 18, backgroundColor: Color(0x3354C8FF), child: Icon(Icons.person_rounded, color: Colors.white, size: 20)),
+              const SizedBox(width: 10),
+              Expanded(child: Text(name, maxLines: 1, overflow: TextOverflow.ellipsis, style: const TextStyle(color: Colors.white, fontWeight: FontWeight.w900))),
+              Text(widget.story['created_at']?.toString() ?? '', style: const TextStyle(color: Colors.white70, fontSize: 9)),
+              IconButton(onPressed: widget.onClose, icon: const Icon(Icons.close_rounded, color: Colors.white)),
+            ]),
+          ),
+          const Spacer(),
+          if ((widget.story['caption']?.toString() ?? '').isNotEmpty)
+            Padding(padding: const EdgeInsets.fromLTRB(20, 8, 20, 12), child: Align(alignment: AlignmentDirectional.centerStart, child: Text(widget.story['caption'].toString(), style: const TextStyle(color: Colors.white, fontSize: 16, fontWeight: FontWeight.w700, height: 1.5)))),
+          Padding(
+            padding: const EdgeInsets.fromLTRB(14, 4, 14, 12),
+            child: Row(children: [
+              IconButton(onPressed: _toggleLike, icon: Icon(_liked ? Icons.favorite_rounded : Icons.favorite_border_rounded, color: _liked ? Colors.pinkAccent : Colors.white, size: 27)),
+              Text('$_likes', style: const TextStyle(color: Colors.white, fontWeight: FontWeight.w800)),
+              const SizedBox(width: 12),
+              IconButton(onPressed: _showComments, icon: const Icon(Icons.chat_bubble_outline_rounded, color: Colors.white)),
+              const Spacer(),
+              SizedBox(width: 46, height: 46, child: IconButton.filledTonal(onPressed: () => video?.value.isPlaying == true ? video?.pause() : video?.play(), icon: Icon(video?.value.isPlaying == true ? Icons.pause_rounded : Icons.play_arrow_rounded))),
+            ]),
+          ),
+          SafeArea(
+            top: false,
+            child: Padding(
+              padding: EdgeInsets.fromLTRB(12, 4, 12, MediaQuery.of(context).viewInsets.bottom > 0 ? 8 : 14),
+              child: Row(children: [
+                Expanded(child: TextField(
+                  controller: _comment,
+                  style: const TextStyle(color: Colors.white),
+                  minLines: 1, maxLines: 3,
+                  decoration: InputDecoration(
+                    hintText: 'به این استوری پاسخ بده…',
+                    hintStyle: const TextStyle(color: Colors.white60),
+                    filled: true, fillColor: const Color(0xCC171B27),
+                    border: OutlineInputBorder(borderRadius: BorderRadius.circular(22), borderSide: BorderSide.none),
+                  ),
+                )),
+                const SizedBox(width: 8),
+                IconButton.filled(onPressed: _sending ? null : _sendComment, icon: _sending ? const SizedBox(width: 16, height: 16, child: CircularProgressIndicator(strokeWidth: 2)) : const Icon(Icons.send_rounded), style: IconButton.styleFrom(backgroundColor: cBlue, foregroundColor: const Color(0xFF071426))),
+              ]),
+            ),
+          ),
+        ])),
+      ],
+    );
+  }
 }
 
 class LiveHome extends StatefulWidget {
@@ -275,7 +419,11 @@ class _LiveHomeState extends State<LiveHome> {
     final url = value(story,'media_url');
     if (!url.startsWith('https://')) return;
     if (!mounted) return;
-    await showDialog<void>(context: context, builder: (ctx) => _StoryViewer(api: widget.api, story: story));
+    final index = storyItems.indexWhere((item) => value(item, 'id') == value(story, 'id'));
+    await Navigator.of(context).push<void>(MaterialPageRoute<void>(
+      fullscreenDialog: true,
+      builder: (_) => _StoryViewer(api: widget.api, stories: List<Map<String, dynamic>>.unmodifiable(storyItems), initialIndex: index < 0 ? 0 : index),
+    ));
   }
 
   Widget storyStrip() {
