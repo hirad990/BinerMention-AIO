@@ -19,6 +19,7 @@ import 'group_rooms_page.dart';
 import 'media_editor.dart';
 import 'media_viewer.dart';
 import 'package:image_picker/image_picker.dart';
+import 'package:intl/intl.dart';
 import 'package:video_player/video_player.dart';
 
 const cBg = Color(0xFF000000), cPanel = Color(0xF20A0A0C), cLine = Color(0x4439C5FF), cBlue = Color(0xFF54C8FF), cMuted = Color(0xFF9A9AA8), cGlass = Color(0xAA101014);
@@ -1956,6 +1957,22 @@ class _ChatPageState extends State<ChatPage> {
     }
   }
 
+  bool _chatSameDay(String first, String second) {
+    final a = DateTime.tryParse(first)?.toLocal();
+    final b = DateTime.tryParse(second)?.toLocal();
+    return a != null && b != null && a.year == b.year && a.month == b.month && a.day == b.day;
+  }
+
+  String _chatDateLabel(String raw) {
+    final date = DateTime.tryParse(raw)?.toLocal();
+    return date == null ? '' : DateFormat('yyyy/MM/dd').format(date);
+  }
+
+  String _chatTimeLabel(String raw) {
+    final date = DateTime.tryParse(raw)?.toLocal();
+    return date == null ? raw : DateFormat('HH:mm').format(date);
+  }
+
   Widget messageList() {
     if (loading && items.isEmpty) {
       return ListView(children: const [BinerSkeleton(lines: 2), BinerSkeleton(lines: 2), BinerSkeleton(lines: 2)]);
@@ -1983,7 +2000,19 @@ class _ChatPageState extends State<ChatPage> {
         final item = items[index];
         final dark = Theme.of(context).brightness == Brightness.dark;
         final mine = item['sender_id']?.toString() == widget.currentUserId.toString();
-        return Align(
+        final currentDate = item['created_at']?.toString() ?? '';
+        final previousDate = index > 0 ? items[index - 1]['created_at']?.toString() ?? '' : '';
+        final showDate = index == 0 || !_chatSameDay(currentDate, previousDate);
+        return Column(children: [
+          if (showDate) Padding(
+            padding: const EdgeInsets.symmetric(vertical: 12),
+            child: Center(child: Container(
+              padding: const EdgeInsets.symmetric(horizontal: 13, vertical: 6),
+              decoration: BoxDecoration(color: Theme.of(context).colorScheme.surface, borderRadius: BorderRadius.circular(30), border: Border.all(color: Theme.of(context).dividerColor.withValues(alpha: .45))),
+              child: Text(_chatDateLabel(currentDate), style: TextStyle(color: Theme.of(context).colorScheme.onSurfaceVariant, fontSize: 10, fontWeight: FontWeight.w800)),
+            )),
+          ),
+          Align(
           alignment: mine ? Alignment.centerRight : Alignment.centerLeft,
           child: GestureDetector(
             onLongPress: () => messageActions(item),
@@ -2032,12 +2061,13 @@ class _ChatPageState extends State<ChatPage> {
                 ],
                 if ((item['body']?.toString() ?? '').isNotEmpty) messageBody(item['body']?.toString() ?? ''),
                 const SizedBox(height: 4),
-                Text(item['created_at']?.toString() ?? '', style: const TextStyle(color: cMuted, fontSize: 10)),
+                Text(_chatTimeLabel(item['created_at']?.toString() ?? ''), style: const TextStyle(color: cMuted, fontSize: 10)),
               ],
             ),
             ),
           ),
-        );
+          ),
+        ]);
       },
     );
   }
