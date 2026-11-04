@@ -3,7 +3,6 @@ import 'package:flutter/services.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:intl/intl.dart';
 import 'api_client.dart';
-import 'app_preferences.dart';
 import 'biner_ai_page.dart';
 import 'media_editor.dart';
 import 'media_viewer.dart';
