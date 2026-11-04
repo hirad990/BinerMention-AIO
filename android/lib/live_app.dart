@@ -342,7 +342,7 @@ class _StorySlideState extends State<_StorySlide> {
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
             child: Row(children: [
-              const CircleAvatar(radius: 18, backgroundColor: Color(0x3354C8FF), child: Icon(Icons.person_rounded, color: Colors.white, size: 20)),
+              CircleAvatar(radius: 18, backgroundColor: const Color(0x3354C8FF), backgroundImage: value(widget.story, 'avatar_url').startsWith('https://') ? NetworkImage(value(widget.story, 'avatar_url')) : null, child: value(widget.story, 'avatar_url').startsWith('https://') ? null : const Icon(Icons.person_rounded, color: Colors.white, size: 20)),
               const SizedBox(width: 10),
               Expanded(child: Text(name, maxLines: 1, overflow: TextOverflow.ellipsis, style: const TextStyle(color: Colors.white, fontWeight: FontWeight.w900))),
               Text(widget.story['created_at']?.toString() ?? '', style: const TextStyle(color: Colors.white70, fontSize: 9)),
@@ -501,7 +501,7 @@ class _LiveHomeState extends State<LiveHome> {
         ...storyItems.map((story) {
           final name=value(story,'display_name',value(story,'username','کاربر'));
           return GestureDetector(onTap:()=>openStory(story),child:SizedBox(width:76,child:Column(children:[
-            Container(width:58,height:58,padding:const EdgeInsets.all(3),decoration:const BoxDecoration(shape:BoxShape.circle,gradient:LinearGradient(colors:[cBlue,Color(0xFF9B8CFF),Color(0xFFFF78B8)])),child:CircleAvatar(backgroundColor:dark?const Color(0xFF111722):Colors.white,child:Icon(value(story,'mime_type').startsWith('video/')?Icons.play_arrow_rounded:Icons.photo_rounded,color:cBlue))),
+            Container(width:58,height:58,padding:const EdgeInsets.all(3),decoration:const BoxDecoration(shape:BoxShape.circle,gradient:LinearGradient(colors:[cBlue,Color(0xFF9B8CFF),Color(0xFFFF78B8)])),child:CircleAvatar(backgroundColor:dark?const Color(0xFF111722):Colors.white,backgroundImage:value(story,'avatar_url').startsWith('https://')?NetworkImage(value(story,'avatar_url')):null,child:value(story,'avatar_url').startsWith('https://')?null:Icon(value(story,'mime_type').startsWith('video/')?Icons.play_arrow_rounded:Icons.photo_rounded,color:cBlue))),
             const SizedBox(height:6),Text(name,maxLines:1,overflow:TextOverflow.ellipsis,style:const TextStyle(fontSize:10,fontWeight:FontWeight.w600)),
           ])));
         }),
