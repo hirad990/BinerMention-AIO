@@ -109,7 +109,7 @@ class _GroupRoomsPageState extends State<GroupRoomsPage> {
             itemCount: groups.length + 1,
             itemBuilder: (context, index) {
               if (index == 0) {
-                return const BinerSectionHeader(
+                return BinerSectionHeader(
                   title: 'گروه‌های تو',
                   subtitle: 'گفتگوهای گروهی خصوصی و قابل مدیریت',
                 );
