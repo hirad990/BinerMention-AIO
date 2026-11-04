@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'api_client.dart';
+import 'ui_kit.dart';
 
 const _blue = Color(0xFF54C8FF);
 const _violet = Color(0xFF9B8CFF);
@@ -41,14 +42,10 @@ class _BinerAIPageState extends State<BinerAIPage> {
     }
   }
 
-  Widget _glass(Widget child) => Container(
-    decoration: BoxDecoration(
-      color: Theme.of(context).brightness == Brightness.dark ? const Color(0xE6101A2A) : const Color(0xF5FFFFFF),
-      borderRadius: BorderRadius.circular(22),
-      border: Border.all(color: _blue.withValues(alpha: .22)),
-      boxShadow: [BoxShadow(color: _blue.withValues(alpha: .05), blurRadius: 24, offset: const Offset(0, 8))],
-    ),
+  Widget _glass(Widget child) => BinerSurfaceCard(
     padding: const EdgeInsets.all(15),
+    radius: 21,
+    accent: _blue,
     child: child,
   );
 
@@ -110,19 +107,19 @@ class _BinerAIPageState extends State<BinerAIPage> {
 
   @override
   Widget build(BuildContext context) => Scaffold(
-    appBar: AppBar(title: const Row(children: [Icon(Icons.auto_awesome_rounded, color: _blue), SizedBox(width: 9), Text('BinerAI', style: TextStyle(fontWeight: FontWeight.w900))])),
+    appBar: AppBar(title: const Row(children: [Icon(Icons.auto_awesome_rounded, color: _violet), SizedBox(width: 9), Text('BinerAI', style: TextStyle(fontWeight: FontWeight.w900))]), actions: [IconButton(tooltip: 'گفت‌وگوی تازه', onPressed: _busy ? null : () => setState(_history.clear), icon: const Icon(Icons.add_comment_outlined))]),
     body: Column(children: [
-      Expanded(child: _history.isEmpty ? ListView(padding: const EdgeInsets.all(20), children: [
+      Expanded(child: _history.isEmpty ? ListView(physics: const AlwaysScrollableScrollPhysics(parent: BouncingScrollPhysics()), padding: const EdgeInsets.all(20), children: [
         const SizedBox(height: 28),
         Center(child: Container(width: 82, height: 82, decoration: BoxDecoration(shape: BoxShape.circle, gradient: const LinearGradient(colors: [_blue, _violet]), boxShadow: [BoxShadow(color: _blue.withValues(alpha: .25), blurRadius: 30)]), child: const Icon(Icons.auto_awesome_rounded, color: Color(0xFF071426), size: 42))).animate().scale(curve: Curves.easeOutBack),
         const SizedBox(height: 18),
         const Center(child: Text('پرسش کن؛ داده‌ها را شفاف ببین.', style: TextStyle(fontSize: 20, fontWeight: FontWeight.w900))),
         const SizedBox(height: 8),
-        const Center(child: Text('BinerAI می‌تواند اطلاعات موجود در BinerMention، آمار حساب‌ها و پست‌های عمومی را بررسی کند.', textAlign: TextAlign.center, style: TextStyle(color: Colors.grey, height: 1.7))),
+        const Center(child: Text('BinerAI اطلاعات موجود در BinerMention، آمار حساب‌ها و پست‌های عمومی را بررسی می‌کند. این نسخه هنوز جست‌وجوی وب بیرونی ندارد.', textAlign: TextAlign.center, style: TextStyle(color: Colors.grey, height: 1.7))),
         const SizedBox(height: 24),
         for (final prompt in ['درباره @hirad990 چه اطلاعاتی در BinerMention ثبت شده؟', 'آخرین پست‌های @hirad990 را نشان بده', 'درباره این موضوع چه پست‌هایی منتشر شده؟'])
           Padding(padding: const EdgeInsets.only(bottom: 9), child: OutlinedButton.icon(onPressed: _busy ? null : () => _ask(prompt), icon: const Icon(Icons.bolt_rounded), label: Text(prompt), style: OutlinedButton.styleFrom(alignment: Alignment.centerLeft, padding: const EdgeInsets.all(14), side: BorderSide(color: _blue.withValues(alpha: .25))))),
-      ]) : ListView(controller: _scroll, padding: const EdgeInsets.all(14), children: [
+      ]) : ListView(controller: _scroll, physics: const BouncingScrollPhysics(), padding: const EdgeInsets.fromLTRB(14, 14, 14, 22), children: [
         for (final item in _history)
           Padding(padding: const EdgeInsets.only(bottom: 12), child: item['role'] == 'user'
             ? Align(alignment: AlignmentDirectional.centerEnd, child: Container(constraints: const BoxConstraints(maxWidth: 320), padding: const EdgeInsets.all(13), decoration: BoxDecoration(color: _blue.withValues(alpha: .14), borderRadius: BorderRadius.circular(18)), child: Text(item['text'].toString())))
