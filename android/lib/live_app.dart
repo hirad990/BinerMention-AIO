@@ -1099,15 +1099,72 @@ class _LiveHomeState extends State<LiveHome> {
     );
   }
 
-  Widget notifications() => FutureBuilder<List<Map<String, dynamic>>>(future: _notificationsFuture, builder: (context, s) {
-    if (s.connectionState == ConnectionState.waiting) return const Center(child: CircularProgressIndicator(color: cBlue));
-    if (s.hasError) return Center(child: Text(s.error.toString()));
-    final items = s.data ?? [];
-    return ListView(children: [Padding(padding: const EdgeInsets.all(18), child: Text(binerText('اعلان‌ها',en:'Notifications',ar:'الإشعارات',tr:'Bildirimler'), style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold))),
-      if (items.isEmpty) Center(child: Padding(padding: const EdgeInsets.all(24), child: Text(binerText('اعلان تازه‌ای نداری.',en:'No new notifications.',ar:'لا توجد إشعارات جديدة.',tr:'Yeni bildirimin yok.')))),
-      ...items.map((n) { final kind = value(n, 'type'); final labels = {'mention': binerText('در یک پست منشن‌ات کرد',en:'Mentioned you in a post',ar:'أشار إليك في منشور',tr:'Bir gönderide senden bahsetti'), 'follow': binerText('دنبال‌ات کرد',en:'Followed you',ar:'تابعك',tr:'Seni takip etti'), 'like': binerText('پستت را پسندید',en:'Liked your post',ar:'أُعجب بمنشورك',tr:'Gönderini beğendi'), 'repost': binerText('پستت را بازنشر کرد',en:'Reposted your post',ar:'أعاد نشر منشورك',tr:'Gönderini yeniden paylaştı'), 'reply': binerText('به پستت پاسخ داد',en:'Replied to your post',ar:'رد على منشورك',tr:'Gönderine yanıt verdi'), 'message': binerText('پیام فرستاد',en:'Sent you a message',ar:'أرسل إليك رسالة',tr:'Sana mesaj gönderdi')}; return ListTile(leading: avatar(value(n, 'actor_display_name', value(n, 'actor_username', 'U'))), title: Text(value(n, 'actor_display_name', value(n, 'actor_username', 'کاربر')) + ' • ' + (labels[kind] ?? binerText('تعامل جدید',en:'New activity',ar:'نشاط جديد',tr:'Yeni etkinlik'))), subtitle: Text(value(n, 'created_at'), style: const TextStyle(color: cMuted))); }),
-    ]);
-  });
+  Widget notifications() => FutureBuilder<List<Map<String, dynamic>>>(
+    future: _notificationsFuture,
+    builder: (context, snapshot) {
+      if (snapshot.connectionState == ConnectionState.waiting) {
+        return const ListView(children: [BinerSkeleton(lines: 1), BinerSkeleton(lines: 1), BinerSkeleton(lines: 1)]);
+      }
+      if (snapshot.hasError) {
+        return BinerEmptyState(
+          icon: Icons.notifications_off_outlined,
+          title: 'اعلان‌ها بارگذاری نشدند',
+          description: 'اتصال به سرور را بررسی کن و دوباره وارد این بخش شو.',
+        );
+      }
+      final items = snapshot.data ?? const <Map<String, dynamic>>[];
+      if (items.isEmpty) {
+        return const BinerEmptyState(icon: Icons.notifications_none_rounded, title: 'اعلان تازه‌ای نداری', description: 'وقتی کسی با پست یا حساب تو تعامل کند، اینجا می‌بینی.');
+      }
+      final labels = <String, String>{
+        'mention': 'در یک پست منشن‌ات کرد',
+        'follow': 'دنبال‌ات کرد',
+        'like': 'پستت را پسندید',
+        'repost': 'پستت را بازنشر کرد',
+        'reply': 'به پستت پاسخ داد',
+        'message': 'پیام فرستاد',
+        'story_like': 'استوری‌ات را پسندید',
+      };
+      final icons = <String, IconData>{
+        'mention': Icons.alternate_email_rounded,
+        'follow': Icons.person_add_alt_1_rounded,
+        'like': Icons.favorite_rounded,
+        'repost': Icons.repeat_rounded,
+        'reply': Icons.mode_comment_outlined,
+        'message': Icons.mail_outline_rounded,
+        'story_like': Icons.auto_awesome_rounded,
+      };
+      return ListView.builder(
+        physics: const AlwaysScrollableScrollPhysics(parent: BouncingScrollPhysics()),
+        padding: const EdgeInsets.fromLTRB(14, 10, 14, 24),
+        itemCount: items.length + 1,
+        itemBuilder: (context, index) {
+          if (index == 0) return const BinerSectionHeader(title: 'اعلان‌ها', subtitle: 'آخرین اتفاق‌های مربوط به حساب تو');
+          final item = items[index - 1];
+          final kind = value(item, 'type');
+          final name = value(item, 'actor_display_name', value(item, 'actor_username', 'کاربر'));
+          return BinerSurfaceCard(
+            margin: const EdgeInsets.only(bottom: 8),
+            padding: const EdgeInsets.symmetric(horizontal: 13, vertical: 12),
+            radius: 18,
+            child: Row(children: [
+              avatar(name, {'avatar_url': value(item, 'actor_avatar_url')}, 22),
+              const SizedBox(width: 12),
+              Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+                Text(name, maxLines: 1, overflow: TextOverflow.ellipsis, style: const TextStyle(fontWeight: FontWeight.w900, fontSize: 13)),
+                const SizedBox(height: 3),
+                Text(labels[kind] ?? 'تعامل جدید', style: TextStyle(color: Theme.of(context).colorScheme.onSurfaceVariant, fontSize: 11)),
+                const SizedBox(height: 4),
+                Text(value(item, 'created_at'), style: TextStyle(color: Theme.of(context).colorScheme.onSurfaceVariant.withValues(alpha: .7), fontSize: 9)),
+              ])),
+              Container(width: 34, height: 34, decoration: BoxDecoration(color: cBlue.withValues(alpha: .10), borderRadius: BorderRadius.circular(12)), child: Icon(icons[kind] ?? Icons.notifications_active_outlined, color: cBlue, size: 18)),
+            ]),
+          );
+        },
+      );
+    },
+  );
+
   Future<void> startConversation() async {
     final controller = TextEditingController();
     final username = await showDialog<String>(context: context, builder: (ctx) => AlertDialog(
@@ -1143,47 +1200,79 @@ class _LiveHomeState extends State<LiveHome> {
 
   Widget conversations() => FutureBuilder<List<Map<String, dynamic>>>(
     future: _conversationsFuture,
-    builder: (context, s) {
-      if (s.connectionState == ConnectionState.waiting) return ListView(children: const [BinerSkeleton(lines: 1), BinerSkeleton(lines: 1), BinerSkeleton(lines: 1)]);
-      if (s.hasError) return Center(child: Text(s.error.toString(), textAlign: TextAlign.center));
-      final items = s.data ?? [];
-      return ListView(children: [
-        Padding(padding: const EdgeInsets.fromLTRB(18, 18, 8, 12), child: Row(children: [
-          const Expanded(child: Text('پیام‌ها', style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold))),
-          IconButton(onPressed: openGroupRooms, icon: const Icon(Icons.groups_rounded, color: cBlue), tooltip: 'اتاق‌های گفتگو'),
-          IconButton(onPressed: startConversation, icon: const Icon(Icons.edit_square, color: cBlue), tooltip: binerText('پیام جدید',en:'New message',ar:'رسالة جديدة',tr:'Yeni mesaj')),
-        ])),
-        if (items.isEmpty) Center(child: Padding(padding: const EdgeInsets.all(24), child: Text(binerText('هنوز گفت‌وگویی نداری. برای شروع روی پیام جدید بزن.',en:'No chats yet. Start with a new message.',ar:'لا توجد محادثات بعد. ابدأ برسالة جديدة.',tr:'Henüz sohbet yok. Yeni mesajla başla.')))),
-        ...items.map((c) {
-          final display = value(c, 'other_display_name', value(c, 'other_username', 'گفت‌وگو'));
-          final username = value(c, 'other_username');
-          final person = <String, dynamic>{'avatar_url': value(c, 'other_avatar_url'), 'username': username};
-          return ListTile(
-          leading: avatar(display, person, 24),
-          title: Text(display, maxLines: 1, overflow: TextOverflow.ellipsis, style: const TextStyle(fontWeight: FontWeight.w700)),
-          subtitle: Text((username.isNotEmpty ? '@$username · ' : '') + value(c, 'last_message', binerText('گفت‌وگوی جدید',en:'New conversation',ar:'محادثة جديدة',tr:'Yeni sohbet')), maxLines: 1, overflow: TextOverflow.ellipsis),
-          trailing: const Icon(Icons.chevron_right, color: cMuted),
-          onTap: () async {
-            final id = int.tryParse(value(c, 'id'));
-            if (id == null) return;
-            try {
-              final currentUser = me ?? await widget.api.me();
-              if (!mounted) return;
-              setState(() => me = currentUser);
-              await Navigator.of(context).push(MaterialPageRoute<void>(builder: (_) => ChatPage(
-                api: widget.api,
-                conversationId: id,
-                currentUserId: int.parse(currentUser['id'].toString()),
-                title: display,
-              )));
-            } on ApiException catch (e) {
-              if (mounted) toast(e.message);
-            }
-            if (mounted) setState(() {});
-          },
-        );
-        }),
-      ]);
+    builder: (context, snapshot) {
+      if (snapshot.connectionState == ConnectionState.waiting) {
+        return const ListView(children: [BinerSkeleton(lines: 1), BinerSkeleton(lines: 1), BinerSkeleton(lines: 1)]);
+      }
+      if (snapshot.hasError) {
+        return BinerEmptyState(icon: Icons.cloud_off_rounded, title: 'پیام‌ها بارگذاری نشدند', description: 'وضعیت اتصال و API را بررسی کن.');
+      }
+      final items = snapshot.data ?? const <Map<String, dynamic>>[];
+      return ListView.builder(
+        physics: const AlwaysScrollableScrollPhysics(parent: BouncingScrollPhysics()),
+        padding: const EdgeInsets.fromLTRB(14, 10, 14, 24),
+        itemCount: items.length + 1,
+        itemBuilder: (context, index) {
+          if (index == 0) {
+            return Padding(
+              padding: const EdgeInsets.only(bottom: 12),
+              child: BinerSectionHeader(
+                title: 'پیام‌ها',
+                subtitle: 'گفتگوهای خصوصی و اتاق‌های گروهی',
+                trailing: Row(mainAxisSize: MainAxisSize.min, children: [
+                  IconButton(tooltip: 'اتاق‌های گفتگو', onPressed: openGroupRooms, icon: const Icon(Icons.groups_rounded)),
+                  IconButton(tooltip: 'پیام جدید', onPressed: startConversation, icon: const Icon(Icons.edit_square)),
+                ]),
+              ),
+            );
+          }
+          if (items.isEmpty) {
+            return const BinerEmptyState(icon: Icons.forum_outlined, title: 'هنوز گفتگویی نداری', description: 'برای شروع یک پیام تازه بساز یا وارد اتاق گفتگو شو.');
+          }
+          final conversation = items[index - 1];
+          final display = value(conversation, 'other_display_name', value(conversation, 'other_username', 'گفتگو'));
+          final username = value(conversation, 'other_username');
+          final person = <String, dynamic>{'avatar_url': value(conversation, 'other_avatar_url'), 'username': username};
+          return BinerSurfaceCard(
+            margin: const EdgeInsets.only(bottom: 8),
+            padding: const EdgeInsets.symmetric(horizontal: 13, vertical: 12),
+            radius: 19,
+            onTap: () async {
+              final id = int.tryParse(value(conversation, 'id'));
+              if (id == null) return;
+              try {
+                final currentUser = me ?? await widget.api.me();
+                if (!mounted) return;
+                setState(() => me = currentUser);
+                await Navigator.of(context).push(MaterialPageRoute<void>(builder: (_) => ChatPage(
+                  api: widget.api,
+                  conversationId: id,
+                  currentUserId: int.parse(currentUser['id'].toString()),
+                  title: display,
+                )));
+              } on ApiException catch (e) {
+                if (mounted) toast(e.message);
+              }
+              if (mounted) setState(() {});
+            },
+            child: Row(children: [
+              avatar(display, person, 24),
+              const SizedBox(width: 12),
+              Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+                Text(display, maxLines: 1, overflow: TextOverflow.ellipsis, style: const TextStyle(fontWeight: FontWeight.w900, fontSize: 14)),
+                const SizedBox(height: 4),
+                Text(
+                  (username.isNotEmpty ? '@$username · ' : '') + value(conversation, 'last_message', 'گفتگوی تازه'),
+                  maxLines: 1, overflow: TextOverflow.ellipsis,
+                  style: TextStyle(color: Theme.of(context).colorScheme.onSurfaceVariant, fontSize: 11),
+                ),
+              ])),
+              const SizedBox(width: 8),
+              Icon(Icons.chevron_right_rounded, color: Theme.of(context).colorScheme.onSurfaceVariant),
+            ]),
+          );
+        },
+      );
     },
   );
 
