@@ -1234,7 +1234,7 @@ class _LiveHomeState extends State<LiveHome> {
     future: _conversationsFuture,
     builder: (context, snapshot) {
       if (snapshot.connectionState == ConnectionState.waiting) {
-        return const ListView(children: [BinerSkeleton(lines: 1), BinerSkeleton(lines: 1), BinerSkeleton(lines: 1)]);
+        return ListView(children: const [BinerSkeleton(lines: 1), BinerSkeleton(lines: 1), BinerSkeleton(lines: 1)]);
       }
       if (snapshot.hasError) {
         return BinerEmptyState(icon: Icons.cloud_off_rounded, title: 'پیام‌ها بارگذاری نشدند', description: 'وضعیت اتصال و API را بررسی کن.');
@@ -1259,7 +1259,7 @@ class _LiveHomeState extends State<LiveHome> {
             );
           }
           if (items.isEmpty) {
-            return const BinerEmptyState(icon: Icons.forum_outlined, title: 'هنوز گفتگویی نداری', description: 'برای شروع یک پیام تازه بساز یا وارد اتاق گفتگو شو.');
+            return BinerEmptyState(icon: Icons.forum_outlined, title: 'هنوز گفتگویی نداری', description: 'برای شروع یک پیام تازه بساز یا وارد اتاق گفتگو شو.');
           }
           final conversation = items[index - 1];
           final display = value(conversation, 'other_display_name', value(conversation, 'other_username', 'گفتگو'));
