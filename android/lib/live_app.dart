@@ -1211,7 +1211,7 @@ class _LiveHomeState extends State<LiveHome> {
       return ListView.builder(
         physics: const AlwaysScrollableScrollPhysics(parent: BouncingScrollPhysics()),
         padding: const EdgeInsets.fromLTRB(14, 10, 14, 24),
-        itemCount: items.length + 1,
+        itemCount: items.isEmpty ? 2 : items.length + 1,
         itemBuilder: (context, index) {
           if (index == 0) {
             return Padding(
@@ -1289,7 +1289,7 @@ class _LiveHomeState extends State<LiveHome> {
           height: MediaQuery.of(ctx).size.height * .78,
           padding: EdgeInsets.fromLTRB(18, 12, 18, MediaQuery.of(ctx).viewInsets.bottom + 16),
           decoration: BoxDecoration(
-            color: const Color(0xF20B1422),
+            color: Theme.of(ctx).colorScheme.surface,
             borderRadius: const BorderRadius.vertical(top: Radius.circular(30)),
             border: Border.all(color: cLine),
           ),
@@ -1308,7 +1308,7 @@ class _LiveHomeState extends State<LiveHome> {
               decoration: InputDecoration(
                 hintText: 'نام کاربری یا نام نمایشی…',
                 prefixIcon: const Icon(Icons.search_rounded, color: cBlue),
-                filled: true, fillColor: cGlass,
+                filled: true, fillColor: Theme.of(ctx).inputDecorationTheme.fillColor,
                 border: OutlineInputBorder(borderRadius: BorderRadius.circular(18), borderSide: const BorderSide(color: cLine)),
                 enabledBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(18), borderSide: const BorderSide(color: cLine)),
               ),
@@ -1458,12 +1458,13 @@ class _LiveHomeState extends State<LiveHome> {
     );
   }
 
-  Widget _profileMetric(String label, String count) => Container(
+  Widget _profileMetric(String label, String count) => BinerSurfaceCard(
     padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 6),
-    decoration: BoxDecoration(color: const Color(0xFF08080B), borderRadius: BorderRadius.circular(16), border: Border.all(color: cLine.withValues(alpha: .32))),
+    radius: 16,
     child: Column(children: [
-      Text(count, style: const TextStyle(fontSize: 19, fontWeight: FontWeight.w900, color: Colors.white)),
-      const SizedBox(height: 4), Text(label, style: const TextStyle(fontSize: 11, color: cMuted)),
+      Text(count, style: TextStyle(fontSize: 19, fontWeight: FontWeight.w900, color: Theme.of(context).colorScheme.onSurface)),
+      const SizedBox(height: 4),
+      Text(label, style: TextStyle(fontSize: 11, color: Theme.of(context).colorScheme.onSurfaceVariant)),
     ]),
   );
 
@@ -1922,7 +1923,7 @@ class _ChatPageState extends State<ChatPage> {
 
   Widget _buildChat() => Scaffold(
     appBar: AppBar(
-      backgroundColor: const Color(0xFF050507),
+      backgroundColor: Colors.transparent,
       foregroundColor: Theme.of(context).colorScheme.onSurface,
       title: Row(children: [Container(width: 34, height: 34, decoration: BoxDecoration(shape: BoxShape.circle, color: cBlue.withValues(alpha: .12), border: Border.all(color: cLine)), child: const Icon(Icons.person_rounded, color: cBlue, size: 20)), const SizedBox(width: 10), Expanded(child: Text(widget.title, maxLines: 1, overflow: TextOverflow.ellipsis, style: const TextStyle(fontWeight: FontWeight.w800, fontSize: 17)))]),
       actions: [
