@@ -698,12 +698,12 @@ class _LiveHomeState extends State<LiveHome> {
 
   Widget richPostBody(String body) {
     final spans = <InlineSpan>[];
-    final pattern = RegExp(r'bm:[a-fA-F0-9]{16}|#[A-Za-z0-9_\\u0600-\\u06FF]{2,40}|@[A-Za-z0-9_]{3,24}');
+    final pattern = RegExp(r'bm:[a-fA-F0-9]{16}|#[A-Za-z0-9_\\u0600-\\u06FF]{2,40}|@[A-Za-z0-9_]{3,24}', caseSensitive: false);
     var cursor = 0;
     for (final match in pattern.allMatches(body)) {
       if (match.start > cursor) spans.add(TextSpan(text: body.substring(cursor, match.start)));
       final token = match.group(0)!;
-      final isGroup = token.startsWith('bm:');
+      final isGroup = token.toLowerCase().startsWith('bm:');
       final isTag = token.startsWith('#');
       final value = isGroup ? token.substring(3) : token.substring(1);
       spans.add(WidgetSpan(
