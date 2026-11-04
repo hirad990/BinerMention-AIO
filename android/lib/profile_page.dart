@@ -3,6 +3,7 @@ import 'package:flutter_animate/flutter_animate.dart';
 import 'api_client.dart';
 import 'ui_kit.dart';
 import 'app_preferences.dart';
+import 'media_viewer.dart';
 
 class UserProfilePage extends StatefulWidget {
   const UserProfilePage({super.key, required this.api, required this.username});
@@ -47,7 +48,6 @@ class _UserProfilePageState extends State<UserProfilePage> {
         user = person;
         myId = mine;
         posts = userPosts;
-        person['posts_count'] = userPosts.length;
         loading = false;
       });
     } on ApiException catch (e) {
@@ -211,7 +211,12 @@ class _UserProfilePageState extends State<UserProfilePage> {
         ]),
         if (body.isNotEmpty) Padding(padding: const EdgeInsets.only(top: 10), child: Text(body, style: const TextStyle(fontSize: 15, height: 1.5))),
         if ((post['media_url']?.toString() ?? '').startsWith('https://'))
-          Padding(padding: const EdgeInsets.only(top: 12), child: ClipRRect(borderRadius: BorderRadius.circular(16), child: Image.network(post['media_url'].toString(), fit: BoxFit.cover))),
+          Padding(padding: const EdgeInsets.only(top: 12), child: GestureDetector(
+            onTap: () => BinerMediaViewer.open(context, url: post['media_url'].toString(), mimeType: post['mime_type']?.toString(), title: 'پست $display'),
+            child: ClipRRect(borderRadius: BorderRadius.circular(16), child: (post['mime_type']?.toString().startsWith('video/') ?? false)
+              ? Container(height: 170, color: Colors.black, child: const Center(child: Icon(Icons.play_circle_fill_rounded, color: Colors.white, size: 48)))
+              : Image.network(post['media_url'].toString(), fit: BoxFit.contain, cacheWidth: 1000, filterQuality: FilterQuality.low)),
+          )),
         const SizedBox(height: 12),
         Row(children: [
           Icon(Icons.favorite_border_rounded, size: 17, color: muted),
