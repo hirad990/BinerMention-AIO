@@ -1057,7 +1057,7 @@ class _LiveHomeState extends State<LiveHome> {
   Widget feedBody() {
     if (loading && posts.isEmpty) {
       return const SingleChildScrollView(
-        child: Column(children: [BinerSkeleton(), BinerSkeleton(), BinerSkeleton(), BinerSkeleton()]),
+        child: Column(children: const [BinerSkeleton(), BinerSkeleton(), BinerSkeleton(), BinerSkeleton()]),
       );
     }
     if (error != null && posts.isEmpty) {
