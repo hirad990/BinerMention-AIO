@@ -1018,7 +1018,7 @@ class _LiveHomeState extends State<LiveHome> {
           IconButton(tooltip: binerText('کپی متن پست',en:'Copy post text',ar:'نسخ نص المنشور',tr:'Gönderi metnini kopyala'), visualDensity: VisualDensity.compact, onPressed: () => copyPost(p), icon: const Icon(Icons.content_copy_rounded, color: cMuted, size: 18)),
         ]),
       ])),
-    ]);
+    ]));
     return RepaintBoundary(child: BinerPreferences.instance.fastMode ? postCard : postCard.animate().fadeIn(duration: 220.ms).slideY(begin: .02, duration: 220.ms, curve: Curves.easeOutCubic));
   }
   Widget home() => Column(
@@ -1785,12 +1785,31 @@ class _ChatPageState extends State<ChatPage> {
               children: [
                 if ((item['media_url']?.toString() ?? '').startsWith('https://')) ...[
                   GestureDetector(
-                    onTap: () => BinerMediaViewer.open(context, url: item['media_url'].toString(), mimeType: item['mime_type']?.toString(), title: widget.title),
-                    child: ClipRRect(borderRadius: BorderRadius.circular(14), child:
-                      ((item['mime_type']?.toString().startsWith('video/') ?? false) || RegExp(r'\.(mp4|webm)(\?|$)', caseSensitive: false).hasMatch(item['media_url'].toString()))
-                        ? Container(width: 210, height: 126, color: Colors.black, child: const Center(child: Icon(Icons.play_circle_fill_rounded, color: Colors.white, size: 48)))
-                        : Image.network(item['media_url'].toString(), width: 210, height: 170, fit: BoxFit.cover, cacheWidth: 630, errorBuilder: (_,__,___)=>const Icon(Icons.broken_image_outlined)),
-                    )),
+                    onTap: () => BinerMediaViewer.open(
+                      context,
+                      url: item['media_url'].toString(),
+                      mimeType: item['mime_type']?.toString(),
+                      title: widget.title,
+                    ),
+                    child: ClipRRect(
+                      borderRadius: BorderRadius.circular(14),
+                      child: ((item['mime_type']?.toString().startsWith('video/') ?? false) ||
+                              RegExp(r'\.(mp4|webm)(\?|$)', caseSensitive: false).hasMatch(item['media_url'].toString()))
+                          ? Container(
+                              width: 210,
+                              height: 126,
+                              color: Colors.black,
+                              child: const Center(child: Icon(Icons.play_circle_fill_rounded, color: Colors.white, size: 48)),
+                            )
+                          : Image.network(
+                              item['media_url'].toString(),
+                              width: 210,
+                              height: 170,
+                              fit: BoxFit.cover,
+                              cacheWidth: 630,
+                              errorBuilder: (_, __, ___) => const Icon(Icons.broken_image_outlined),
+                            ),
+                    ),
                   ),
                   const SizedBox(height: 7),
                 ],
