@@ -128,7 +128,7 @@ class _InsightsPageState extends State<InsightsPage> {
                 ]);
               }),
               const SizedBox(height: 18),
-              const BinerSectionHeader(title: 'زمان مطالعه', subtitle: 'مجموع زمان تعامل ثبت‌شده با پست‌های عمومی تو'),
+              BinerSectionHeader(title: 'زمان مطالعه', subtitle: 'مجموع زمان تعامل ثبت‌شده با پست‌های عمومی تو'),
               BinerSurfaceCard(child: Row(children: [
                 Container(width: 44, height: 44, decoration: BoxDecoration(color: const Color(0xFF9B8CFF).withValues(alpha: .12), borderRadius: BorderRadius.circular(14)), child: const Icon(Icons.schedule_rounded, color: Color(0xFF9B8CFF))),
                 const SizedBox(width: 12),
