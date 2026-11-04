@@ -401,6 +401,36 @@ class _LiveHomeState extends State<LiveHome> {
     } on ApiException catch (e) { if (mounted) toast(e.message); }
   }
 
+  Future<void> openOwnStories() async {
+    final username = value(me ?? const <String, dynamic>{}, 'username');
+    final mine = storyItems.where((item) => value(item, 'username') == username).toList();
+    if (mine.isEmpty) { await createStory(); return; }
+    final action = await showModalBottomSheet<String>(
+      context: context,
+      useSafeArea: true,
+      backgroundColor: Colors.transparent,
+      builder: (ctx) => Container(
+        padding: const EdgeInsets.fromLTRB(18, 18, 18, 22),
+        decoration: BoxDecoration(
+          color: Theme.of(ctx).colorScheme.surface,
+          borderRadius: const BorderRadius.vertical(top: Radius.circular(28)),
+          border: Border.all(color: cLine),
+        ),
+        child: Column(mainAxisSize: MainAxisSize.min, children: [
+          Container(width: 42, height: 4, decoration: BoxDecoration(color: cMuted.withValues(alpha: .5), borderRadius: BorderRadius.circular(4))),
+          const SizedBox(height: 14),
+          const Text('استوری‌های تو', style: TextStyle(fontSize: 18, fontWeight: FontWeight.w900)),
+          const SizedBox(height: 8),
+          ListTile(leading: const Icon(Icons.play_circle_outline_rounded, color: cBlue), title: const Text('مشاهده استوری‌های من'), onTap: () => Navigator.pop(ctx, 'view')),
+          ListTile(leading: const Icon(Icons.add_circle_outline_rounded, color: cBlue), title: const Text('افزودن استوری جدید'), onTap: () => Navigator.pop(ctx, 'add')),
+        ]),
+      ),
+    );
+    if (!mounted) return;
+    if (action == 'view') await openStory(mine.first);
+    if (action == 'add') await createStory();
+  }
+
   Future<void> createStory() async {
     try {
       final file = await BinerMediaEditor.pickMedia();
@@ -432,7 +462,7 @@ class _LiveHomeState extends State<LiveHome> {
       scrollDirection: Axis.horizontal,
       padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
       children: [
-        GestureDetector(onTap: createStory, child: SizedBox(width: 76, child: Column(children: [
+        GestureDetector(onTap: openOwnStories, child: SizedBox(width: 76, child: Column(children: [
           Container(width: 58,height: 58,padding: const EdgeInsets.all(3),decoration: BoxDecoration(shape: BoxShape.circle,border: Border.all(color:cBlue,width:2)),child: CircleAvatar(backgroundColor: dark?const Color(0xFF15243A):const Color(0xFFEAF3FF),child: const Icon(Icons.add_rounded,color:cBlue,size:28))),
           const SizedBox(height:6),Text(binerText('استوری من',en:'Your story',ar:'قصتك',tr:'Hikayen'),maxLines:1,overflow:TextOverflow.ellipsis,style:const TextStyle(fontSize:10,fontWeight:FontWeight.w700)),
         ]))),
