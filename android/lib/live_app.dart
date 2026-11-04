@@ -479,7 +479,23 @@ class _LiveHomeState extends State<LiveHome> {
       padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
       children: [
         GestureDetector(onTap: openOwnStories, child: SizedBox(width: 76, child: Column(children: [
-          Container(width: 58,height: 58,padding: const EdgeInsets.all(3),decoration: BoxDecoration(shape: BoxShape.circle,border: Border.all(color:cBlue,width:2)),child: CircleAvatar(backgroundColor: dark?const Color(0xFF15243A):const Color(0xFFEAF3FF),child: const Icon(Icons.add_rounded,color:cBlue,size:28))),
+          SizedBox(
+            width: 58,
+            height: 58,
+            child: Stack(clipBehavior: Clip.none, children: [
+              Center(child: avatar(value(me ?? const <String, dynamic>{}, 'display_name', 'من'), me, 25)),
+              Positioned(
+                right: -1,
+                bottom: -1,
+                child: Container(
+                  width: 21,
+                  height: 21,
+                  decoration: BoxDecoration(color: cBlue, shape: BoxShape.circle, border: Border.all(color: Theme.of(context).scaffoldBackgroundColor, width: 2)),
+                  child: const Icon(Icons.add_rounded, color: Color(0xFF06111D), size: 15),
+                ),
+              ),
+            ]),
+          ),
           const SizedBox(height:6),Text(binerText('استوری من',en:'Your story',ar:'قصتك',tr:'Hikayen'),maxLines:1,overflow:TextOverflow.ellipsis,style:const TextStyle(fontSize:10,fontWeight:FontWeight.w700)),
         ]))),
         ...storyItems.map((story) {
