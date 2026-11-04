@@ -1119,7 +1119,7 @@ class _LiveHomeState extends State<LiveHome> {
     future: _notificationsFuture,
     builder: (context, snapshot) {
       if (snapshot.connectionState == ConnectionState.waiting) {
-        return const ListView(children: [BinerSkeleton(lines: 1), BinerSkeleton(lines: 1), BinerSkeleton(lines: 1)]);
+        return ListView(children: const [BinerSkeleton(lines: 1), BinerSkeleton(lines: 1), BinerSkeleton(lines: 1)]);
       }
       if (snapshot.hasError) {
         return BinerEmptyState(
@@ -1130,7 +1130,7 @@ class _LiveHomeState extends State<LiveHome> {
       }
       final items = snapshot.data ?? const <Map<String, dynamic>>[];
       if (items.isEmpty) {
-        return const BinerEmptyState(icon: Icons.notifications_none_rounded, title: 'اعلان تازه‌ای نداری', description: 'وقتی کسی با پست یا حساب تو تعامل کند، اینجا می‌بینی.');
+        return BinerEmptyState(icon: Icons.notifications_none_rounded, title: 'اعلان تازه‌ای نداری', description: 'وقتی کسی با پست یا حساب تو تعامل کند، اینجا می‌بینی.');
       }
       final labels = <String, String>{
         'mention': 'در یک پست منشن‌ات کرد',
