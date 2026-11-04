@@ -262,7 +262,7 @@ class _GroupChatPageState extends State<GroupChatPage> {
     final date = DateTime.tryParse(raw);
     if (date == null) return '';
     final local = date.toLocal();
-    return DateFormat('d MMMM yyyy', BinerPreferences.instance.locale.languageCode).format(local);
+    return DateFormat('yyyy/MM/dd').format(local);
   }
 
   bool _sameDay(String a, String b) {
