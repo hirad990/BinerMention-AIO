@@ -43,7 +43,7 @@ class _GroupRoomsPageState extends State<GroupRoomsPage> {
     );
     controller.dispose();
     if (title == null || title.isEmpty) return;
-    try { await widget.api.createGroup(title); await _reload(); }
+    try { await widget.api.createGroup(title); if (!mounted) return; await _reload(); }
     on ApiException catch (e) { if (mounted) _message(e.message); }
   }
 
@@ -62,7 +62,7 @@ class _GroupRoomsPageState extends State<GroupRoomsPage> {
     );
     controller.dispose();
     if (link == null || link.isEmpty) return;
-    try { await widget.api.joinGroup(link); await _reload(); }
+    try { await widget.api.joinGroup(link); if (!mounted) return; await _reload(); }
     on ApiException catch (e) { if (mounted) _message(e.message); }
   }
 
@@ -206,9 +206,11 @@ class _GroupChatPageState extends State<GroupChatPage> {
       if (attachment != null) {
         final uploaded = await widget.api.uploadMedia(attachment);
         mediaId = int.tryParse(uploaded['id'].toString());
+        if (!mounted) return;
         if (mediaId == null) throw const ApiException('شناسه رسانه دریافت نشد.');
       }
       await widget.api.sendGroupMessage(widget.groupId, text, mediaId: mediaId);
+      if (!mounted) return;
       _controller.clear();
       await _load();
     } on ApiException catch (e) {
