@@ -1353,7 +1353,7 @@ class _LiveHomeState extends State<LiveHome> {
 
   Widget profile() {
     final u = me;
-    if (u == null) return const Center(child: BinerSkeleton(lines: 3));
+    if (u == null) return Center(child: const BinerSkeleton(lines: 3));
     final display = value(u, 'display_name', value(u, 'username', 'کاربر'));
     final username = value(u, 'username'), bio = value(u, 'bio'), website = value(u, 'website');
     return ListView(padding: const EdgeInsets.fromLTRB(16, 16, 16, 28), children: [
