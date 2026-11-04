@@ -238,7 +238,7 @@ class _GroupChatPageState extends State<GroupChatPage> {
 
   Widget _messageBody(String body) {
     final spans = <InlineSpan>[];
-    final pattern = RegExp(r'bm:[a-fA-F0-9]{16}');
+    final pattern = RegExp(r'bm:[a-fA-F0-9]{16}', caseSensitive: false);
     var cursor = 0;
     for (final match in pattern.allMatches(body)) {
       if (match.start > cursor) spans.add(TextSpan(text: body.substring(cursor, match.start)));
