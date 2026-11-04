@@ -65,6 +65,12 @@ Group invite links use the `bm:` scheme, for example `bm:0123456789abcdef`. The 
 
 Back up the MariaDB database, then run `migrations/2026_11_03_ai_groups_insights.sql` once in phpMyAdmin. This creates only the new group and analytics tables; it does not drop or recreate existing data. Deploy the updated contents of `PHP-API/` to the cPanel API directory after the backup.
 
+### Insights event semantics
+
+The Flutter feed records a `post_view` after a post is substantially visible and records `post_dwell` when it leaves the visible feed area. The API ignores a user's views of their own posts. The `views` value is a count of recorded view events, not a count of unique verified people; repeated sessions can create additional events. Reading time is a sum of client-reported visible dwell intervals and should be treated as an engagement estimate, not proof that a person read every word.
+
+Fresh installations should import the complete `schema.sql`, which now includes the Insights and group-room tables. Existing installations should apply the additive migration above instead of re-importing the full schema.
+
 ### BinerAI scope and verification
 
 This first BinerAI API iteration retrieves and summarizes records already available inside BinerMention. It does **not** browse the public web or independently verify a real-world political identity. A platform BlueTick is only the platform's own verification state; it must never be presented as proof of a person's real-world identity or public office. A future external research/LLM provider must be configured server-side with a secret key, source citations, rate limits and clear provenance before BinerAI can make web-wide claims.
