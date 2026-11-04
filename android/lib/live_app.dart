@@ -15,6 +15,7 @@ import 'biner_ai_page.dart';
 import 'insights_page.dart';
 import 'group_rooms_page.dart';
 import 'media_editor.dart';
+import 'media_viewer.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:video_player/video_player.dart';
@@ -246,7 +247,9 @@ class _LiveHomeState extends State<LiveHome> {
   bool showingSaved = false;
   Future<List<dynamic>>? exploreResults;
   final Set<String> _postActionsInFlight = <String>{};
-  @override void initState() { super.initState(); refresh(); loadProfile(); loadSavedPosts(); loadStories(); }
+  late Future<List<Map<String, dynamic>>> _notificationsFuture;
+  late Future<List<Map<String, dynamic>>> _conversationsFuture;
+  @override void initState() { super.initState(); _notificationsFuture = widget.api.notifications(); _conversationsFuture = widget.api.conversations(); refresh(); loadProfile(); loadSavedPosts(); loadStories(); }
   Future<void> loadStories() async {
     try {
       final result = await widget.api.stories();
@@ -793,7 +796,7 @@ class _LiveHomeState extends State<LiveHome> {
     final name = value(p, 'display_name', value(p, 'username', 'کاربر'));
     final body = value(p, 'body');
     final liked = p['liked'] == true, reposted = p['reposted'] == true;
-    return Container(padding: const EdgeInsets.fromLTRB(15, 15, 15, 11), margin: const EdgeInsets.symmetric(horizontal: 12, vertical: 6), decoration: BoxDecoration(color: Theme.of(context).brightness == Brightness.dark ? const Color(0xCC101827) : const Color(0xF7FFFFFF), borderRadius: BorderRadius.circular(22), border: Border.all(color: Theme.of(context).brightness == Brightness.dark ? const Color(0x4439C5FF) : const Color(0x223D6592)), boxShadow: [BoxShadow(color: Theme.of(context).brightness == Brightness.dark ? const Color(0x16000000) : const Color(0x0D27476A), blurRadius: 22, offset: const Offset(0, 7))]), child: Row(crossAxisAlignment: CrossAxisAlignment.start, children: [
+    final postCard = Container(padding: const EdgeInsets.fromLTRB(15, 15, 15, 11), margin: const EdgeInsets.symmetric(horizontal: 12, vertical: 6), decoration: BoxDecoration(color: Theme.of(context).brightness == Brightness.dark ? const Color(0xCC101827) : const Color(0xF7FFFFFF), borderRadius: BorderRadius.circular(22), border: Border.all(color: Theme.of(context).brightness == Brightness.dark ? const Color(0x4439C5FF) : const Color(0x223D6592)), boxShadow: [BoxShadow(color: Theme.of(context).brightness == Brightness.dark ? const Color(0x16000000) : const Color(0x0D27476A), blurRadius: 22, offset: const Offset(0, 7))]), child: Row(crossAxisAlignment: CrossAxisAlignment.start, children: [
       GestureDetector(onTap: () => openUserProfile(value(p, 'username')), child: avatar(name, p, 21)), const SizedBox(width: 10), Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
         Row(children: [
           Expanded(child: Wrap(crossAxisAlignment: WrapCrossAlignment.center, spacing: 3, children: [
@@ -819,9 +822,15 @@ class _LiveHomeState extends State<LiveHome> {
         if (body.isNotEmpty) Padding(padding: const EdgeInsets.only(top: 8, right: 2), child: richPostBody(body)),
         pollCard(p),
         if (value(p, 'media_url').startsWith('https://'))
-          Padding(padding: const EdgeInsets.only(top: 10), child: RegExp(r'\.(mp4|webm)(\?|$)', caseSensitive: false).hasMatch(value(p, 'media_url'))
-            ? Container(height: 170, decoration: BoxDecoration(color: Colors.black26, borderRadius: BorderRadius.circular(14)), child: Center(child: IconButton.filled(onPressed: () => launchUrl(Uri.parse(value(p, 'media_url')), mode: LaunchMode.externalApplication), icon: const Icon(Icons.play_arrow_rounded))))
-            : ClipRRect(borderRadius: BorderRadius.circular(14), child: ConstrainedBox(constraints: const BoxConstraints(maxHeight: 280, maxWidth: 520), child: Image.network(value(p, 'media_url'), width: double.infinity, fit: BoxFit.contain, errorBuilder: (_, __, ___) => const SizedBox.shrink())))),
+          Padding(padding: const EdgeInsets.only(top: 10), child: GestureDetector(
+            onTap: () => BinerMediaViewer.open(context, url: value(p, 'media_url'), mimeType: value(p, 'mime_type'), title: '@${value(p, 'username')}'),
+            child: ClipRRect(borderRadius: BorderRadius.circular(15), child: ConstrainedBox(
+              constraints: const BoxConstraints(maxHeight: 300, maxWidth: 520),
+              child: (value(p, 'mime_type').startsWith('video/') || RegExp(r'\.(mp4|webm)(\?|$)', caseSensitive: false).hasMatch(value(p, 'media_url')))
+                ? Container(width: double.infinity, height: 190, color: Colors.black, child: const Center(child: Icon(Icons.play_circle_fill_rounded, color: Colors.white, size: 52)))
+                : Image.network(value(p, 'media_url'), width: double.infinity, fit: BoxFit.contain, cacheWidth: 1200, filterQuality: FilterQuality.low, errorBuilder: (_, __, ___) => const SizedBox.shrink()),
+            )),
+          )),
         const SizedBox(height: 10),
         Wrap(alignment: WrapAlignment.spaceBetween, crossAxisAlignment: WrapCrossAlignment.center, runSpacing: 0, children: [
           TextButton.icon(style: TextButton.styleFrom(foregroundColor: cMuted, visualDensity: VisualDensity.compact, padding: const EdgeInsets.symmetric(horizontal: 5)), onPressed: () => showReplies(p), icon: const Icon(Icons.chat_bubble_outline, size: 17), label: Text(fmt(p['replies_count'] ?? 0))),
@@ -831,7 +840,8 @@ class _LiveHomeState extends State<LiveHome> {
           IconButton(tooltip: binerText('کپی متن پست',en:'Copy post text',ar:'نسخ نص المنشور',tr:'Gönderi metnini kopyala'), visualDensity: VisualDensity.compact, onPressed: () => copyPost(p), icon: const Icon(Icons.content_copy_rounded, color: cMuted, size: 18)),
         ]),
       ])),
-    ])).animate().fadeIn(duration: 240.ms).slideY(begin: .035, duration: 240.ms, curve: Curves.easeOutCubic);
+    ]);
+    return RepaintBoundary(child: BinerPreferences.instance.fastMode ? postCard : postCard.animate().fadeIn(duration: 220.ms).slideY(begin: .02, duration: 220.ms, curve: Curves.easeOutCubic));
   }
   Widget home() => Column(
     children: [
@@ -903,13 +913,15 @@ class _LiveHomeState extends State<LiveHome> {
     }
     return RefreshIndicator(
       onRefresh: refresh,
-      child: ListView(
-        children: [storyStrip(), ...posts.map(card)],
+      child: ListView.builder(
+        physics: const AlwaysScrollableScrollPhysics(parent: BouncingScrollPhysics()),
+        itemCount: posts.length + 1,
+        itemBuilder: (context, index) => index == 0 ? storyStrip() : card(posts[index - 1]),
       ),
     );
   }
 
-  Widget notifications() => FutureBuilder<List<Map<String, dynamic>>>(future: widget.api.notifications(), builder: (context, s) {
+  Widget notifications() => FutureBuilder<List<Map<String, dynamic>>>(future: _notificationsFuture, builder: (context, s) {
     if (s.connectionState == ConnectionState.waiting) return const Center(child: CircularProgressIndicator(color: cBlue));
     if (s.hasError) return Center(child: Text(s.error.toString()));
     final items = s.data ?? [];
@@ -952,7 +964,7 @@ class _LiveHomeState extends State<LiveHome> {
   }
 
   Widget conversations() => FutureBuilder<List<Map<String, dynamic>>>(
-    future: widget.api.conversations(),
+    future: _conversationsFuture,
     builder: (context, s) {
       if (s.connectionState == ConnectionState.waiting) return ListView(children: const [BinerSkeleton(lines: 1), BinerSkeleton(lines: 1), BinerSkeleton(lines: 1)]);
       if (s.hasError) return Center(child: Text(s.error.toString(), textAlign: TextAlign.center));
@@ -1274,7 +1286,7 @@ class _LiveHomeState extends State<LiveHome> {
             elevation: 0,
             indicatorColor: cBlue.withValues(alpha: .20),
             selectedIndex: tab,
-            onDestinationSelected: (i) { if (i != tab) setState(() => tab = i); },
+            onDestinationSelected: (i) { setState(() { tab = i; if (i == 2) _notificationsFuture = widget.api.notifications(); if (i == 3) _conversationsFuture = widget.api.conversations(); }); },
             destinations: [
               NavigationDestination(icon: Icon(Icons.home_outlined), selectedIcon: Icon(Icons.home_rounded, color: cBlue), label: binerText('خانه', en:'Home', ar:'الرئيسية', tr:'Ana sayfa')),
               NavigationDestination(icon: Icon(Icons.search_rounded), selectedIcon: Icon(Icons.search_rounded, color: cBlue), label: binerText('کاوش', en:'Explore', ar:'استكشاف', tr:'Keşfet')),
@@ -1593,9 +1605,14 @@ class _ChatPageState extends State<ChatPage> {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 if ((item['media_url']?.toString() ?? '').startsWith('https://')) ...[
-                  if (RegExp(r'\.(mp4|webm)(\?|$)', caseSensitive: false).hasMatch(item['media_url'].toString()))
-                    Container(width: 190,height: 116,decoration: BoxDecoration(color: Colors.black26,borderRadius: BorderRadius.circular(14)),child: Center(child: IconButton.filled(onPressed: () => launchUrl(Uri.parse(item['media_url'].toString()), mode: LaunchMode.externalApplication), icon: const Icon(Icons.play_arrow_rounded))))
-                  else ClipRRect(borderRadius: BorderRadius.circular(14),child: Image.network(item['media_url'].toString(),width: 210,height: 170,fit: BoxFit.cover,errorBuilder: (_,__,___)=>const Icon(Icons.broken_image_outlined))),
+                  GestureDetector(
+                    onTap: () => BinerMediaViewer.open(context, url: item['media_url'].toString(), mimeType: item['mime_type']?.toString(), title: widget.title),
+                    child: ClipRRect(borderRadius: BorderRadius.circular(14), child:
+                      ((item['mime_type']?.toString().startsWith('video/') ?? false) || RegExp(r'\.(mp4|webm)(\?|$)', caseSensitive: false).hasMatch(item['media_url'].toString()))
+                        ? Container(width: 210, height: 126, color: Colors.black, child: const Center(child: Icon(Icons.play_circle_fill_rounded, color: Colors.white, size: 48)))
+                        : Image.network(item['media_url'].toString(), width: 210, height: 170, fit: BoxFit.cover, cacheWidth: 630, errorBuilder: (_,__,___)=>const Icon(Icons.broken_image_outlined)),
+                    )),
+                  ),
                   const SizedBox(height: 7),
                 ],
                 if ((item['body']?.toString() ?? '').isNotEmpty) messageBody(item['body']?.toString() ?? ''),
