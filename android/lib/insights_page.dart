@@ -83,7 +83,7 @@ class _InsightsPageState extends State<InsightsPage> {
     body: FutureBuilder<Map<String, dynamic>>(
       future: _future,
       builder: (context, snapshot) {
-        if (snapshot.connectionState == ConnectionState.waiting) return const ListView(children: [BinerSkeleton(lines: 2), BinerSkeleton(lines: 2), BinerSkeleton(lines: 2)]);
+        if (snapshot.connectionState == ConnectionState.waiting) return ListView(children: const [BinerSkeleton(lines: 2), BinerSkeleton(lines: 2), BinerSkeleton(lines: 2)]);
         if (snapshot.hasError) return BinerEmptyState(
           icon: Icons.cloud_off_rounded, title: 'آمار بارگذاری نشد',
           description: 'اتصال به سرور یا دسترسی API را بررسی کن و دوباره تلاش کن.',
