@@ -48,6 +48,34 @@ ThemeData buildBinerTheme(Brightness brightness, {Color seedColor = binerBlue}) 
       TargetPlatform.windows: FadeForwardsPageTransitionsBuilder(),
       TargetPlatform.linux: FadeForwardsPageTransitionsBuilder(),
     }),
+    appBarTheme: AppBarTheme(
+      backgroundColor: Colors.transparent,
+      surfaceTintColor: Colors.transparent,
+      elevation: 0,
+      scrolledUnderElevation: 0,
+      centerTitle: false,
+      toolbarHeight: 62,
+      titleTextStyle: TextStyle(color: textColor, fontSize: 19, fontWeight: FontWeight.w800, letterSpacing: -.2),
+      iconTheme: IconThemeData(color: textColor),
+    ),
+    dividerTheme: DividerThemeData(color: (dark ? Colors.white : const Color(0xFF253B56)).withValues(alpha: .10), thickness: 1, space: 1),
+    cardTheme: CardThemeData(
+      color: dark ? const Color(0xFF101722) : Colors.white,
+      elevation: 0,
+      margin: EdgeInsets.zero,
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(22), side: BorderSide(color: seedColor.withValues(alpha: .14))),
+    ),
+    filledButtonTheme: FilledButtonThemeData(
+      style: FilledButton.styleFrom(
+        minimumSize: const Size(0, 48),
+        padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 12),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+        textStyle: const TextStyle(fontWeight: FontWeight.w800),
+      ),
+    ),
+    textButtonTheme: TextButtonThemeData(
+      style: TextButton.styleFrom(shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(13))),
+    ),
     inputDecorationTheme: InputDecorationTheme(
       filled: true,
       fillColor: dark ? const Color(0xAA111D30) : const Color(0xFFF0F4FA),
@@ -243,6 +271,139 @@ class BinerSkeleton extends StatelessWidget {
 }
 
 /// A small adaptive back affordance for Cupertino-style subpages.
+/// A low-cost, reusable surface for dense screens and scrolling lists.
+class BinerSurfaceCard extends StatelessWidget {
+  const BinerSurfaceCard({
+    super.key,
+    required this.child,
+    this.padding = const EdgeInsets.all(16),
+    this.margin = EdgeInsets.zero,
+    this.radius = 22,
+    this.accent,
+    this.onTap,
+  });
+  final Widget child;
+  final EdgeInsetsGeometry padding;
+  final EdgeInsetsGeometry margin;
+  final double radius;
+  final Color? accent;
+  final VoidCallback? onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    final dark = Theme.of(context).brightness == Brightness.dark;
+    final tint = accent ?? Theme.of(context).colorScheme.primary;
+    final content = Container(
+      padding: padding,
+      decoration: BoxDecoration(
+        color: dark ? const Color(0xE6101722) : const Color(0xF7FFFFFF),
+        borderRadius: BorderRadius.circular(radius),
+        border: Border.all(color: tint.withValues(alpha: dark ? .20 : .15)),
+        boxShadow: [
+          BoxShadow(
+            color: (dark ? Colors.black : const Color(0xFF294766)).withValues(alpha: dark ? .12 : .045),
+            blurRadius: 18,
+            offset: const Offset(0, 6),
+          ),
+        ],
+      ),
+      child: child,
+    );
+    return Padding(
+      padding: margin,
+      child: onTap == null
+          ? RepaintBoundary(child: content)
+          : Material(
+              color: Colors.transparent,
+              borderRadius: BorderRadius.circular(radius),
+              child: InkWell(
+                borderRadius: BorderRadius.circular(radius),
+                onTap: onTap,
+                child: RepaintBoundary(child: content),
+              ),
+            ),
+    );
+  }
+}
+
+/// Consistent page heading with optional supporting copy and trailing action.
+class BinerSectionHeader extends StatelessWidget {
+  const BinerSectionHeader({
+    super.key,
+    required this.title,
+    this.subtitle,
+    this.trailing,
+  });
+  final String title;
+  final String? subtitle;
+  final Widget? trailing;
+
+  @override
+  Widget build(BuildContext context) => Padding(
+    padding: const EdgeInsets.fromLTRB(2, 4, 2, 14),
+    child: Row(
+      crossAxisAlignment: CrossAxisAlignment.center,
+      children: [
+        Expanded(child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(title, style: Theme.of(context).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.w900, letterSpacing: -.35)),
+            if (subtitle != null && subtitle!.isNotEmpty) ...[
+              const SizedBox(height: 4),
+              Text(subtitle!, style: Theme.of(context).textTheme.bodySmall?.copyWith(color: Theme.of(context).colorScheme.onSurfaceVariant, height: 1.45)),
+            ],
+          ],
+        )),
+        if (trailing != null) trailing!,
+      ],
+    ),
+  );
+}
+
+/// Friendly empty state shared by feeds, rooms and analytics pages.
+class BinerEmptyState extends StatelessWidget {
+  const BinerEmptyState({
+    super.key,
+    required this.icon,
+    required this.title,
+    this.description,
+    this.action,
+  });
+  final IconData icon;
+  final String title;
+  final String? description;
+  final Widget? action;
+
+  @override
+  Widget build(BuildContext context) => Center(
+    child: Padding(
+      padding: const EdgeInsets.all(28),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Container(
+            width: 76,
+            height: 76,
+            decoration: BoxDecoration(
+              shape: BoxShape.circle,
+              color: Theme.of(context).colorScheme.primary.withValues(alpha: .10),
+              border: Border.all(color: Theme.of(context).colorScheme.primary.withValues(alpha: .20)),
+            ),
+            child: Icon(icon, size: 34, color: Theme.of(context).colorScheme.primary),
+          ),
+          const SizedBox(height: 16),
+          Text(title, textAlign: TextAlign.center, style: const TextStyle(fontSize: 17, fontWeight: FontWeight.w900)),
+          if (description != null) ...[
+            const SizedBox(height: 7),
+            Text(description!, textAlign: TextAlign.center, style: TextStyle(color: Theme.of(context).colorScheme.onSurfaceVariant, height: 1.55)),
+          ],
+          if (action != null) ...[const SizedBox(height: 18), action!],
+        ],
+      ),
+    ),
+  );
+}
+
 class BinerAdaptiveBackButton extends StatelessWidget {
   const BinerAdaptiveBackButton({super.key, this.onPressed});
   final VoidCallback? onPressed;
