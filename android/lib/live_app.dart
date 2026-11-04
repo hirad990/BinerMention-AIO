@@ -1145,13 +1145,14 @@ class _LiveHomeState extends State<LiveHome> {
       builder: (ctx) => AnimatedBuilder(
         animation: prefs,
         builder: (ctx, _) => Container(
+          constraints: BoxConstraints(maxHeight: MediaQuery.of(ctx).size.height * .9),
           padding: const EdgeInsets.fromLTRB(20, 14, 20, 26),
           decoration: BoxDecoration(
             color: Theme.of(ctx).brightness == Brightness.dark ? const Color(0xF20B1422) : const Color(0xF7FFFFFF),
             borderRadius: const BorderRadius.vertical(top: Radius.circular(30)),
             border: Border.all(color: prefs.accent.withValues(alpha: .38)),
           ),
-          child: Column(mainAxisSize: MainAxisSize.min, crossAxisAlignment: CrossAxisAlignment.stretch, children: [
+          child: SingleChildScrollView(child: Column(mainAxisSize: MainAxisSize.min, crossAxisAlignment: CrossAxisAlignment.stretch, children: [
             Center(child: Container(width: 42, height: 4, decoration: BoxDecoration(color: cMuted.withValues(alpha: .6), borderRadius: BorderRadius.circular(4)))),
             const SizedBox(height: 18),
             Text(binerText('تنظیمات ظاهری و عملکرد', en:'Appearance & performance', ar:'المظهر والأداء', tr:'Görünüm ve performans'), style: const TextStyle(fontSize: 21, fontWeight: FontWeight.w900)),
@@ -1184,7 +1185,7 @@ class _LiveHomeState extends State<LiveHome> {
               title: Text(binerText('حالت سریع برای گوشی‌های ضعیف', en:'Fast mode for low-end phones', ar:'الوضع السريع للهواتف الضعيفة', tr:'Düşük donanımlı telefonlar için hızlı mod')),
               subtitle: Text(binerText('کاهش افکت‌های سنگین و محوشدگی برای روان‌تر شدن برنامه', en:'Reduce heavy effects and blur for smoother performance', ar:'تقليل المؤثرات الثقيلة والضبابية لتحسين الأداء', tr:'Daha akıcı kullanım için ağır efektleri ve bulanıklığı azaltır')),
             ),
-          ]),
+          ])),
         ),
       ),
     );
