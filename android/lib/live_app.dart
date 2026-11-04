@@ -347,7 +347,7 @@ class _StorySlideState extends State<_StorySlide> {
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
             child: Row(children: [
-              CircleAvatar(radius: 18, backgroundColor: const Color(0x3354C8FF), backgroundImage: _storyValue('avatar_url').startsWith('https://') ? NetworkImage(value(widget.story, 'avatar_url')) : null, child: value(widget.story, 'avatar_url').startsWith('https://') ? null : const Icon(Icons.person_rounded, color: Colors.white, size: 20)),
+              CircleAvatar(radius: 18, backgroundColor: const Color(0x3354C8FF), backgroundImage: _storyValue('avatar_url').startsWith('https://') ? NetworkImage(_storyValue('avatar_url')) : null, child: _storyValue('avatar_url').startsWith('https://') ? null : const Icon(Icons.person_rounded, color: Colors.white, size: 20)),
               const SizedBox(width: 10),
               Expanded(child: Text(name, maxLines: 1, overflow: TextOverflow.ellipsis, style: const TextStyle(color: Colors.white, fontWeight: FontWeight.w900))),
               Text(widget.story['created_at']?.toString() ?? '', style: const TextStyle(color: Colors.white70, fontSize: 9)),
