@@ -402,7 +402,7 @@ class LiveHome extends StatefulWidget {
   final bool isDark;
   @override State<LiveHome> createState() => _LiveHomeState();
 }
-class _LiveHomeState extends State<LiveHome> {
+class _LiveHomeState extends State<LiveHome> with WidgetsBindingObserver {
   int tab = 0; bool loading = true, posting = false, followingFeed = false; String? error;
   final posts = <Map<String, dynamic>>[];
   final storyItems = <Map<String, dynamic>>[];
@@ -422,7 +422,7 @@ class _LiveHomeState extends State<LiveHome> {
   Timer? _analyticsTimer;
   bool _analyticsScheduled = false;
 
-  @override void initState() { super.initState(); _notificationsFuture = widget.api.notifications(); _conversationsFuture = widget.api.conversations(); _feedScrollController.addListener(_scheduleAnalyticsTrack); _analyticsTimer = Timer.periodic(const Duration(seconds: 2), (_) => _scheduleAnalyticsTrack()); refresh(); loadProfile(); loadSavedPosts(); loadStories(); }
+  @override void initState() { super.initState(); WidgetsBinding.instance.addObserver(this); _notificationsFuture = widget.api.notifications(); _conversationsFuture = widget.api.conversations(); _feedScrollController.addListener(_scheduleAnalyticsTrack); _analyticsTimer = Timer.periodic(const Duration(seconds: 2), (_) => _scheduleAnalyticsTrack()); refresh(); loadProfile(); loadSavedPosts(); loadStories(); }
   Future<void> loadStories() async {
     try {
       final result = await widget.api.stories();
@@ -735,7 +735,17 @@ class _LiveHomeState extends State<LiveHome> {
   }
 
   @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    if (state == AppLifecycleState.resumed) {
+      _scheduleAnalyticsTrack();
+    } else {
+      _flushVisiblePostDwell();
+    }
+  }
+
+  @override
   void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
     _analyticsTimer?.cancel();
     _feedScrollController.removeListener(_scheduleAnalyticsTrack);
     _flushVisiblePostDwell();
