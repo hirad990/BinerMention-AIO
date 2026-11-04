@@ -173,6 +173,8 @@ class _StoryViewer extends StatefulWidget {
 
 class _StoryViewerState extends State<_StoryViewer> {
   late final PageController _page = PageController(initialPage: widget.initialIndex);
+  int _activeIndex = 0;
+  @override void initState() { super.initState(); _activeIndex = widget.initialIndex; }
   @override void dispose() { _page.dispose(); super.dispose(); }
 
   @override
@@ -181,10 +183,14 @@ class _StoryViewerState extends State<_StoryViewer> {
     body: PageView.builder(
       controller: _page,
       itemCount: widget.stories.length,
+      onPageChanged: (index) => setState(() => _activeIndex = index),
       itemBuilder: (context, index) => _StorySlide(
         key: ValueKey(widget.stories[index]['id']),
         api: widget.api,
         story: widget.stories[index],
+        active: index == _activeIndex,
+        storyIndex: index,
+        storyCount: widget.stories.length,
         onClose: () => Navigator.maybePop(context),
       ),
     ),
@@ -192,9 +198,12 @@ class _StoryViewerState extends State<_StoryViewer> {
 }
 
 class _StorySlide extends StatefulWidget {
-  const _StorySlide({super.key, required this.api, required this.story, required this.onClose});
+  const _StorySlide({super.key, required this.api, required this.story, required this.active, required this.storyIndex, required this.storyCount, required this.onClose});
   final BinerApi api;
   final Map<String, dynamic> story;
+  final bool active;
+  final int storyIndex;
+  final int storyCount;
   final VoidCallback onClose;
   @override State<_StorySlide> createState() => _StorySlideState();
 }
@@ -217,8 +226,16 @@ class _StorySlideState extends State<_StorySlide> {
         if (!mounted) return;
         setState(() {});
         controller.setLooping(true);
-        controller.play();
+        if (widget.active) controller.play();
       }).catchError((_) {});
+    }
+  }
+
+  @override
+  void didUpdateWidget(covariant _StorySlide oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (oldWidget.active != widget.active) {
+      if (widget.active) { _video?.play(); } else { _video?.pause(); }
     }
   }
 
@@ -316,7 +333,10 @@ class _StorySlideState extends State<_StorySlide> {
           Padding(
             padding: const EdgeInsets.fromLTRB(12, 10, 12, 6),
             child: Row(children: [
-              Expanded(child: Container(height: 3, decoration: BoxDecoration(color: Colors.white.withValues(alpha: .8), borderRadius: BorderRadius.circular(3)))),
+              for (var i = 0; i < widget.storyCount; i++) ...[
+                Expanded(child: Container(height: 3, decoration: BoxDecoration(color: i <= widget.storyIndex ? Colors.white : Colors.white.withValues(alpha: .28), borderRadius: BorderRadius.circular(3)))),
+                if (i < widget.storyCount - 1) const SizedBox(width: 4),
+              ],
             ]),
           ),
           Padding(
