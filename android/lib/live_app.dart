@@ -273,7 +273,7 @@ class _StorySlideState extends State<_StorySlide> {
               if (snapshot.connectionState == ConnectionState.waiting) return const Center(child: CircularProgressIndicator(color: cBlue));
               if (snapshot.hasError) return const Center(child: Text('دریافت دیدگاه‌ها انجام نشد.'));
               final rows = snapshot.data ?? [];
-              if (rows.isEmpty) return const BinerEmptyState(icon: Icons.chat_bubble_outline_rounded, title: 'هنوز پاسخی ثبت نشده');
+              if (rows.isEmpty) return BinerEmptyState(icon: Icons.chat_bubble_outline_rounded, title: 'هنوز پاسخی ثبت نشده');
               return ListView.builder(
                 itemCount: rows.length,
                 itemBuilder: (_, i) => ListTile(
@@ -1135,7 +1135,7 @@ class _LiveHomeState extends State<LiveHome> {
         padding: const EdgeInsets.fromLTRB(14, 10, 14, 24),
         itemCount: items.length + 1,
         itemBuilder: (context, index) {
-          if (index == 0) return const BinerSectionHeader(title: 'اعلان‌ها', subtitle: 'آخرین اتفاق‌های مربوط به حساب تو');
+          if (index == 0) return BinerSectionHeader(title: 'اعلان‌ها', subtitle: 'آخرین اتفاق‌های مربوط به حساب تو');
           final item = items[index - 1];
           final kind = value(item, 'type');
           final name = value(item, 'actor_display_name', value(item, 'actor_username', 'کاربر'));
