@@ -353,6 +353,18 @@ class BinerApi {
     return Map<String, dynamic>.from((await _request('POST', 'v1/posts/$postId/comments', body: payload))['comment'] as Map);
   }
 
+  Future<void> trackPostEvent(int postId, {required String eventType, int dwellMs = 0}) async {
+    await _request(
+      'POST',
+      'v1/analytics/events',
+      body: {
+        'post_id': postId,
+        'event_type': eventType,
+        'dwell_ms': dwellMs.clamp(0, 120000),
+      },
+    );
+  }
+
   Future<Map<String, dynamic>> insights() async =>
       await _request('GET', 'v1/insights');
 
