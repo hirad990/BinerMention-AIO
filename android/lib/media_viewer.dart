@@ -54,17 +54,11 @@ class _BinerMediaViewerPageState extends State<_BinerMediaViewerPage> {
       }).catchError((_) {
         if (mounted) setState(() => _ready = false);
       });
-      controller.addListener(_onVideoChanged);
     }
-  }
-
-  void _onVideoChanged() {
-    if (mounted) setState(() {});
   }
 
   @override
   void dispose() {
-    _video?.removeListener(_onVideoChanged);
     _video?.dispose();
     super.dispose();
   }
@@ -116,14 +110,16 @@ class _BinerMediaViewerPageState extends State<_BinerMediaViewerPage> {
                     aspectRatio: value.aspectRatio > 0 ? value.aspectRatio : 16 / 9,
                     child: Stack(alignment: Alignment.center, children: [
                       VideoPlayer(controller!),
-                      if (!value.isPlaying)
-                        IconButton.filled(
-                          onPressed: () => controller.play(),
-                          style: IconButton.styleFrom(backgroundColor: Colors.black54, foregroundColor: Colors.white, fixedSize: const Size(62, 62)),
-                          icon: const Icon(Icons.play_arrow_rounded, size: 34),
-                        )
-                      else
-                        GestureDetector(onTap: () => controller.pause(), child: const SizedBox.expand()),
+                      ValueListenableBuilder<VideoPlayerValue>(
+                        valueListenable: controller!,
+                        builder: (context, current, _) => current.isPlaying
+                            ? GestureDetector(onTap: () => controller.pause(), child: const SizedBox.expand())
+                            : IconButton.filled(
+                                onPressed: () => controller.play(),
+                                style: IconButton.styleFrom(backgroundColor: Colors.black54, foregroundColor: Colors.white, fixedSize: const Size(62, 62)),
+                                icon: const Icon(Icons.play_arrow_rounded, size: 34),
+                              ),
+                      ),
                     ]),
                   ))
             : InteractiveViewer(
@@ -143,23 +139,26 @@ class _BinerMediaViewerPageState extends State<_BinerMediaViewerPage> {
                 ),
               ),
       ),
-      bottomNavigationBar: widget.isVideo && _ready && value != null
-          ? SafeArea(
-              top: false,
-              child: Padding(
-                padding: const EdgeInsets.fromLTRB(14, 8, 14, 14),
-                child: Row(children: [
-                  Text(_time(value.position), style: const TextStyle(color: Colors.white70, fontSize: 11)),
-                  Expanded(
-                    child: VideoProgressIndicator(controller!, allowScrubbing: true, padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 12), colors: const VideoProgressColors(playedColor: Color(0xFF54C8FF), bufferedColor: Colors.white24, backgroundColor: Colors.white12)),
-                  ),
-                  Text(_time(value.duration), style: const TextStyle(color: Colors.white70, fontSize: 11)),
-                  IconButton(
-                    onPressed: () => value.isPlaying ? controller.pause() : controller.play(),
-                    color: const Color(0xFF54C8FF),
-                    icon: Icon(value.isPlaying ? Icons.pause_rounded : Icons.play_arrow_rounded),
-                  ),
-                ]),
+      bottomNavigationBar: widget.isVideo && _ready && controller != null
+          ? ValueListenableBuilder<VideoPlayerValue>(
+              valueListenable: controller,
+              builder: (context, current, _) => SafeArea(
+                top: false,
+                child: Padding(
+                  padding: const EdgeInsets.fromLTRB(14, 8, 14, 14),
+                  child: Row(children: [
+                    Text(_time(current.position), style: const TextStyle(color: Colors.white70, fontSize: 11)),
+                    Expanded(
+                      child: VideoProgressIndicator(controller, allowScrubbing: true, padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 12), colors: const VideoProgressColors(playedColor: Color(0xFF54C8FF), bufferedColor: Colors.white24, backgroundColor: Colors.white12)),
+                    ),
+                    Text(_time(current.duration), style: const TextStyle(color: Colors.white70, fontSize: 11)),
+                    IconButton(
+                      onPressed: () => current.isPlaying ? controller.pause() : controller.play(),
+                      color: const Color(0xFF54C8FF),
+                      icon: Icon(current.isPlaying ? Icons.pause_rounded : Icons.play_arrow_rounded),
+                    ),
+                  ]),
+                ),
               ),
             )
           : null,
