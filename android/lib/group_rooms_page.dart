@@ -79,7 +79,7 @@ class _GroupRoomsPageState extends State<GroupRoomsPage> {
       future: _future,
       builder: (context, snapshot) {
         if (snapshot.connectionState == ConnectionState.waiting) {
-          return const ListView(children: [BinerSkeleton(lines: 2), BinerSkeleton(lines: 2), BinerSkeleton(lines: 2)]);
+          return ListView(children: const [BinerSkeleton(lines: 2), BinerSkeleton(lines: 2), BinerSkeleton(lines: 2)]);
         }
         if (snapshot.hasError) {
           return BinerEmptyState(
