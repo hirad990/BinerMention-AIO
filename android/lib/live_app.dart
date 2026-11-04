@@ -174,8 +174,7 @@ class _StoryViewer extends StatefulWidget {
 
 class _StoryViewerState extends State<_StoryViewer> {
   late final PageController _page = PageController(initialPage: widget.initialIndex);
-  int _index = 0;
-  @override void initState() { super.initState(); _index = widget.initialIndex; }
+  @override void initState() { super.initState(); }
   @override void dispose() { _page.dispose(); super.dispose(); }
 
   @override
@@ -184,7 +183,6 @@ class _StoryViewerState extends State<_StoryViewer> {
     body: PageView.builder(
       controller: _page,
       itemCount: widget.stories.length,
-      onPageChanged: (index) => setState(() => _index = index),
       itemBuilder: (context, index) => _StorySlide(
         key: ValueKey(widget.stories[index]['id']),
         api: widget.api,
