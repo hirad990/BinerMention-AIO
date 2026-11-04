@@ -79,7 +79,6 @@ class _BinerMediaViewerPageState extends State<_BinerMediaViewerPage> {
   @override
   Widget build(BuildContext context) {
     final controller = _video;
-    final value = controller?.value;
     return Scaffold(
       backgroundColor: const Color(0xFF05070B),
       appBar: AppBar(
@@ -104,10 +103,10 @@ class _BinerMediaViewerPageState extends State<_BinerMediaViewerPage> {
       ),
       body: Center(
         child: widget.isVideo
-            ? (!_ready || value == null
+            ? (controller == null || !_ready || !controller.value.isInitialized
                 ? const CircularProgressIndicator(color: Color(0xFF54C8FF))
                 : AspectRatio(
-                    aspectRatio: value.aspectRatio > 0 ? value.aspectRatio : 16 / 9,
+                    aspectRatio: controller.value.aspectRatio > 0 ? controller.value.aspectRatio : 16 / 9,
                     child: Stack(alignment: Alignment.center, children: [
                       VideoPlayer(controller),
                       ValueListenableBuilder<VideoPlayerValue>(
