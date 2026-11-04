@@ -174,7 +174,6 @@ class _StoryViewer extends StatefulWidget {
 
 class _StoryViewerState extends State<_StoryViewer> {
   late final PageController _page = PageController(initialPage: widget.initialIndex);
-  @override void initState() { super.initState(); }
   @override void dispose() { _page.dispose(); super.dispose(); }
 
   @override
