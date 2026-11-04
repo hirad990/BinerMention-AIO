@@ -1,4 +1,6 @@
+import 'dart:async';
 import 'dart:io';
+import 'dart:math' as math;
 import 'dart:ui';
 import 'dart:convert';
 import 'package:flutter/services.dart';
@@ -409,7 +411,15 @@ class _LiveHomeState extends State<LiveHome> {
   final Set<String> _postActionsInFlight = <String>{};
   late Future<List<Map<String, dynamic>>> _notificationsFuture;
   late Future<List<Map<String, dynamic>>> _conversationsFuture;
-  @override void initState() { super.initState(); _notificationsFuture = widget.api.notifications(); _conversationsFuture = widget.api.conversations(); refresh(); loadProfile(); loadSavedPosts(); loadStories(); }
+  final ScrollController _feedScrollController = ScrollController();
+  final GlobalKey _feedViewportKey = GlobalKey();
+  final Map<int, GlobalKey> _postVisibilityKeys = <int, GlobalKey>{};
+  final Set<int> _viewedPostIds = <int>{};
+  final Map<int, DateTime> _visiblePostSince = <int, DateTime>{};
+  Timer? _analyticsTimer;
+  bool _analyticsScheduled = false;
+
+  @override void initState() { super.initState(); _notificationsFuture = widget.api.notifications(); _conversationsFuture = widget.api.conversations(); _feedScrollController.addListener(_scheduleAnalyticsTrack); _analyticsTimer = Timer.periodic(const Duration(seconds: 2), (_) => _scheduleAnalyticsTrack()); refresh(); loadProfile(); loadSavedPosts(); loadStories(); }
   Future<void> loadStories() async {
     try {
       final result = await widget.api.stories();
@@ -649,6 +659,87 @@ class _LiveHomeState extends State<LiveHome> {
     ]);
   }
   Future<void> loadProfile() async { try { final u = await widget.api.me(); if (mounted) setState(() => me = u); } on ApiException catch (e) { if (mounted) setState(() => error = e.message); } }
+
+  void _scheduleAnalyticsTrack() {
+    if (!mounted || _analyticsScheduled) return;
+    _analyticsScheduled = true;
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _analyticsScheduled = false;
+      if (mounted) _trackVisiblePostsNow();
+    });
+  }
+
+  void _recordPostView(int id) {
+    unawaited(widget.api.trackPostEvent(id, eventType: 'post_view').catchError((_) {}));
+  }
+
+  void _recordPostDwell(int id, int milliseconds) {
+    if (milliseconds < 900) return;
+    unawaited(widget.api.trackPostEvent(id, eventType: 'post_dwell', dwellMs: milliseconds).catchError((_) {}));
+  }
+
+  void _flushVisiblePostDwell() {
+    final now = DateTime.now();
+    final active = _visiblePostSince.entries.toList();
+    _visiblePostSince.clear();
+    for (final entry in active) {
+      _recordPostDwell(entry.key, now.difference(entry.value).inMilliseconds);
+    }
+  }
+
+  void _trackVisiblePostsNow() {
+    if (!mounted) return;
+    if (tab != 0 || ModalRoute.of(context)?.isCurrent != true) {
+      _flushVisiblePostDwell();
+      return;
+    }
+    final viewportObject = _feedViewportKey.currentContext?.findRenderObject();
+    if (viewportObject is! RenderBox || !viewportObject.attached || !viewportObject.hasSize) return;
+    final viewportTop = viewportObject.localToGlobal(Offset.zero).dy;
+    final viewportBottom = viewportTop + viewportObject.size.height;
+    final visible = <int>{};
+    final now = DateTime.now();
+
+    for (final post in posts) {
+      final id = int.tryParse(value(post, 'id'));
+      if (id == null) continue;
+      final object = _postVisibilityKeys[id]?.currentContext?.findRenderObject();
+      if (object is! RenderBox || !object.attached || !object.hasSize || object.size.height <= 0) continue;
+      final top = object.localToGlobal(Offset.zero).dy;
+      final bottom = top + object.size.height;
+      final overlap = math.max(0.0, math.min(bottom, viewportBottom) - math.max(top, viewportTop));
+      final requiredVisible = math.min(object.size.height * .45, 220.0);
+      if (overlap < requiredVisible) continue;
+
+      visible.add(id);
+      if (_viewedPostIds.add(id)) _recordPostView(id);
+      _visiblePostSince.putIfAbsent(id, () => now);
+    }
+
+    for (final id in _visiblePostSince.keys.toList()) {
+      if (!visible.contains(id)) {
+        final started = _visiblePostSince.remove(id);
+        if (started != null) _recordPostDwell(id, now.difference(started).inMilliseconds);
+      }
+    }
+  }
+
+  Widget _trackedFeedCard(Map<String, dynamic> post) {
+    final id = int.tryParse(value(post, 'id'));
+    if (id == null) return card(post);
+    final key = _postVisibilityKeys.putIfAbsent(id, GlobalKey.new);
+    return KeyedSubtree(key: key, child: card(post));
+  }
+
+  @override
+  void dispose() {
+    _analyticsTimer?.cancel();
+    _feedScrollController.removeListener(_scheduleAnalyticsTrack);
+    _flushVisiblePostDwell();
+    _feedScrollController.dispose();
+    super.dispose();
+  }
+
   Future<void> refresh() async {
     setState(() { loading = true; error = null; });
     try { final data = await widget.api.posts(following: followingFeed); if (mounted) setState(() { posts..clear()..addAll(data); }); }
@@ -1124,9 +1215,11 @@ class _LiveHomeState extends State<LiveHome> {
     return RefreshIndicator(
       onRefresh: refresh,
       child: ListView.builder(
+        key: _feedViewportKey,
+        controller: _feedScrollController,
         physics: const AlwaysScrollableScrollPhysics(parent: BouncingScrollPhysics()),
         itemCount: posts.length + 1,
-        itemBuilder: (context, index) => index == 0 ? storyStrip() : card(posts[index - 1]),
+        itemBuilder: (context, index) => index == 0 ? storyStrip() : _trackedFeedCard(posts[index - 1]),
       ),
     );
   }
