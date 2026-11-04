@@ -177,7 +177,7 @@ try {
  if($path==='/v1/analytics/events'&&$method==='POST'){
   $u=auth($db);$type=txt($b['event_type']??'',32);$allowed=['post_view','post_dwell'];if(!in_array($type,$allowed,true))err('Unsupported analytics event.',422,'validation_error');
   $postId=filter_var($b['post_id']??null,FILTER_VALIDATE_INT);if(!$postId)err('A valid post_id is required.',422,'validation_error');
-  $q=$db->prepare('SELECT user_id FROM posts WHERE id=? AND is_deleted=0 AND reply_to_id IS NULL');$q->execute([(int)$postId]);$owner=$q->fetchColumn();if(!$owner)err('Post not found.',404,'not_found');
+  $q=$db->prepare('SELECT user_id FROM posts WHERE id=? AND is_deleted=0 AND reply_to_id IS NULL');$q->execute([(int)$postId]);$owner=$q->fetchColumn();if(!$owner)err('Post not found.',404,'not_found');if((int)$owner===(int)$u['id'])out(['ok'=>true,'ignored'=>true]);
   $dwell=max(0,min(120000,(int)($b['dwell_ms']??0)));$q=$db->prepare('INSERT INTO analytics_events(actor_user_id,owner_user_id,post_id,event_type,dwell_ms,created_at) VALUES(?,?,?,?,?,UTC_TIMESTAMP())');$q->execute([$u['id'],(int)$owner,(int)$postId,$type,$dwell]);out(['ok'=>true],201);
  }
  if($path==='/v1/ai/ask'&&$method==='POST'){
