@@ -109,9 +109,9 @@ class _BinerMediaViewerPageState extends State<_BinerMediaViewerPage> {
                 : AspectRatio(
                     aspectRatio: value.aspectRatio > 0 ? value.aspectRatio : 16 / 9,
                     child: Stack(alignment: Alignment.center, children: [
-                      VideoPlayer(controller!),
+                      VideoPlayer(controller),
                       ValueListenableBuilder<VideoPlayerValue>(
-                        valueListenable: controller!,
+                        valueListenable: controller,
                         builder: (context, current, _) => current.isPlaying
                             ? GestureDetector(onTap: () => controller.pause(), child: const SizedBox.expand())
                             : IconButton.filled(
