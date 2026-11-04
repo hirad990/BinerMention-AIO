@@ -379,7 +379,7 @@ class BinerApi {
       Map<String, dynamic>.from((await _request('POST', 'v1/groups', body: {'title': title, 'description': description}))['group'] as Map);
 
   Future<Map<String, dynamic>> joinGroup(String inviteCode) async =>
-      await _request('POST', 'v1/groups/join', body: {'invite_code': inviteCode.replaceFirst(RegExp(r'^bm:'), '')});
+      await _request('POST', 'v1/groups/join', body: {'invite_code': inviteCode.replaceFirst(RegExp(r'^bm:', caseSensitive: false), '')});
 
   Future<List<Map<String, dynamic>>> groupMessages(int groupId) async {
     final result = await _request('GET', 'v1/groups/$groupId/messages');
