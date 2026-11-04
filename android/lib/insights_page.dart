@@ -119,7 +119,7 @@ class _InsightsPageState extends State<InsightsPage> {
                 ),
               ),
               const SizedBox(height: 19),
-              const BinerSectionHeader(title: 'عملکرد حساب', subtitle: 'مجموع داده‌های ثبت‌شده تا این لحظه'),
+              BinerSectionHeader(title: 'عملکرد حساب', subtitle: 'مجموع داده‌های ثبت‌شده تا این لحظه'),
               LayoutBuilder(builder: (context, constraints) {
                 final columns = constraints.maxWidth >= 520 ? 3 : 2;
                 final width = (constraints.maxWidth - (columns - 1) * 10) / columns;
@@ -139,7 +139,7 @@ class _InsightsPageState extends State<InsightsPage> {
               ])),
               const SizedBox(height: 20),
               const BinerSectionHeader(title: 'پست‌های پربازده', subtitle: 'بر اساس لایک، بازنشر و کامنت'),
-              if (top.isEmpty) const BinerEmptyState(icon: Icons.query_stats_rounded, title: 'هنوز دادهٔ کافی نداریم', description: 'با انتشار پست و دریافت تعامل، این بخش به‌تدریج کامل می‌شود.')
+              if (top.isEmpty) BinerEmptyState(icon: Icons.query_stats_rounded, title: 'هنوز دادهٔ کافی نداریم', description: 'با انتشار پست و دریافت تعامل، این بخش به‌تدریج کامل می‌شود.')
               else ...top.asMap().entries.map((entry) => _topPost(entry.value, entry.key)),
               const SizedBox(height: 10),
               BinerSurfaceCard(accent: const Color(0xFF9B8CFF), child: Row(crossAxisAlignment: CrossAxisAlignment.start, children: [
