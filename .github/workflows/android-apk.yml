@@ -19,7 +19,7 @@ permissions:
 
 concurrency:
   group: android-apk-${{ github.ref }}
-  cancel-in-progress: true
+  cancel-in-progress: false
 
 jobs:
   validate-and-build:
@@ -185,8 +185,8 @@ jobs:
       - name: Format Dart sources
         working-directory: ${{ runner.temp }}/binerm_mention
         run: |
-          dart format lib
-          if [ -d test ]; then dart format test; fi
+          dart format --set-exit-if-changed lib
+          if [ -d test ]; then dart format --set-exit-if-changed test; fi
 
       - name: Analyze Dart sources
         working-directory: ${{ runner.temp }}/binerm_mention
