@@ -216,7 +216,9 @@ class _StorySlideState extends State<_StorySlide> {
   VideoPlayerController? _video;
   late bool _liked = widget.story['is_liked'] == true || widget.story['is_liked']?.toString() == '1';
   late int _likes = int.tryParse(widget.story['likes_count']?.toString() ?? '') ?? 0;
-  late Future<List<Map<String, dynamic>>> _comments = widget.api.storyComments(int.parse(widget.story['id'].toString()));
+  late Future<List<Map<String, dynamic>>> _comments = Future.value(<Map<String, dynamic>>[]);
+
+  int? get _storyId => int.tryParse(widget.story['id']?.toString() ?? '');
   bool _sending = false;
 
   String _storyValue(String key, [String fallback = '']) => widget.story[key]?.toString() ?? fallback;
@@ -224,8 +226,14 @@ class _StorySlideState extends State<_StorySlide> {
   @override
   void initState() {
     super.initState();
-    if ((widget.story['mime_type']?.toString() ?? '').startsWith('video/')) {
-      final controller = VideoPlayerController.networkUrl(Uri.parse(widget.story['media_url'].toString()));
+    final storyId = _storyId;
+    _comments = storyId == null
+        ? Future.value(<Map<String, dynamic>>[])
+        : widget.api.storyComments(storyId);
+    final mediaUrl = Uri.tryParse(widget.story['media_url']?.toString() ?? '');
+    if ((widget.story['mime_type']?.toString() ?? '').startsWith('video/') &&
+        mediaUrl != null && (mediaUrl.scheme == 'https' || mediaUrl.scheme == 'http')) {
+      final controller = VideoPlayerController.networkUrl(mediaUrl);
       _video = controller;
       controller.initialize().then((_) {
         if (!mounted) return;
@@ -248,10 +256,12 @@ class _StorySlideState extends State<_StorySlide> {
   void dispose() { _video?.dispose(); _comment.dispose(); super.dispose(); }
 
   Future<void> _toggleLike() async {
+    final storyId = _storyId;
+    if (storyId == null) return;
     final next = !_liked;
     setState(() { _liked = next; _likes = (_likes + (next ? 1 : -1)).clamp(0, 1 << 30); });
     try {
-      await widget.api.toggleStoryLike(int.parse(widget.story['id'].toString()), next);
+      await widget.api.toggleStoryLike(storyId, next);
     } catch (_) {
       if (mounted) setState(() { _liked = !next; _likes = (_likes + (next ? -1 : 1)).clamp(0, 1 << 30); });
     }
@@ -259,12 +269,13 @@ class _StorySlideState extends State<_StorySlide> {
 
   Future<void> _sendComment() async {
     final body = _comment.text.trim();
-    if (body.isEmpty || _sending) return;
+    final storyId = _storyId;
+    if (body.isEmpty || _sending || storyId == null) return;
     setState(() => _sending = true);
     try {
-      await widget.api.addStoryComment(int.parse(widget.story['id'].toString()), body);
+      await widget.api.addStoryComment(storyId, body);
       _comment.clear();
-      if (mounted) setState(() => _comments = widget.api.storyComments(int.parse(widget.story['id'].toString())));
+      if (mounted) setState(() => _comments = widget.api.storyComments(storyId));
     } on ApiException catch (e) {
       if (mounted) ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(e.message)));
     } finally {
