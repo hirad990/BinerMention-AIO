@@ -162,7 +162,6 @@ class BinerLiquidGlass extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final dark = Theme.of(context).brightness == Brightness.dark;
-    final accent = BinerPreferences.instance.accent;
     return Padding(
       padding: margin,
       child: AnimatedContainer(
