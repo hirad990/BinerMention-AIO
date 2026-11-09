@@ -2183,8 +2183,14 @@ class _ChatPageState extends State<ChatPage> {
 
 class Brand extends StatelessWidget {
   const Brand({super.key});
-  @override Widget build(BuildContext context) => ShaderMask(
-    shaderCallback: (bounds) => const LinearGradient(colors: [Color(0xFFF7FBFF), cBlue, Color(0xFF9B8CFF)]).createShader(bounds),
-    child: const Text('BinerMention', style: TextStyle(fontSize: 21, fontWeight: FontWeight.w900, letterSpacing: -.45, color: Colors.white)),
-  ).animate().fadeIn(duration: 350.ms).slideX(begin: -.04, duration: 350.ms);
+  @override
+  Widget build(BuildContext context) => Text(
+    'BinerMention',
+    style: TextStyle(
+      fontSize: 21,
+      fontWeight: FontWeight.w800,
+      letterSpacing: -.55,
+      color: Theme.of(context).colorScheme.onSurface,
+    ),
+  ).animate().fadeIn(duration: 240.ms);
 }
