@@ -2,7 +2,7 @@ name: Android APK
 
 on:
   push:
-    branches: [main]
+    branches: ['**']
     paths:
       - 'android/**'
       - 'f9ce68bae32185e60d387b03ed84504f88a5cc7c.png'
