@@ -1,5 +1,3 @@
-import 'dart:ui';
-
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
@@ -144,36 +142,6 @@ class BinerBackdrop extends StatelessWidget {
       ],
     );
   }
-}
-
-class _AmbientGlowPainter extends CustomPainter {
-  const _AmbientGlowPainter({required this.dark, required this.accent});
-  final bool dark;
-  final Color accent;
-
-  @override
-  void paint(Canvas canvas, Size size) {
-    final blue = Paint()
-      ..shader = RadialGradient(
-        colors: [
-          accent.withValues(alpha: dark ? .15 : .13),
-          accent.withValues(alpha: 0),
-        ],
-      ).createShader(Rect.fromCircle(center: Offset(size.width * .92, size.height * .08), radius: size.width * .72));
-    canvas.drawCircle(Offset(size.width * .92, size.height * .08), size.width * .72, blue);
-
-    final violet = Paint()
-      ..shader = RadialGradient(
-        colors: [
-          binerViolet.withValues(alpha: dark ? .13 : .10),
-          binerViolet.withValues(alpha: 0),
-        ],
-      ).createShader(Rect.fromCircle(center: Offset(size.width * .04, size.height * .72), radius: size.width * .62));
-    canvas.drawCircle(Offset(size.width * .04, size.height * .72), size.width * .62, violet);
-  }
-
-  @override
-  bool shouldRepaint(covariant _AmbientGlowPainter oldDelegate) => oldDelegate.dark != dark || oldDelegate.accent != accent;
 }
 
 /// Liquid-glass surface: clipped blur, translucent gradient, hairline border and soft depth.
