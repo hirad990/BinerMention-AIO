@@ -188,12 +188,21 @@ class BinerApi {
       final request = http.MultipartRequest('POST', _uri('v1/media'));
       request.headers['Accept'] = 'application/json';
       request.headers['Authorization'] = 'Bearer $_token';
-      request.files.add(http.MultipartFile.fromBytes(
+      // Stream from the selected file instead of buffering the entire media
+      // payload in memory. This is important on older Android devices.
+      final fileSize = await file.length();
+      if (fileSize <= 0) {
+        throw const ApiException('فایل انتخاب‌شده خالی است.');
+      }
+      if (fileSize > 100 * 1024 * 1024) {
+        throw const ApiException('حجم فایل نباید بیشتر از ۱۰۰ مگابایت باشد.');
+      }
+      request.files.add(await http.MultipartFile.fromPath(
         'file',
-        await file.readAsBytes(),
+        file.path,
         filename: file.name,
       ));
-      final streamed = await _client.send(request).timeout(const Duration(seconds: 45));
+      final streamed = await _client.send(request).timeout(const Duration(seconds: 120));
       final response = await http.Response.fromStream(streamed);
       final decoded = jsonDecode(utf8.decode(response.bodyBytes));
       if (decoded is! Map<String, dynamic>) throw const FormatException();
