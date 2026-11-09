@@ -216,7 +216,9 @@ class _StorySlideState extends State<_StorySlide> {
   VideoPlayerController? _video;
   late bool _liked = widget.story['is_liked'] == true || widget.story['is_liked']?.toString() == '1';
   late int _likes = int.tryParse(widget.story['likes_count']?.toString() ?? '') ?? 0;
-  late Future<List<Map<String, dynamic>>> _comments = widget.api.storyComments(int.parse(widget.story['id'].toString()));
+  late Future<List<Map<String, dynamic>>> _comments = Future.value(<Map<String, dynamic>>[]);
+
+  int? get _storyId => int.tryParse(widget.story['id']?.toString() ?? '');
   bool _sending = false;
 
   String _storyValue(String key, [String fallback = '']) => widget.story[key]?.toString() ?? fallback;
@@ -224,8 +226,14 @@ class _StorySlideState extends State<_StorySlide> {
   @override
   void initState() {
     super.initState();
-    if ((widget.story['mime_type']?.toString() ?? '').startsWith('video/')) {
-      final controller = VideoPlayerController.networkUrl(Uri.parse(widget.story['media_url'].toString()));
+    final storyId = _storyId;
+    _comments = storyId == null
+        ? Future.value(<Map<String, dynamic>>[])
+        : widget.api.storyComments(storyId);
+    final mediaUrl = Uri.tryParse(widget.story['media_url']?.toString() ?? '');
+    if ((widget.story['mime_type']?.toString() ?? '').startsWith('video/') &&
+        mediaUrl != null && (mediaUrl.scheme == 'https' || mediaUrl.scheme == 'http')) {
+      final controller = VideoPlayerController.networkUrl(mediaUrl);
       _video = controller;
       controller.initialize().then((_) {
         if (!mounted) return;
@@ -248,10 +256,12 @@ class _StorySlideState extends State<_StorySlide> {
   void dispose() { _video?.dispose(); _comment.dispose(); super.dispose(); }
 
   Future<void> _toggleLike() async {
+    final storyId = _storyId;
+    if (storyId == null) return;
     final next = !_liked;
     setState(() { _liked = next; _likes = (_likes + (next ? 1 : -1)).clamp(0, 1 << 30); });
     try {
-      await widget.api.toggleStoryLike(int.parse(widget.story['id'].toString()), next);
+      await widget.api.toggleStoryLike(storyId, next);
     } catch (_) {
       if (mounted) setState(() { _liked = !next; _likes = (_likes + (next ? -1 : 1)).clamp(0, 1 << 30); });
     }
@@ -259,12 +269,13 @@ class _StorySlideState extends State<_StorySlide> {
 
   Future<void> _sendComment() async {
     final body = _comment.text.trim();
-    if (body.isEmpty || _sending) return;
+    final storyId = _storyId;
+    if (body.isEmpty || _sending || storyId == null) return;
     setState(() => _sending = true);
     try {
-      await widget.api.addStoryComment(int.parse(widget.story['id'].toString()), body);
+      await widget.api.addStoryComment(storyId, body);
       _comment.clear();
-      if (mounted) setState(() => _comments = widget.api.storyComments(int.parse(widget.story['id'].toString())));
+      if (mounted) setState(() => _comments = widget.api.storyComments(storyId));
     } on ApiException catch (e) {
       if (mounted) ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(e.message)));
     } finally {
@@ -1110,7 +1121,23 @@ class _LiveHomeState extends State<LiveHome> with WidgetsBindingObserver {
     final name = value(p, 'display_name', value(p, 'username', 'کاربر'));
     final body = value(p, 'body');
     final liked = p['liked'] == true, reposted = p['reposted'] == true;
-    final postCard = Container(padding: const EdgeInsets.fromLTRB(15, 15, 15, 11), margin: const EdgeInsets.symmetric(horizontal: 12, vertical: 6), decoration: BoxDecoration(color: Theme.of(context).brightness == Brightness.dark ? const Color(0xCC101827) : const Color(0xF7FFFFFF), borderRadius: BorderRadius.circular(22), border: Border.all(color: Theme.of(context).brightness == Brightness.dark ? const Color(0x4439C5FF) : const Color(0x223D6592)), boxShadow: [BoxShadow(color: Theme.of(context).brightness == Brightness.dark ? const Color(0x16000000) : const Color(0x0D27476A), blurRadius: 22, offset: const Offset(0, 7))]), child: Row(crossAxisAlignment: CrossAxisAlignment.start, children: [
+    final dark = Theme.of(context).brightness == Brightness.dark;
+    final postCard = Container(
+      padding: const EdgeInsets.fromLTRB(15, 15, 15, 11),
+      margin: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+      decoration: BoxDecoration(
+        color: Theme.of(context).colorScheme.surface,
+        borderRadius: BorderRadius.circular(18),
+        border: Border.all(color: Theme.of(context).dividerColor.withValues(alpha: dark ? .72 : .9)),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withValues(alpha: dark ? .10 : .025),
+            blurRadius: 14,
+            offset: const Offset(0, 4),
+          ),
+        ],
+      ),
+      child: Row(crossAxisAlignment: CrossAxisAlignment.start, children: [
       GestureDetector(onTap: () => openUserProfile(value(p, 'username')), child: avatar(name, p, 21)), const SizedBox(width: 10), Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
         Row(children: [
           Expanded(child: Wrap(crossAxisAlignment: WrapCrossAlignment.center, spacing: 3, children: [
@@ -1161,7 +1188,7 @@ class _LiveHomeState extends State<LiveHome> with WidgetsBindingObserver {
     children: [
       Padding(padding: const EdgeInsets.fromLTRB(16, 12, 16, 8), child: Row(children: [
         const Brand(), const Spacer(),
-        IconButton(tooltip: 'BinerAI', onPressed: openBinerAI, icon: const Icon(Icons.auto_awesome_rounded, color: Color(0xFF9B8CFF))),
+        IconButton(tooltip: 'BinerAI', onPressed: openBinerAI, icon: const Icon(Icons.lightbulb_outline_rounded, color: cMuted)),
         IconButton(tooltip: 'Biner Insights', onPressed: openInsights, icon: const Icon(Icons.insights_rounded, color: cBlue)),
         Container(decoration: BoxDecoration(color: Theme.of(context).brightness == Brightness.dark ? cGlass : const Color(0xEFFFFFFF), borderRadius: BorderRadius.circular(18), border: Border.all(color: cLine)), child: IconButton(onPressed: searchUser, icon: const Icon(Icons.search_rounded, color: cBlue), tooltip: 'جست‌وجوی کاربر')),
         const SizedBox(width: 4),
@@ -2156,8 +2183,14 @@ class _ChatPageState extends State<ChatPage> {
 
 class Brand extends StatelessWidget {
   const Brand({super.key});
-  @override Widget build(BuildContext context) => ShaderMask(
-    shaderCallback: (bounds) => const LinearGradient(colors: [Color(0xFFF7FBFF), cBlue, Color(0xFF9B8CFF)]).createShader(bounds),
-    child: const Text('BinerMention', style: TextStyle(fontSize: 21, fontWeight: FontWeight.w900, letterSpacing: -.45, color: Colors.white)),
-  ).animate().fadeIn(duration: 350.ms).slideX(begin: -.04, duration: 350.ms);
+  @override
+  Widget build(BuildContext context) => Text(
+    'BinerMention',
+    style: TextStyle(
+      fontSize: 21,
+      fontWeight: FontWeight.w800,
+      letterSpacing: -.55,
+      color: Theme.of(context).colorScheme.onSurface,
+    ),
+  ).animate().fadeIn(duration: 240.ms);
 }

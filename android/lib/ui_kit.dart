@@ -1,5 +1,3 @@
-import 'dart:ui';
-
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
@@ -118,55 +116,32 @@ class BinerBackdrop extends StatelessWidget {
     return Stack(
       fit: StackFit.expand,
       children: [
-        DecoratedBox(
-          decoration: BoxDecoration(
-            gradient: LinearGradient(
-              begin: Alignment.topLeft,
-              end: Alignment.bottomRight,
-              colors: dark
-                  ? const [Color(0xFF000000), Color(0xFF050509), Color(0xFF000000)]
-                  : const [Color(0xFFF4F8FF), Color(0xFFEAF3FF), Color(0xFFF9FAFF)],
-            ),
-          ),
+        ColoredBox(
+          color: dark ? const Color(0xFF0B0D12) : const Color(0xFFF5F7FA),
         ),
+        // A restrained accent wash keeps the app recognizable without the
+        // heavy neon/glass look or expensive full-screen blur effects.
         if (!BinerPreferences.instance.fastMode)
-          Positioned.fill(
-            child: CustomPaint(painter: _AmbientGlowPainter(dark: dark, accent: accent)),
+          Positioned(
+            top: -150,
+            right: -130,
+            child: IgnorePointer(
+              child: Container(
+                width: 300,
+                height: 300,
+                decoration: BoxDecoration(
+                  shape: BoxShape.circle,
+                  gradient: RadialGradient(
+                    colors: [accent.withValues(alpha: dark ? .075 : .055), Colors.transparent],
+                  ),
+                ),
+              ),
+            ),
           ),
         child,
       ],
     );
   }
-}
-
-class _AmbientGlowPainter extends CustomPainter {
-  const _AmbientGlowPainter({required this.dark, required this.accent});
-  final bool dark;
-  final Color accent;
-
-  @override
-  void paint(Canvas canvas, Size size) {
-    final blue = Paint()
-      ..shader = RadialGradient(
-        colors: [
-          accent.withValues(alpha: dark ? .15 : .13),
-          accent.withValues(alpha: 0),
-        ],
-      ).createShader(Rect.fromCircle(center: Offset(size.width * .92, size.height * .08), radius: size.width * .72));
-    canvas.drawCircle(Offset(size.width * .92, size.height * .08), size.width * .72, blue);
-
-    final violet = Paint()
-      ..shader = RadialGradient(
-        colors: [
-          binerViolet.withValues(alpha: dark ? .13 : .10),
-          binerViolet.withValues(alpha: 0),
-        ],
-      ).createShader(Rect.fromCircle(center: Offset(size.width * .04, size.height * .72), radius: size.width * .62));
-    canvas.drawCircle(Offset(size.width * .04, size.height * .72), size.width * .62, violet);
-  }
-
-  @override
-  bool shouldRepaint(covariant _AmbientGlowPainter oldDelegate) => oldDelegate.dark != dark || oldDelegate.accent != accent;
 }
 
 /// Liquid-glass surface: clipped blur, translucent gradient, hairline border and soft depth.
@@ -187,41 +162,28 @@ class BinerLiquidGlass extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final dark = Theme.of(context).brightness == Brightness.dark;
-    final accent = BinerPreferences.instance.accent;
     return Padding(
       padding: margin,
-      child: ClipRRect(
-        borderRadius: borderRadius,
-        child: BackdropFilter(
-          filter: ImageFilter.blur(sigmaX: BinerPreferences.instance.fastMode ? 0 : 12, sigmaY: BinerPreferences.instance.fastMode ? 0 : 12),
-          child: AnimatedContainer(
-            duration: const Duration(milliseconds: 260),
-            curve: Curves.easeOutCubic,
-            padding: padding,
-            decoration: BoxDecoration(
-              borderRadius: borderRadius,
-              gradient: LinearGradient(
-                begin: Alignment.topLeft,
-                end: Alignment.bottomRight,
-                colors: dark
-                    ? [const Color(0xE60D0D12), const Color(0xD908080B)]
-                    : [const Color(0xDDFEFFFF), const Color(0xBFEAF2FC)],
-              ),
-              border: Border.all(
-                color: accent.withValues(alpha: .34),
-                width: 1,
-              ),
-              boxShadow: [
-                BoxShadow(
-                  color: (dark ? accent : const Color(0xFF4777AA)).withValues(alpha: .10),
-                  blurRadius: BinerPreferences.instance.fastMode ? 0 : 28,
-                  offset: const Offset(0, 10),
-                ),
-              ],
-            ),
-            child: child,
+      child: AnimatedContainer(
+        duration: const Duration(milliseconds: 220),
+        curve: Curves.easeOutCubic,
+        padding: padding,
+        decoration: BoxDecoration(
+          color: dark ? const Color(0xFF141820) : Colors.white,
+          borderRadius: borderRadius,
+          border: Border.all(
+            color: dark ? const Color(0xFF252D39) : const Color(0xFFE4E9F0),
+            width: 1,
           ),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withValues(alpha: dark ? .12 : .035),
+              blurRadius: BinerPreferences.instance.fastMode ? 0 : 18,
+              offset: const Offset(0, 5),
+            ),
+          ],
         ),
+        child: child,
       ),
     );
   }

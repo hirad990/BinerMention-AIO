@@ -2,7 +2,7 @@ name: Android APK
 
 on:
   push:
-    branches: [main]
+    branches: ['**']
     paths:
       - 'android/**'
       - 'f9ce68bae32185e60d387b03ed84504f88a5cc7c.png'
@@ -19,7 +19,7 @@ permissions:
 
 concurrency:
   group: android-apk-${{ github.ref }}
-  cancel-in-progress: true
+  cancel-in-progress: false
 
 jobs:
   validate-and-build:
@@ -186,7 +186,8 @@ jobs:
         working-directory: ${{ runner.temp }}/binerm_mention
         run: |
           dart format lib
-          if [ -d test ]; then dart format test; fi
+          dart format --output=none --set-exit-if-changed lib
+          if [ -d test ]; then dart format test; dart format --output=none --set-exit-if-changed test; fi
 
       - name: Analyze Dart sources
         working-directory: ${{ runner.temp }}/binerm_mention
