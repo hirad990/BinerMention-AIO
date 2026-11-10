@@ -188,9 +188,15 @@ class BinerApi {
       final request = http.MultipartRequest('POST', _uri('v1/media'));
       request.headers['Accept'] = 'application/json';
       request.headers['Authorization'] = 'Bearer $_token';
-      request.files.add(http.MultipartFile.fromBytes(
+      final fileLength = await file.length();
+      if (fileLength <= 0) {
+        throw const ApiException('فایل انتخاب‌شده خالی است.');
+      }
+      // Stream the file instead of loading the entire image/video into RAM.
+      request.files.add(http.MultipartFile(
         'file',
-        await file.readAsBytes(),
+        file.openRead(),
+        fileLength,
         filename: file.name,
       ));
       final streamed = await _client.send(request).timeout(const Duration(seconds: 45));
