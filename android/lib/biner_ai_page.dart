@@ -1,3 +1,4 @@
+import 'app_preferences.dart';
 import 'localized_text.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
