@@ -421,7 +421,7 @@ String? _translateDynamicBinerText(String value, String language) {
   final postCount = RegExp(r'^پست (\d+)$').firstMatch(value);
   if (postCount != null) {
     final n = postCount.group(1)!;
-    return switch (language) { 'en' => '$n posts', 'ar' => '$n منشورات', 'tr' => '$n gönderi', _ => null };
+    return switch (language) { 'en' => 'Post by $n', 'ar' => 'منشور بواسطة $n', 'tr' => '$n tarafından gönderi', _ => null };
   }
   final profilePosts = RegExp(r'^پست (.+)$').firstMatch(value);
   if (profilePosts != null) {
