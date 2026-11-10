@@ -903,6 +903,7 @@ class _LiveHomeState extends State<LiveHome> with WidgetsBindingObserver {
   }
   Future<void> compose({int? replyToId}) async {
     final controller = TextEditingController();
+    final threadControllers = <TextEditingController>[];
     final pollControllers = [TextEditingController(), TextEditingController()];
     bool pollEnabled = false;
     XFile? attachment;
@@ -933,6 +934,29 @@ class _LiveHomeState extends State<LiveHome> with WidgetsBindingObserver {
                   style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
               TextField(controller: controller, autofocus: true, minLines: 3, maxLines: 5, maxLength: 280,
                   decoration: InputDecoration(hintText: binerText('چه خبر؟  #هشتگ  @منشن'), border: InputBorder.none)),
+              if (threadControllers.isNotEmpty) ...[
+                const Divider(height: 18),
+                Row(children: [
+                  const Icon(Icons.account_tree_outlined, color: cBlue, size: 18),
+                  const SizedBox(width: 7),
+                  Expanded(child: BinerLocalizedText('ادامهٔ Thread', style: TextStyle(color: Theme.of(ctx).colorScheme.primary, fontWeight: FontWeight.w800))),
+                  BinerLocalizedText('${threadControllers.length + 1} پست', style: const TextStyle(color: cMuted, fontSize: 11)),
+                ]),
+                ...threadControllers.asMap().entries.map((entry) => Padding(
+                  padding: const EdgeInsets.only(top: 8),
+                  child: TextField(
+                    controller: entry.value,
+                    minLines: 2,
+                    maxLines: 4,
+                    maxLength: 280,
+                    decoration: InputDecoration(
+                      hintText: 'بخش ${entry.key + 2} از Thread',
+                      prefixIcon: const Icon(Icons.subdirectory_arrow_right_rounded, size: 18),
+                      counterText: '',
+                    ),
+                  ),
+                )),
+              ],
               if (pollEnabled) ...[
                 const SizedBox(height: 8),
                 Row(children: [const Icon(Icons.poll_outlined, color: cBlue), const SizedBox(width: 8), Expanded(child: BinerLocalizedText(binerText('گزینه‌های نظرسنجی',en:'Poll options',ar:'خيارات الاستطلاع',tr:'Anket seçenekleri'), style: const TextStyle(fontWeight: FontWeight.w700))), IconButton(onPressed: () { if (pollControllers.length < 4) sheetSetState(() => pollControllers.add(TextEditingController())); }, icon: const Icon(Icons.add_circle_outline, color: cBlue))]),
@@ -942,6 +966,12 @@ class _LiveHomeState extends State<LiveHome> with WidgetsBindingObserver {
                 ListTile(leading: const Icon(Icons.image, color: cBlue), title: BinerLocalizedText(attachment!.name, maxLines: 1, overflow: TextOverflow.ellipsis),
                   trailing: IconButton(icon: const Icon(Icons.close), onPressed: () => sheetSetState(() => attachment = null))),
               Row(children: [
+                if (replyToId == null)
+                  IconButton(
+                    tooltip: 'افزودن بخش به Thread',
+                    onPressed: () => sheetSetState(() => threadControllers.add(TextEditingController())),
+                    icon: const Icon(Icons.add_comment_outlined, color: cBlue),
+                  ),
                 IconButton(tooltip: binerText('افزودن هشتگ',en:'Add hashtag',ar:'إضافة وسم',tr:'Etiket ekle'), onPressed: () => insertToken('#'), icon: const Icon(Icons.tag_rounded, color: cBlue)),
                 IconButton(tooltip: binerText('منشن کردن کاربر',en:'Mention user',ar:'الإشارة إلى مستخدم',tr:'Kullanıcıdan bahset'), onPressed: () => insertToken('@'), icon: const Icon(Icons.alternate_email_rounded, color: Color(0xFF9B8CFF))),
                 IconButton(
@@ -958,8 +988,12 @@ class _LiveHomeState extends State<LiveHome> with WidgetsBindingObserver {
                   icon: const Icon(Icons.image_outlined, color: cBlue),
                 ),
                 const Spacer(),
-                FilledButton(onPressed: () => Navigator.pop(ctx, {'text': controller.text.trim(), 'attachment': attachment, 'poll_options': pollEnabled ? pollControllers.map((c) => c.text.trim()).where((v) => v.isNotEmpty).toList() : null}),
-                    child: BinerLocalizedText(binerText('انتشار',en:'Publish',ar:'نشر',tr:'Paylaş'))),
+                FilledButton(onPressed: () => Navigator.pop(ctx, {
+                  'text': controller.text.trim(),
+                  'thread_parts': threadControllers.map((c) => c.text.trim()).where((v) => v.isNotEmpty).toList(),
+                  'attachment': attachment,
+                  'poll_options': pollEnabled ? pollControllers.map((c) => c.text.trim()).where((v) => v.isNotEmpty).toList() : null,
+                }), child: BinerLocalizedText(binerText('انتشار',en:'Publish',ar:'نشر',tr:'Paylaş'))),
               ]),
             ],
           ),
@@ -967,13 +1001,18 @@ class _LiveHomeState extends State<LiveHome> with WidgetsBindingObserver {
       ),
     );
     controller.dispose();
+    final threadParts = (result?['thread_parts'] as List?)?.whereType<String>().toList() ?? const <String>[];
+    for (final item in threadControllers) { item.dispose(); }
     final pollOptions = (result?['poll_options'] as List?)?.whereType<String>().toList();
     for (final item in pollControllers) { item.dispose(); }
     if (result == null || !mounted) return;
     final text = (result['text'] as String? ?? '').trim();
     final file = result['attachment'] as XFile?;
     if (pollOptions != null && (pollOptions.length < 2 || pollOptions.length > 4)) { toast(binerText('نظرسنجی باید ۲ تا ۴ گزینه داشته باشد.',en:'A poll needs 2 to 4 options.',ar:'يجب أن يحتوي الاستطلاع على خيارين إلى أربعة.',tr:'Anket 2-4 seçenek içermeli.')); return; }
-    if (text.isEmpty && file == null && (pollOptions == null || pollOptions.isEmpty)) return;
+    if (text.isEmpty && file == null && (pollOptions == null || pollOptions.isEmpty) && threadParts.isEmpty) return;
+    if (threadParts.length > 9) { toast('هر Thread حداکثر ۱۰ بخش دارد.'); return; }
+    if (threadParts.any((part) => part.length > 280)) { toast('هر بخش Thread حداکثر ۲۸۰ نویسه دارد.'); return; }
+    if (threadParts.isNotEmpty && (pollOptions != null || file != null)) { toast('برای انتشار Thread چندبخشی، فعلاً نظرسنجی و رسانه را جداگانه منتشر کن.'); return; }
     setState(() => posting = true);
     try {
       int? mediaId;
@@ -984,8 +1023,16 @@ class _LiveHomeState extends State<LiveHome> with WidgetsBindingObserver {
       final item = replyToId == null
           ? await widget.api.createPost(text, mediaId: mediaId, pollOptions: pollOptions)
           : await widget.api.addComment(replyToId, text, mediaId: mediaId);
+      if (threadParts.isNotEmpty && replyToId == null) {
+        var parentId = int.parse(item['id'].toString());
+        for (final part in threadParts) {
+          final next = await widget.api.createPost(part, replyToId: parentId);
+          parentId = int.parse(next['id'].toString());
+        }
+      }
       if (replyToId == null && mounted) setState(() => posts.insert(0, item));
       if (replyToId != null && mounted) toast('کامنت ثبت شد.');
+      if (threadParts.isNotEmpty && mounted) toast('Thread با ${threadParts.length + 1} بخش منتشر شد.');
     } on ApiException catch (e) {
       if (mounted) toast(e.message);
     } finally {
@@ -1048,7 +1095,7 @@ class _LiveHomeState extends State<LiveHome> with WidgetsBindingObserver {
     final lockKey = '$id:$actionName';
     if (_postActionsInFlight.contains(lockKey)) return;
     _postActionsInFlight.add(lockKey);
-    final oldFlag = p[flag] == true, oldCount = int.tryParse((p[count] ?? 0).toString()) ?? 0;
+    final oldFlag = _asBool(p[flag]), oldCount = int.tryParse((p[count] ?? 0).toString()) ?? 0;
     setState(() { p[flag] = !oldFlag; p[count] = oldCount + (oldFlag ? -1 : 1); });
     try {
       await widget.api.togglePostAction(id, actionName, !oldFlag);
