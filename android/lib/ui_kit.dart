@@ -13,6 +13,11 @@ import 'app_preferences.dart';
 const binerBlue = Color(0xFF54C8FF);
 const binerViolet = Color(0xFF9B8CFF);
 
+Color binerScaffoldBackground(BuildContext context) =>
+    defaultTargetPlatform == TargetPlatform.iOS
+        ? Colors.transparent
+        : Theme.of(context).colorScheme.surface;
+
 /// Shared Material 3 theme with a Persian-friendly typeface and adaptive surfaces.
 ThemeData buildBinerTheme(Brightness brightness, {Color seedColor = binerBlue}) {
   final dark = brightness == Brightness.dark;
@@ -31,7 +36,7 @@ ThemeData buildBinerTheme(Brightness brightness, {Color seedColor = binerBlue}) 
   return base.copyWith(
     platform: defaultTargetPlatform,
     brightness: brightness,
-    scaffoldBackgroundColor: pageSurface,
+    scaffoldBackgroundColor: defaultTargetPlatform == TargetPlatform.iOS ? Colors.transparent : pageSurface,
     colorScheme: ColorScheme.fromSeed(
       seedColor: seedColor,
       brightness: brightness,
@@ -266,7 +271,7 @@ class BinerLiquidGlass extends StatelessWidget {
     final reduceEffects = BinerPreferences.instance.fastMode;
     final surface = DecoratedBox(
       decoration: BoxDecoration(
-        color: Theme.of(context).colorScheme.surface.withValues(alpha: ios ? (dark ? .78 : .82) : (dark ? .94 : .97)),
+        color: Theme.of(context).colorScheme.surface.withValues(alpha: ios ? (dark ? .58 : .68) : (dark ? .94 : .97)),
         borderRadius: borderRadius,
         border: Border.all(
           color: Theme.of(context).colorScheme.outlineVariant.withValues(alpha: .65),
@@ -283,7 +288,7 @@ class BinerLiquidGlass extends StatelessWidget {
           child: reduceEffects
               ? surface
               : BackdropFilter(
-                  filter: ImageFilter.blur(sigmaX: ios ? 18 : 9, sigmaY: ios ? 18 : 9),
+                  filter: ImageFilter.blur(sigmaX: ios ? 25 : 9, sigmaY: ios ? 25 : 9),
                   child: surface,
                 ),
         ),
@@ -361,7 +366,7 @@ class BinerSurfaceCard extends StatelessWidget {
     final content = Container(
       padding: padding,
       decoration: BoxDecoration(
-        color: Theme.of(context).colorScheme.surfaceContainer,
+        color: Theme.of(context).colorScheme.surfaceContainer.withValues(alpha: ios ? (dark ? .62 : .72) : 1),
         borderRadius: BorderRadius.circular(radius),
         border: Border.all(color: Theme.of(context).colorScheme.outlineVariant.withValues(alpha: .72)),
         boxShadow: [
@@ -374,7 +379,7 @@ class BinerSurfaceCard extends StatelessWidget {
       ),
       child: child,
     );
-    return Padding(
+    final surface = Padding(
       padding: margin,
       child: onTap == null
           ? RepaintBoundary(child: content)
@@ -399,6 +404,14 @@ class BinerSurfaceCard extends StatelessWidget {
                     child: RepaintBoundary(child: content),
                   ),
                 ),
+    );
+    if (!ios) return surface;
+    return ClipRRect(
+      borderRadius: BorderRadius.circular(radius + 2),
+      child: BackdropFilter(
+        filter: ImageFilter.blur(sigmaX: 20, sigmaY: 20),
+        child: surface,
+      ),
     );
   }
 }
