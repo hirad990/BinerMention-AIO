@@ -472,7 +472,7 @@ class BinerAdaptiveBackButton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) => IconButton(
-    tooltip: 'بازگشت',
+    tooltip: binerText('بازگشت'),
     onPressed: onPressed ?? () => Navigator.maybePop(context),
     icon: Icon(
       Theme.of(context).platform == TargetPlatform.iOS
