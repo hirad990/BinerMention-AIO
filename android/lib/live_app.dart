@@ -1674,38 +1674,85 @@ class _LiveHomeState extends State<LiveHome> with WidgetsBindingObserver {
     animation: BinerPreferences.instance,
     builder: (context, _) {
       final pages = [home(), explore(), notifications(), conversations(), profile()];
-      return Scaffold(
-      body: SafeArea(child: IndexedStack(index: tab, children: pages)),
-      floatingActionButton: tab == 0
-          ? FloatingActionButton(
-              onPressed: posting ? null : compose,
-              backgroundColor: cBlue,
-              foregroundColor: const Color(0xFF06111D),
-              child: const Icon(Icons.add_rounded),
-            ).animate().scale(begin: const Offset(.78, .78), duration: 240.ms, curve: Curves.easeOutBack)
-          : null,
-      bottomNavigationBar: Padding(
-        padding: const EdgeInsets.fromLTRB(12, 0, 12, 8),
-        child: BinerLiquidGlass(
-          borderRadius: BorderRadius.circular(26),
-          child: NavigationBar(
-            height: 68,
-            labelBehavior: NavigationDestinationLabelBehavior.onlyShowSelected,
-            backgroundColor: Colors.transparent,
-            elevation: 0,
-            indicatorColor: cBlue.withValues(alpha: .20),
-            selectedIndex: tab,
-            onDestinationSelected: (i) { setState(() { tab = i; if (i == 2) _notificationsFuture = widget.api.notifications(); if (i == 3) _conversationsFuture = widget.api.conversations(); }); },
-            destinations: [
-              NavigationDestination(icon: Icon(Icons.home_outlined), selectedIcon: Icon(Icons.home_rounded, color: cBlue), label: binerText('خانه', en:'Home', ar:'الرئيسية', tr:'Ana sayfa')),
-              NavigationDestination(icon: Icon(Icons.search_rounded), selectedIcon: Icon(Icons.search_rounded, color: cBlue), label: binerText('کاوش', en:'Explore', ar:'استكشاف', tr:'Keşfet')),
-              NavigationDestination(icon: Icon(Icons.notifications_none_rounded), selectedIcon: Icon(Icons.notifications_rounded, color: cBlue), label: binerText('اعلان‌ها',en:'Notifications',ar:'الإشعارات',tr:'Bildirimler')),
-              NavigationDestination(icon: Icon(Icons.mail_outline_rounded), selectedIcon: Icon(Icons.mail_rounded, color: cBlue), label: binerText('پیام‌ها', en:'Messages', ar:'الرسائل', tr:'Mesajlar')),
-              NavigationDestination(icon: Icon(Icons.person_outline_rounded), selectedIcon: Icon(Icons.person_rounded, color: cBlue), label: binerText('پروفایل', en:'Profile', ar:'الملف الشخصي', tr:'Profil')),
-            ],
-          ),
-        ),
-      ),
+      final labels = [
+        binerText('خانه', en:'Home', ar:'الرئيسية', tr:'Ana sayfa'),
+        binerText('کاوش', en:'Explore', ar:'استكشاف', tr:'Keşfet'),
+        binerText('اعلان‌ها', en:'Notifications', ar:'الإشعارات', tr:'Bildirimler'),
+        binerText('پیام‌ها', en:'Messages', ar:'الرسائل', tr:'Mesajlar'),
+        binerText('پروفایل', en:'Profile', ar:'الملف الشخصي', tr:'Profil'),
+      ];
+      final icons = [
+        const Icon(Icons.home_outlined), const Icon(Icons.search_rounded),
+        const Icon(Icons.notifications_none_rounded), const Icon(Icons.mail_outline_rounded),
+        const Icon(Icons.person_outline_rounded),
+      ];
+      final selectedIcons = [
+        const Icon(Icons.home_rounded, color: cBlue), const Icon(Icons.search_rounded, color: cBlue),
+        const Icon(Icons.notifications_rounded, color: cBlue), const Icon(Icons.mail_rounded, color: cBlue),
+        const Icon(Icons.person_rounded, color: cBlue),
+      ];
+      void selectTab(int index) => setState(() {
+        tab = index;
+        if (index == 2) _notificationsFuture = widget.api.notifications();
+        if (index == 3) _conversationsFuture = widget.api.conversations();
+      });
+      return LayoutBuilder(
+        builder: (context, constraints) {
+          final desktop = constraints.maxWidth >= 900;
+          final destinations = List.generate(5, (i) => NavigationDestination(
+            icon: icons[i], selectedIcon: selectedIcons[i], label: labels[i],
+          ));
+          return Scaffold(
+            body: desktop
+                ? Row(children: [
+                    Padding(
+                      padding: const EdgeInsets.fromLTRB(14, 14, 0, 14),
+                      child: BinerLiquidGlass(
+                        borderRadius: BorderRadius.circular(26),
+                        padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 6),
+                        child: NavigationRail(
+                          backgroundColor: Colors.transparent,
+                          elevation: 0,
+                          selectedIndex: tab,
+                          onDestinationSelected: selectTab,
+                          labelType: NavigationRailLabelType.all,
+                          groupAlignment: -.8,
+                          destinations: List.generate(5, (i) => NavigationRailDestination(
+                            icon: icons[i], selectedIcon: selectedIcons[i], label: Text(labels[i]),
+                          )),
+                        ),
+                      ),
+                    ),
+                    const SizedBox(width: 14),
+                    Expanded(child: SafeArea(child: IndexedStack(index: tab, children: pages))),
+                  ])
+                : SafeArea(child: IndexedStack(index: tab, children: pages)),
+            floatingActionButton: tab == 0
+                ? FloatingActionButton(
+                    onPressed: posting ? null : compose,
+                    backgroundColor: cBlue,
+                    foregroundColor: const Color(0xFF06111D),
+                    child: const Icon(Icons.add_rounded),
+                  ).animate().scale(begin: const Offset(.78, .78), duration: 240.ms, curve: Curves.easeOutBack)
+                : null,
+            bottomNavigationBar: desktop ? null : Padding(
+              padding: const EdgeInsets.fromLTRB(12, 0, 12, 8),
+              child: BinerLiquidGlass(
+                borderRadius: BorderRadius.circular(26),
+                child: NavigationBar(
+                  height: 68,
+                  labelBehavior: NavigationDestinationLabelBehavior.onlyShowSelected,
+                  backgroundColor: Colors.transparent,
+                  elevation: 0,
+                  indicatorColor: cBlue.withValues(alpha: .20),
+                  selectedIndex: tab,
+                  onDestinationSelected: selectTab,
+                  destinations: destinations,
+                ),
+              ),
+            ),
+          );
+        },
       );
     },
   );
