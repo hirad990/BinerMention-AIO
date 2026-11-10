@@ -2158,7 +2158,7 @@ class _ChatPageState extends State<ChatPage> {
           ),
         );
         if (destinationId == null || !mounted) return;
-        await widget.api.sendMessage(destinationId, binerText('↗ بازارسال‌شده\n$body'));
+        await widget.api.sendMessage(destinationId, binerText('↗ ${binerText('بازارسال‌شده')}\n$body'));
         if (mounted) toast(binerText('پیام بازارسال شد.'));
       } on ApiException catch (e) {
         if (mounted) toast(e.message);
