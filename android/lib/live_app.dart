@@ -100,7 +100,7 @@ class _BinerLiveAppState extends State<BinerLiveApp> {
         ),
       ),
       child: !ready
-          ? const Scaffold(backgroundColor: Theme.of(context).colorScheme.surface,key: ValueKey('boot'), body: Center(child: CircularProgressIndicator(color: cBlue)))
+          ? Scaffold(backgroundColor: Theme.of(context).colorScheme.surface,key: const ValueKey('boot'), body: Center(child: CircularProgressIndicator(color: cBlue)))
           : loggedIn
               ? LiveHome(key: const ValueKey('home'), api: api, logout: logout, onToggleTheme: toggleTheme, isDark: themeMode == ThemeMode.dark)
               : LiveAuth(key: const ValueKey('auth'), api: api, onDone: signedIn),
