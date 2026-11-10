@@ -1017,6 +1017,7 @@ class _LiveHomeState extends State<LiveHome> with WidgetsBindingObserver {
     }
   }
   String value(Map<String, dynamic> m, String k, [String fallback = '']) => m[k]?.toString() ?? fallback;
+  bool _asBool(dynamic raw) => raw == true || raw == 1 || const {'1', 'true', 'yes'}.contains(raw?.toString().trim().toLowerCase());
   String fmt(dynamic raw) { final n = int.tryParse(raw.toString()) ?? 0; if (n >= 1000) return (n / 1000).toStringAsFixed(1) + 'K'; return n.toString(); }
   Widget avatar(String n, [Map<String, dynamic>? user, double radius = 22]) {
     final url = user?['avatar_url']?.toString() ?? '';
@@ -1040,6 +1041,7 @@ class _LiveHomeState extends State<LiveHome> with WidgetsBindingObserver {
   Future<void> showReplies(Map<String, dynamic> post) async {
     final id = int.tryParse(value(post, 'id'));
     if (id == null) return;
+    final commentsFuture = widget.api.comments(id);
     await showModalBottomSheet<void>(
       context: context,
       isScrollControlled: true,
@@ -1066,7 +1068,7 @@ class _LiveHomeState extends State<LiveHome> with WidgetsBindingObserver {
           ),
           Expanded(
             child: FutureBuilder<List<Map<String, dynamic>>>(
-              future: widget.api.comments(id),
+              future: commentsFuture,
               builder: (context, snap) {
                 if (snap.connectionState == ConnectionState.waiting) return const Center(child: CircularProgressIndicator(color: cBlue));
                 if (snap.hasError) return Center(child: Padding(padding: const EdgeInsets.all(20), child: Text(snap.error.toString(), textAlign: TextAlign.center)));
@@ -1111,7 +1113,7 @@ class _LiveHomeState extends State<LiveHome> with WidgetsBindingObserver {
   Widget card(Map<String, dynamic> p) {
     final name = value(p, 'display_name', value(p, 'username', 'کاربر'));
     final body = value(p, 'body');
-    final liked = p['liked'] == true, reposted = p['reposted'] == true;
+    final liked = _asBool(p['liked']), reposted = _asBool(p['reposted']);
     final postCard = Container(padding: const EdgeInsets.fromLTRB(15, 15, 15, 11), margin: const EdgeInsets.symmetric(horizontal: 12, vertical: 6), decoration: BoxDecoration(color: Theme.of(context).brightness == Brightness.dark ? const Color(0xCC101827) : const Color(0xF7FFFFFF), borderRadius: BorderRadius.circular(22), border: Border.all(color: Theme.of(context).brightness == Brightness.dark ? const Color(0x4439C5FF) : const Color(0x223D6592)), boxShadow: [BoxShadow(color: Theme.of(context).brightness == Brightness.dark ? const Color(0x16000000) : const Color(0x0D27476A), blurRadius: 22, offset: const Offset(0, 7))]), child: Row(crossAxisAlignment: CrossAxisAlignment.start, children: [
       GestureDetector(onTap: () => openUserProfile(value(p, 'username')), child: avatar(name, p, 21)), const SizedBox(width: 10), Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
         Row(children: [
@@ -1144,7 +1146,7 @@ class _LiveHomeState extends State<LiveHome> with WidgetsBindingObserver {
               constraints: const BoxConstraints(maxHeight: 300, maxWidth: 520),
               child: (value(p, 'mime_type').startsWith('video/') || RegExp(r'\.(mp4|webm)(\?|$)', caseSensitive: false).hasMatch(value(p, 'media_url')))
                 ? Container(width: double.infinity, height: 190, color: Colors.black, child: const Center(child: Icon(Icons.play_circle_fill_rounded, color: Colors.white, size: 52)))
-                : Image.network(value(p, 'media_url'), width: double.infinity, fit: BoxFit.contain, cacheWidth: 1200, filterQuality: FilterQuality.low, errorBuilder: (_, __, ___) => const SizedBox.shrink()),
+                : Image.network(value(p, 'media_url'), width: double.infinity, fit: BoxFit.contain, cacheWidth: 720, filterQuality: FilterQuality.low, errorBuilder: (_, __, ___) => const SizedBox.shrink()),
             )),
           )),
         const SizedBox(height: 10),
@@ -1157,7 +1159,7 @@ class _LiveHomeState extends State<LiveHome> with WidgetsBindingObserver {
         ]),
       ])),
     ]));
-    return RepaintBoundary(child: BinerPreferences.instance.fastMode ? postCard : postCard.animate().fadeIn(duration: 220.ms).slideY(begin: .02, duration: 220.ms, curve: Curves.easeOutCubic));
+    return RepaintBoundary(child: postCard);
   }
   Widget home() => Column(
     children: [
@@ -1956,7 +1958,7 @@ class _ChatPageState extends State<ChatPage> {
       builder: (ctx) => ClipRRect(
         borderRadius: const BorderRadius.vertical(top: Radius.circular(28)),
         child: BackdropFilter(
-          filter: ImageFilter.blur(sigmaX: 24, sigmaY: 24),
+          filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
           child: Container(
             padding: const EdgeInsets.fromLTRB(18, 14, 18, 24),
             decoration: BoxDecoration(color: const Color(0xEE0B1422), border: Border.all(color: cLine), borderRadius: const BorderRadius.vertical(top: Radius.circular(28))),
@@ -2001,7 +2003,7 @@ class _ChatPageState extends State<ChatPage> {
           builder: (ctx) => ClipRRect(
             borderRadius: const BorderRadius.vertical(top: Radius.circular(28)),
             child: BackdropFilter(
-              filter: ImageFilter.blur(sigmaX: 16, sigmaY: 16),
+              filter: ImageFilter.blur(sigmaX: 8, sigmaY: 8),
               child: Container(
                 decoration: BoxDecoration(color: const Color(0xF20B0B10), borderRadius: const BorderRadius.vertical(top: Radius.circular(28)), border: Border.all(color: cLine)),
                 padding: const EdgeInsets.fromLTRB(12, 14, 12, 22),
