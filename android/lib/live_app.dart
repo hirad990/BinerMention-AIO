@@ -414,8 +414,8 @@ class _LiveHomeState extends State<LiveHome> with WidgetsBindingObserver {
   bool showingSaved = false;
   Future<List<dynamic>>? exploreResults;
   final Set<String> _postActionsInFlight = <String>{};
-  late Future<List<Map<String, dynamic>>> _notificationsFuture;
-  late Future<List<Map<String, dynamic>>> _conversationsFuture;
+  late Future<List<Map<String, dynamic>>> _notificationsFuture = Future.value(const <Map<String, dynamic>>[]);
+  late Future<List<Map<String, dynamic>>> _conversationsFuture = Future.value(const <Map<String, dynamic>>[]);
   final ScrollController _feedScrollController = ScrollController();
   final GlobalKey _feedViewportKey = GlobalKey();
   final Map<int, GlobalKey> _postVisibilityKeys = <int, GlobalKey>{};
@@ -424,7 +424,7 @@ class _LiveHomeState extends State<LiveHome> with WidgetsBindingObserver {
   Timer? _analyticsTimer;
   bool _analyticsScheduled = false;
 
-  @override void initState() { super.initState(); WidgetsBinding.instance.addObserver(this); _notificationsFuture = widget.api.notifications(); _conversationsFuture = widget.api.conversations(); _feedScrollController.addListener(_scheduleAnalyticsTrack); _analyticsTimer = Timer.periodic(const Duration(seconds: 2), (_) => _scheduleAnalyticsTrack()); refresh(); loadProfile(); loadSavedPosts(); loadStories(); }
+  @override void initState() { super.initState(); WidgetsBinding.instance.addObserver(this); _feedScrollController.addListener(_scheduleAnalyticsTrack); _analyticsTimer = Timer.periodic(const Duration(seconds: 2), (_) => _scheduleAnalyticsTrack()); refresh(); loadProfile(); loadSavedPosts(); loadStories(); }
   Future<void> loadStories() async {
     try {
       final result = await widget.api.stories();
