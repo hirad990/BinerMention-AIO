@@ -5,6 +5,7 @@ on:
     branches: [main]
     paths:
       - 'android/**'
+      - 'f9ce68bae32185e60d387b03ed84504f88a5cc7c.png'
       - '.github/workflows/ios-simulator.yml'
   pull_request:
     paths:
@@ -41,6 +42,8 @@ jobs:
       - name: Inject Flutter app source
         run: |
           cp android/pubspec.yaml "$RUNNER_TEMP/binerm_mention/pubspec.yaml"
+          mkdir -p "$RUNNER_TEMP/binerm_mention/assets"
+          cp f9ce68bae32185e60d387b03ed84504f88a5cc7c.png "$RUNNER_TEMP/binerm_mention/assets/app_icon.png"
           rm -rf "$RUNNER_TEMP/binerm_mention/lib" "$RUNNER_TEMP/binerm_mention/test"
           cp -R android/lib "$RUNNER_TEMP/binerm_mention/lib"
           if [ -d android/test ]; then cp -R android/test "$RUNNER_TEMP/binerm_mention/test"; fi
@@ -53,6 +56,9 @@ jobs:
           with path.open("rb") as stream:
               data = plistlib.load(stream)
           data["CFBundleDisplayName"] = "BinerMention"
+          data["NSPhotoLibraryUsageDescription"] = "BinerMention needs access to your photo library to share photos and videos."
+          data["NSCameraUsageDescription"] = "BinerMention uses the camera to capture photos and videos for posts and stories."
+          data["NSMicrophoneUsageDescription"] = "BinerMention uses the microphone when recording videos."
           with path.open("wb") as stream:
               plistlib.dump(data, stream)
           PY
@@ -60,6 +66,10 @@ jobs:
       - name: Resolve Flutter and iOS dependencies
         working-directory: ${{ runner.temp }}/binerm_mention
         run: flutter pub get
+
+      - name: Generate app icons
+        working-directory: ${{ runner.temp }}/binerm_mention
+        run: dart run flutter_launcher_icons
 
       - name: Format Dart sources
         working-directory: ${{ runner.temp }}/binerm_mention
