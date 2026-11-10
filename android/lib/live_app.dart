@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'package:flutter/foundation.dart';
+import 'package:flutter/cupertino.dart';
 import 'dart:math' as math;
 import 'dart:typed_data';
 import 'dart:ui';
@@ -1736,22 +1737,40 @@ class _LiveHomeState extends State<LiveHome> with WidgetsBindingObserver {
                     child: const Icon(Icons.add_rounded),
                   ).animate().scale(begin: const Offset(.78, .78), duration: 240.ms, curve: Curves.easeOutBack)
                 : null,
-            bottomNavigationBar: desktop ? null : Padding(
-              padding: const EdgeInsets.fromLTRB(12, 0, 12, 8),
-              child: BinerLiquidGlass(
-                borderRadius: BorderRadius.circular(26),
-                child: NavigationBar(
-                  height: 68,
-                  labelBehavior: NavigationDestinationLabelBehavior.onlyShowSelected,
-                  backgroundColor: Colors.transparent,
-                  elevation: 0,
-                  indicatorColor: cBlue.withValues(alpha: .20),
-                  selectedIndex: tab,
-                  onDestinationSelected: selectTab,
-                  destinations: destinations,
-                ),
-              ),
-            ),
+            bottomNavigationBar: desktop ? null : defaultTargetPlatform == TargetPlatform.iOS
+                ? SafeArea(
+                    top: false,
+                    child: CupertinoTabBar(
+                      currentIndex: tab,
+                      onTap: selectTab,
+                      activeColor: cBlue,
+                      backgroundColor: Theme.of(context).colorScheme.surface.withValues(alpha: .94),
+                      border: const Border(top: BorderSide(color: cLine)),
+                      items: const [
+                        BottomNavigationBarItem(icon: Icon(CupertinoIcons.house), label: 'Home'),
+                        BottomNavigationBarItem(icon: Icon(CupertinoIcons.search), label: 'Explore'),
+                        BottomNavigationBarItem(icon: Icon(CupertinoIcons.bell), label: 'Alerts'),
+                        BottomNavigationBarItem(icon: Icon(CupertinoIcons.chat_bubble_2), label: 'Messages'),
+                        BottomNavigationBarItem(icon: Icon(CupertinoIcons.person_crop_circle), label: 'Profile'),
+                      ],
+                    ),
+                  )
+                : Padding(
+                    padding: const EdgeInsets.fromLTRB(12, 0, 12, 8),
+                    child: BinerLiquidGlass(
+                      borderRadius: BorderRadius.circular(26),
+                      child: NavigationBar(
+                        height: 68,
+                        labelBehavior: NavigationDestinationLabelBehavior.onlyShowSelected,
+                        backgroundColor: Colors.transparent,
+                        elevation: 0,
+                        indicatorColor: cBlue.withValues(alpha: .20),
+                        selectedIndex: tab,
+                        onDestinationSelected: selectTab,
+                        destinations: destinations,
+                      ),
+                    ),
+                  ),
           );
         },
       );
