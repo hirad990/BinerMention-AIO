@@ -239,10 +239,10 @@ class _StorySlide extends StatefulWidget {
 class _StorySlideState extends State<_StorySlide> {
   final _comment = TextEditingController();
   VideoPlayerController? _video;
-  late bool _liked = widget.story['is_liked'] == true || widget.story['is_liked']?.toString() == '1';
+  late bool _liked = widget.story['is_liked'] == true || widget.story['is_liked'] == 1 || widget.story['is_liked']?.toString() == '1';
   late int _likes = int.tryParse(widget.story['likes_count']?.toString() ?? '') ?? 0;
   late Future<List<Map<String, dynamic>>> _comments = widget.api.storyComments(int.parse(widget.story['id'].toString()));
-  bool _sending = false;
+  bool _sending = false, _videoFailed = false;
 
   String _storyValue(String key, [String fallback = '']) => widget.story[key]?.toString() ?? fallback;
 
@@ -257,7 +257,7 @@ class _StorySlideState extends State<_StorySlide> {
         setState(() {});
         controller.setLooping(true);
         if (widget.active) controller.play();
-      }).catchError((_) {});
+      }).catchError((_) { if (mounted) setState(() => _videoFailed = true); });
     }
   }
 
@@ -351,7 +351,9 @@ class _StorySlideState extends State<_StorySlide> {
                 onTap: () => setState(() => video.value.isPlaying ? video.pause() : video.play()),
                 child: AspectRatio(aspectRatio: video.value.aspectRatio > 0 ? video.value.aspectRatio : 9 / 16, child: VideoPlayer(video)),
               )
-            : const CircularProgressIndicator(color: Colors.white))
+            : _videoFailed
+                ? const Icon(Icons.error_outline_rounded, color: Colors.white70, size: 42)
+                : const CircularProgressIndicator(color: Colors.white))
         else
           Center(child: InteractiveViewer(
             minScale: .8, maxScale: 4,
