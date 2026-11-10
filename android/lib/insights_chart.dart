@@ -58,8 +58,8 @@ class _InsightsLinePainter extends CustomPainter {
   void paint(Canvas canvas, Size size) {
     if (values.isEmpty || size.width <= 0 || size.height <= 0) return;
     const left = 30.0, right = 8.0, top = 8.0, bottom = 28.0;
-    final plot = Rect.fromLTRB(left, top, math.max(left + 1, size.width - right), size.height - bottom);
-    final maxValue = math.max(1, values.fold<int>(0, (m, item) => math.max(m, item['views'] as int)));
+    final plot = Rect.fromLTRB(left, top, math.max(left + 1, size.width - right).toDouble(), size.height - bottom);
+    final maxValue = values.fold<int>(1, (m, item) { final value = item['views'] as int; return value > m ? value : m; });
     final gridPaint = Paint()..color = gridColor..strokeWidth = 1;
     final labelStyle = TextStyle(color: textColor, fontSize: 9, fontWeight: FontWeight.w500);
     for (var i = 0; i <= 3; i++) {
@@ -89,7 +89,7 @@ class _InsightsLinePainter extends CustomPainter {
       final parsed = DateTime.tryParse(raw);
       final label = parsed == null ? '' : parsed.day.toString();
       final tp = TextPainter(text: TextSpan(text: label, style: labelStyle), textDirection: TextDirection.ltr)..layout();
-      final x = (points[i].dx - tp.width / 2).clamp(0.0, size.width - tp.width);
+      final x = (points[i].dx - tp.width / 2).clamp(0.0, size.width - tp.width).toDouble();
       tp.paint(canvas, Offset(x, plot.bottom + 8));
     }
   }
