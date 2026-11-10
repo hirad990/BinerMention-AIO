@@ -1,0 +1,81 @@
+name: BinerMention Flutter Web
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'android/**'
+      - '.github/workflows/flutter-web.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: flutter-web-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  build-web:
+    name: Build adaptive Flutter Web
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          channel: stable
+          cache: true
+          cache-key: flutter-web-${{ runner.os }}-${{ hashFiles('android/pubspec.yaml') }}
+
+      - name: Generate Flutter Web scaffold
+        run: flutter create --platforms=web --org ir.binercraft --project-name binerm_mention "$RUNNER_TEMP/binerm_mention"
+
+      - name: Inject BinerMention Flutter source
+        run: |
+          cp android/pubspec.yaml "$RUNNER_TEMP/binerm_mention/pubspec.yaml"
+          rm -rf "$RUNNER_TEMP/binerm_mention/lib" "$RUNNER_TEMP/binerm_mention/test"
+          cp -R android/lib "$RUNNER_TEMP/binerm_mention/lib"
+          if [ -d android/test ]; then cp -R android/test "$RUNNER_TEMP/binerm_mention/test"; fi
+
+      - name: Resolve Flutter dependencies
+        working-directory: ${{ runner.temp }}/binerm_mention
+        run: flutter pub get
+
+      - name: Format Dart source
+        working-directory: ${{ runner.temp }}/binerm_mention
+        run: dart format --output=none --set-exit-if-changed lib
+
+      - name: Analyze Flutter source
+        working-directory: ${{ runner.temp }}/binerm_mention
+        run: flutter analyze --no-fatal-infos
+
+      - name: Run Flutter tests
+        working-directory: ${{ runner.temp }}/binerm_mention
+        run: |
+          if [ -d test ]; then flutter test --reporter expanded; else echo 'No Flutter tests directory; skipping.'; fi
+
+      - name: Build release Web bundle
+        working-directory: ${{ runner.temp }}/binerm_mention
+        run: flutter build web --release --base-href /mention/
+
+      - name: Verify Web output
+        run: |
+          test -s "$RUNNER_TEMP/binerm_mention/build/web/index.html"
+          test -s "$RUNNER_TEMP/binerm_mention/build/web/flutter_bootstrap.js"
+          mkdir -p "$RUNNER_TEMP/BinerMention-Web"
+          cp -R "$RUNNER_TEMP/binerm_mention/build/web/." "$RUNNER_TEMP/BinerMention-Web/"
+          cd "$RUNNER_TEMP"
+          zip -qry BinerMention-Flutter-Web.zip BinerMention-Web
+          test -s "$RUNNER_TEMP/BinerMention-Flutter-Web.zip"
+
+      - name: Upload Flutter Web artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: BinerMention-Flutter-Web
+          path: ${{ runner.temp }}/BinerMention-Flutter-Web.zip
+          if-no-files-found: error
+          retention-days: 30
