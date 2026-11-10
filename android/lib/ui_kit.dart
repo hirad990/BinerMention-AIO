@@ -10,8 +10,8 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:shimmer/shimmer.dart';
 import 'app_preferences.dart';
 
-const binerBlue = Color(0xFF54C8FF);
-const binerViolet = Color(0xFF9B8CFF);
+const binerBlue = Color(0xFF1D9BF0);
+const binerViolet = Color(0xFF7856FF);
 
 Color binerScaffoldBackground(BuildContext context) =>
     defaultTargetPlatform == TargetPlatform.iOS
@@ -23,11 +23,11 @@ ThemeData buildBinerTheme(Brightness brightness, {Color seedColor = binerBlue}) 
   final dark = brightness == Brightness.dark;
   final ios = defaultTargetPlatform == TargetPlatform.iOS;
   final base = dark ? ThemeData.dark(useMaterial3: true) : ThemeData.light(useMaterial3: true);
-  final textColor = dark ? const Color(0xFFF4F7FF) : const Color(0xFF142033);
-  final pageSurface = dark ? const Color(0xFF0B111B) : const Color(0xFFF5F8FC);
-  final cardSurface = dark ? const Color(0xFF121C29) : const Color(0xFFFFFFFF);
-  final subtleSurface = dark ? const Color(0xFF182536) : const Color(0xFFEDF3FA);
-  final outline = dark ? const Color(0xFF26384D) : const Color(0xFFDCE5EF);
+  final textColor = dark ? const Color(0xFFE7E9EA) : const Color(0xFF0F1419);
+  final pageSurface = dark ? const Color(0xFF000000) : const Color(0xFFFFFFFF);
+  final cardSurface = dark ? const Color(0xFF000000) : const Color(0xFFFFFFFF);
+  final subtleSurface = dark ? const Color(0xFF16181C) : const Color(0xFFF7F9F9);
+  final outline = dark ? const Color(0xFF2F3336) : const Color(0xFFEFF3F4);
   final selectedTextTheme = switch (BinerPreferences.instance.fontFamily) {
     'system' => base.textTheme,
     'vazir' => GoogleFonts.getTextTheme('Vazirmatn', base.textTheme),
@@ -53,7 +53,7 @@ ThemeData buildBinerTheme(Brightness brightness, {Color seedColor = binerBlue}) 
       displayColor: textColor,
     ),
     popupMenuTheme: PopupMenuThemeData(
-      color: dark ? const Color(0xFF182536) : const Color(0xFFFFFFFF),
+      color: dark ? const Color(0xFF16181C) : const Color(0xFFFFFFFF),
       elevation: 0,
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(18), side: BorderSide(color: seedColor.withValues(alpha: .38))),
       textStyle: TextStyle(color: dark ? const Color(0xFFF5F5F7) : const Color(0xFF142033)),
@@ -135,7 +135,7 @@ ThemeData buildBinerTheme(Brightness brightness, {Color seedColor = binerBlue}) 
     ),
     tabBarTheme: TabBarThemeData(
       labelColor: seedColor,
-      unselectedLabelColor: dark ? const Color(0xFF9BAEC6) : const Color(0xFF65758B),
+      unselectedLabelColor: dark ? const Color(0xFF71767B) : const Color(0xFF536471),
       indicatorColor: seedColor,
       dividerColor: outline.withValues(alpha: .5),
       labelStyle: const TextStyle(fontWeight: FontWeight.w800),
@@ -176,7 +176,7 @@ ThemeData buildBinerTheme(Brightness brightness, {Color seedColor = binerBlue}) 
       labelTextStyle: WidgetStateProperty.resolveWith((states) => TextStyle(
         fontSize: 11,
         fontWeight: states.contains(WidgetState.selected) ? FontWeight.w700 : FontWeight.w500,
-        color: states.contains(WidgetState.selected) ? seedColor : (dark ? const Color(0xFF9BAEC6) : const Color(0xFF5C6C82)),
+        color: states.contains(WidgetState.selected) ? seedColor : (dark ? const Color(0xFF71767B) : const Color(0xFF536471)),
       )),
     ),
   );
@@ -201,14 +201,10 @@ class BinerBackdrop extends StatelessWidget {
               end: Alignment.bottomRight,
               colors: dark
                   ? const [Color(0xFF000000), Color(0xFF050509), Color(0xFF000000)]
-                  : const [Color(0xFFF4F8FF), Color(0xFFEAF3FF), Color(0xFFF9FAFF)],
+                  : const [Color(0xFFFFFFFF), Color(0xFFFFFFFF), Color(0xFFFFFFFF)],
             ),
           ),
         ),
-        if (!BinerPreferences.instance.fastMode)
-          Positioned.fill(
-            child: CustomPaint(painter: _AmbientGlowPainter(dark: dark, accent: accent)),
-          ),
         child,
       ],
     );
@@ -348,7 +344,7 @@ class BinerSurfaceCard extends StatelessWidget {
     required this.child,
     this.padding = const EdgeInsets.all(16),
     this.margin = EdgeInsets.zero,
-    this.radius = 22,
+    this.radius = 16,
     this.accent,
     this.onTap,
   });
