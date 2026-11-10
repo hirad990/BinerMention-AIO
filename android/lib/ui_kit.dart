@@ -260,9 +260,10 @@ class BinerLiquidGlass extends StatelessWidget {
   Widget build(BuildContext context) {
     final dark = Theme.of(context).brightness == Brightness.dark;
     final reduceEffects = BinerPreferences.instance.fastMode;
+    final isIOS = defaultTargetPlatform == TargetPlatform.iOS;
     final surface = DecoratedBox(
       decoration: BoxDecoration(
-        color: Theme.of(context).colorScheme.surface.withValues(alpha: dark ? .94 : .97),
+        color: Theme.of(context).colorScheme.surface.withValues(alpha: isIOS ? (dark ? .58 : .68) : (dark ? .94 : .97)),
         borderRadius: borderRadius,
         border: Border.all(
           color: Theme.of(context).colorScheme.outlineVariant.withValues(alpha: .65),
@@ -279,7 +280,7 @@ class BinerLiquidGlass extends StatelessWidget {
           child: reduceEffects
               ? surface
               : BackdropFilter(
-                  filter: ImageFilter.blur(sigmaX: 9, sigmaY: 9),
+                  filter: ImageFilter.blur(sigmaX: isIOS ? 25 : 9, sigmaY: isIOS ? 25 : 9),
                   child: surface,
                 ),
         ),
@@ -353,10 +354,11 @@ class BinerSurfaceCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final dark = Theme.of(context).brightness == Brightness.dark;
+    final isIOS = defaultTargetPlatform == TargetPlatform.iOS;
     final content = Container(
       padding: padding,
       decoration: BoxDecoration(
-        color: Theme.of(context).colorScheme.surfaceContainer,
+        color: Theme.of(context).colorScheme.surfaceContainer.withValues(alpha: isIOS ? (dark ? .62 : .72) : 1),
         borderRadius: BorderRadius.circular(radius),
         border: Border.all(color: Theme.of(context).colorScheme.outlineVariant.withValues(alpha: .72)),
         boxShadow: [
@@ -369,7 +371,7 @@ class BinerSurfaceCard extends StatelessWidget {
       ),
       child: child,
     );
-    return Padding(
+    final surface = Padding(
       padding: margin,
       child: onTap == null
           ? RepaintBoundary(child: content)
@@ -382,6 +384,14 @@ class BinerSurfaceCard extends StatelessWidget {
                 child: RepaintBoundary(child: content),
               ),
             ),
+    );
+    if (!isIOS) return surface;
+    return ClipRRect(
+      borderRadius: BorderRadius.circular(radius + 2),
+      child: BackdropFilter(
+        filter: ImageFilter.blur(sigmaX: 20, sigmaY: 20),
+        child: surface,
+      ),
     );
   }
 }
