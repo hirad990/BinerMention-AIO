@@ -108,7 +108,7 @@ class _BinerAIPageState extends State<BinerAIPage> {
             Padding(padding: const EdgeInsets.only(bottom: 5), child: Row(children: [
               const Icon(Icons.link_rounded, color: _blue, size: 14),
               const SizedBox(width: 7),
-              Expanded(child: BinerLocalizedText(source['type'] == 'joined_group_metadata' ? (source['title']?.toString() ?? 'گروه') : '@\${source['username'] ?? 'user'} · #\${source['id'] ?? ''}', style: const TextStyle(fontSize: 11, color: Colors.grey))),
+              Expanded(child: BinerLocalizedText(source['type'] == 'joined_group_metadata' ? (source['title']?.toString() ?? 'گروه') : '@' + (source['username']?.toString() ?? 'user') + ' · #' + (source['id']?.toString() ?? ''), style: const TextStyle(fontSize: 11, color: Colors.grey))),
             ])),
         ])),
       ],
@@ -152,7 +152,7 @@ class _BinerAIPageState extends State<BinerAIPage> {
               Icon(configured ? Icons.check_circle_rounded : Icons.settings_suggest_rounded, size: 17, color: statusColor),
               const SizedBox(width: 8),
               Expanded(child: BinerLocalizedText(
-                configured ? 'مدل زبانی متصل است · \${snapshot.data?['model'] ?? ''}' : 'مدل زبانی هنوز روی سرور تنظیم نشده است.',
+                configured ? 'مدل زبانی متصل است · ' + (snapshot.data?['model']?.toString() ?? '') : 'مدل زبانی هنوز روی سرور تنظیم نشده است.',
                 style: const TextStyle(fontSize: 11, fontWeight: FontWeight.w700),
               )),
               if (!configured) IconButton(
