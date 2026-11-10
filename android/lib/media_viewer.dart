@@ -80,12 +80,12 @@ class _BinerMediaViewerPageState extends State<_BinerMediaViewerPage> {
   @override
   Widget build(BuildContext context) {
     final controller = _video;
-    return Scaffold(
-      backgroundColor: const Color(0xFF05070B),
+    return Scaffold(backgroundColor: Theme.of(context).colorScheme.surface,
+      backgroundColor: Theme.of(context).colorScheme.surface,
       appBar: AppBar(
         backgroundColor: const Color(0xFF05070B),
-        foregroundColor: Colors.white,
-        title: Text(widget.title, style: const TextStyle(color: Colors.white, fontSize: 16, fontWeight: FontWeight.w700)),
+        foregroundColor: Theme.of(context).colorScheme.onSurface,
+        title: Text(widget.title, style: Theme.of(context).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w800)),
         actions: [
           if (widget.isVideo && _ready)
             PopupMenuButton<double>(

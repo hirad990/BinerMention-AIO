@@ -21,8 +21,8 @@ class _UserProfilePageState extends State<UserProfilePage> {
   int? myId;
 
   bool get dark => Theme.of(context).brightness == Brightness.dark;
-  Color get surface => dark ? const Color(0xE60B0B10) : const Color(0xEFFFFFFF);
-  Color get muted => dark ? const Color(0xFF91A6C3) : const Color(0xFF66758B);
+  Color get surface => Theme.of(context).colorScheme.surfaceContainer;
+  Color get muted => Theme.of(context).colorScheme.onSurfaceVariant;
 
   @override
   void initState() {
@@ -98,7 +98,7 @@ class _UserProfilePageState extends State<UserProfilePage> {
       ),
       child: CircleAvatar(
         radius: radius,
-        backgroundColor: dark ? const Color(0xFF13243B) : const Color(0xFFE6EFFB),
+        backgroundColor: Theme.of(context).colorScheme.surfaceContainerHigh,
         backgroundImage: url.startsWith('https://') ? ResizeImage.resizeIfNeeded(96, 96, NetworkImage(url)) : null,
         child: url.startsWith('https://')
             ? null
@@ -135,7 +135,7 @@ class _UserProfilePageState extends State<UserProfilePage> {
       builder: (ctx) => Container(
         height: MediaQuery.of(ctx).size.height * .68,
         decoration: BoxDecoration(
-          color: Theme.of(ctx).brightness == Brightness.dark ? const Color(0xF20B1422) : const Color(0xF7FFFFFF),
+          color: Theme.of(ctx).colorScheme.surfaceContainer,
           borderRadius: const BorderRadius.vertical(top: Radius.circular(28)),
           border: Border.all(color: binerBlue.withValues(alpha: .35)),
         ),
@@ -274,7 +274,7 @@ class _UserProfilePageState extends State<UserProfilePage> {
 
   Widget _buildProfile() {
     final displayName = textOf('display_name', textOf('username', 'کاربر'));
-    return Scaffold(
+    return Scaffold(backgroundColor: Theme.of(context).colorScheme.surface,
       body: SafeArea(
         child: loading && user == null
             ? const Center(child: BinerSkeleton(lines: 3))
@@ -340,7 +340,7 @@ class _UserProfilePageState extends State<UserProfilePage> {
                                 icon: Icon(isFollowing ? Icons.person_remove_alt_1_rounded : Icons.person_add_alt_1_rounded),
                                 label: Text(followingBusy ? binerText('کمی صبر کن…',en:'Please wait…',ar:'يرجى الانتظار…',tr:'Lütfen bekle…') : isFollowing ? binerText('دنبال می‌کنی',en:'Following',ar:'تتابعه',tr:'Takip ediliyor') : binerText('دنبال‌کردن',en:'Follow',ar:'متابعة',tr:'Takip et')),
                                 style: FilledButton.styleFrom(
-                                  backgroundColor: isFollowing ? (dark ? const Color(0xFF25364A) : const Color(0xFFE6EEF8)) : binerBlue,
+                                  backgroundColor: isFollowing ? Theme.of(context).colorScheme.surfaceContainerHigh : Theme.of(context).colorScheme.primary,
                                   foregroundColor: isFollowing ? Theme.of(context).colorScheme.onSurface : const Color(0xFF06111D),
                                   shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
                                 ),

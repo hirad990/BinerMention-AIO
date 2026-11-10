@@ -16,6 +16,10 @@ ThemeData buildBinerTheme(Brightness brightness, {Color seedColor = binerBlue}) 
   final dark = brightness == Brightness.dark;
   final base = dark ? ThemeData.dark(useMaterial3: true) : ThemeData.light(useMaterial3: true);
   final textColor = dark ? const Color(0xFFF4F7FF) : const Color(0xFF142033);
+  final pageSurface = dark ? const Color(0xFF0B111B) : const Color(0xFFF5F8FC);
+  final cardSurface = dark ? const Color(0xFF121C29) : const Color(0xFFFFFFFF);
+  final subtleSurface = dark ? const Color(0xFF182536) : const Color(0xFFEDF3FA);
+  final outline = dark ? const Color(0xFF26384D) : const Color(0xFFDCE5EF);
   final selectedTextTheme = switch (BinerPreferences.instance.fontFamily) {
     'system' => base.textTheme,
     'vazir' => GoogleFonts.getTextTheme('Vazirmatn', base.textTheme),
@@ -24,11 +28,16 @@ ThemeData buildBinerTheme(Brightness brightness, {Color seedColor = binerBlue}) 
   return base.copyWith(
     platform: defaultTargetPlatform,
     brightness: brightness,
-    scaffoldBackgroundColor: Colors.transparent,
+    scaffoldBackgroundColor: pageSurface,
     colorScheme: ColorScheme.fromSeed(
       seedColor: seedColor,
       brightness: brightness,
-      surface: dark ? const Color(0xFF08080B) : const Color(0xFFF8FAFF),
+      surface: pageSurface,
+      surfaceContainer: cardSurface,
+      surfaceContainerLow: dark ? const Color(0xFF101A27) : const Color(0xFFFAFCFF),
+      surfaceContainerHigh: subtleSurface,
+      outline: outline,
+      outlineVariant: outline.withValues(alpha: .7),
       secondary: binerViolet,
     ),
     textTheme: selectedTextTheme.apply(
@@ -36,12 +45,12 @@ ThemeData buildBinerTheme(Brightness brightness, {Color seedColor = binerBlue}) 
       displayColor: textColor,
     ),
     popupMenuTheme: PopupMenuThemeData(
-      color: const Color(0xF20D0D12),
+      color: dark ? const Color(0xFF182536) : const Color(0xFFFFFFFF),
       elevation: 0,
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(18), side: BorderSide(color: seedColor.withValues(alpha: .38))),
       textStyle: TextStyle(color: dark ? const Color(0xFFF5F5F7) : const Color(0xFF142033)),
     ),
-    snackBarTheme: SnackBarThemeData(behavior: SnackBarBehavior.floating, backgroundColor: const Color(0xF21A1A20), elevation: 0, shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(18), side: BorderSide(color: seedColor.withValues(alpha: .38))), insetPadding: const EdgeInsets.fromLTRB(16, 0, 16, 12), contentTextStyle: TextStyle(color: dark ? const Color(0xFFF5F5F7) : const Color(0xFF142033), fontWeight: FontWeight.w600)),
+    snackBarTheme: SnackBarThemeData(behavior: SnackBarBehavior.floating, backgroundColor: dark ? const Color(0xFF1C2B3D) : const Color(0xFF182B40), elevation: 0, shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(18), side: BorderSide(color: seedColor.withValues(alpha: .38))), insetPadding: const EdgeInsets.fromLTRB(16, 0, 16, 12), contentTextStyle: TextStyle(color: dark ? const Color(0xFFF5F5F7) : const Color(0xFF142033), fontWeight: FontWeight.w600)),
     splashFactory: InkRipple.splashFactory,
     pageTransitionsTheme: const PageTransitionsTheme(builders: {
       TargetPlatform.android: FadeUpwardsPageTransitionsBuilder(),
@@ -62,10 +71,67 @@ ThemeData buildBinerTheme(Brightness brightness, {Color seedColor = binerBlue}) 
     ),
     dividerTheme: DividerThemeData(color: (dark ? Colors.white : const Color(0xFF253B56)).withValues(alpha: .10), thickness: 1, space: 1),
     cardTheme: CardThemeData(
-      color: dark ? const Color(0xFF101722) : Colors.white,
+      color: cardSurface,
       elevation: 0,
       margin: EdgeInsets.zero,
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(22), side: BorderSide(color: seedColor.withValues(alpha: .14))),
+    ),
+    dialogTheme: DialogThemeData(
+      backgroundColor: cardSurface,
+      surfaceTintColor: Colors.transparent,
+      elevation: 0,
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24), side: BorderSide(color: outline)),
+      titleTextStyle: TextStyle(color: textColor, fontSize: 19, fontWeight: FontWeight.w900),
+      contentTextStyle: TextStyle(color: textColor, height: 1.55),
+    ),
+    bottomSheetTheme: BottomSheetThemeData(
+      backgroundColor: cardSurface,
+      modalBackgroundColor: cardSurface,
+      surfaceTintColor: Colors.transparent,
+      elevation: 0,
+      shape: const RoundedRectangleBorder(borderRadius: BorderRadius.vertical(top: Radius.circular(26))),
+    ),
+    listTileTheme: ListTileThemeData(
+      iconColor: textColor.withValues(alpha: .78),
+      textColor: textColor,
+      contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 2),
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(15)),
+    ),
+    iconButtonTheme: IconButtonThemeData(
+      style: IconButton.styleFrom(foregroundColor: textColor, shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14))),
+    ),
+    outlinedButtonTheme: OutlinedButtonThemeData(
+      style: OutlinedButton.styleFrom(
+        foregroundColor: seedColor,
+        side: BorderSide(color: seedColor.withValues(alpha: .38)),
+        minimumSize: const Size(0, 46),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(15)),
+        textStyle: const TextStyle(fontWeight: FontWeight.w800),
+      ),
+    ),
+    chipTheme: ChipThemeData(
+      backgroundColor: subtleSurface,
+      selectedColor: seedColor.withValues(alpha: .18),
+      side: BorderSide(color: outline),
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(13)),
+      labelStyle: TextStyle(color: textColor, fontWeight: FontWeight.w600),
+      secondaryLabelStyle: TextStyle(color: textColor),
+      padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 3),
+    ),
+    progressIndicatorTheme: ProgressIndicatorThemeData(color: seedColor, linearTrackColor: seedColor.withValues(alpha: .13), circularTrackColor: seedColor.withValues(alpha: .13)),
+    floatingActionButtonTheme: FloatingActionButtonThemeData(
+      backgroundColor: seedColor,
+      foregroundColor: dark ? const Color(0xFF071426) : Colors.white,
+      elevation: 2,
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(18)),
+    ),
+    tabBarTheme: TabBarThemeData(
+      labelColor: seedColor,
+      unselectedLabelColor: dark ? const Color(0xFF9BAEC6) : const Color(0xFF65758B),
+      indicatorColor: seedColor,
+      dividerColor: outline.withValues(alpha: .5),
+      labelStyle: const TextStyle(fontWeight: FontWeight.w800),
+      unselectedLabelStyle: const TextStyle(fontWeight: FontWeight.w600),
     ),
     filledButtonTheme: FilledButtonThemeData(
       style: FilledButton.styleFrom(
@@ -80,7 +146,7 @@ ThemeData buildBinerTheme(Brightness brightness, {Color seedColor = binerBlue}) 
     ),
     inputDecorationTheme: InputDecorationTheme(
       filled: true,
-      fillColor: dark ? const Color(0xAA111D30) : const Color(0xFFF0F4FA),
+      fillColor: subtleSurface,
       contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
       border: OutlineInputBorder(
         borderRadius: BorderRadius.circular(18),
@@ -196,13 +262,10 @@ class BinerLiquidGlass extends StatelessWidget {
     final reduceEffects = BinerPreferences.instance.fastMode;
     final surface = DecoratedBox(
       decoration: BoxDecoration(
-        color: dark
-            ? const Color(0xD9101722)
-            : const Color(0xEAF8FBFF),
+        color: Theme.of(context).colorScheme.surface.withValues(alpha: dark ? .94 : .97),
         borderRadius: borderRadius,
         border: Border.all(
-          color: (dark ? Colors.white : const Color(0xFF31506E))
-              .withValues(alpha: .10),
+          color: Theme.of(context).colorScheme.outlineVariant.withValues(alpha: .65),
         ),
       ),
       child: Padding(padding: padding, child: child),
@@ -290,13 +353,12 @@ class BinerSurfaceCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final dark = Theme.of(context).brightness == Brightness.dark;
-    final tint = accent ?? Theme.of(context).colorScheme.primary;
     final content = Container(
       padding: padding,
       decoration: BoxDecoration(
-        color: dark ? const Color(0xE6101722) : const Color(0xF7FFFFFF),
+        color: Theme.of(context).colorScheme.surfaceContainer,
         borderRadius: BorderRadius.circular(radius),
-        border: Border.all(color: tint.withValues(alpha: dark ? .20 : .15)),
+        border: Border.all(color: Theme.of(context).colorScheme.outlineVariant.withValues(alpha: .72)),
         boxShadow: [
           BoxShadow(
             color: (dark ? Colors.black : const Color(0xFF294766)).withValues(alpha: dark ? .12 : .045),
@@ -430,4 +492,31 @@ class BinerHeroClipper extends CustomClipper<Path> {
 
   @override
   bool shouldReclip(covariant CustomClipper<Path> oldClipper) => false;
+}
+
+
+/// Semantic palette shared by every BinerMention screen.
+extension BinerThemeTokens on BuildContext {
+  Color get binerCanvas => Theme.of(this).colorScheme.surface;
+  Color get binerSurface => Theme.of(this).colorScheme.surfaceContainer;
+  Color get binerSurfaceSoft => Theme.of(this).colorScheme.surfaceContainerLow;
+  Color get binerSurfaceRaised => Theme.of(this).colorScheme.surfaceContainerHigh;
+  Color get binerAccent => Theme.of(this).colorScheme.primary;
+  Color get binerAccentAlt => Theme.of(this).colorScheme.secondary;
+  Color get binerText => Theme.of(this).colorScheme.onSurface;
+  Color get binerMuted => Theme.of(this).colorScheme.onSurfaceVariant;
+  Color get binerOutline => Theme.of(this).colorScheme.outlineVariant;
+  Color get binerDanger => Theme.of(this).colorScheme.error;
+  bool get binerDark => Theme.of(this).brightness == Brightness.dark;
+}
+
+/// Shared page canvas. Secondary routes use the same ambient background as the feed.
+class BinerPageCanvas extends StatelessWidget {
+  const BinerPageCanvas({super.key, required this.child});
+  final Widget child;
+
+  @override
+  Widget build(BuildContext context) => BinerBackdrop(
+    child: ColoredBox(color: Theme.of(context).colorScheme.surface.withValues(alpha: .12), child: child),
+  );
 }
