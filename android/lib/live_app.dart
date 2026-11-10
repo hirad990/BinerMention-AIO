@@ -207,7 +207,7 @@ class _StoryViewerState extends State<_StoryViewer> {
   @override void dispose() { _page.dispose(); super.dispose(); }
 
   @override
-  Widget build(BuildContext context) => Scaffold(backgroundColor: Theme.of(context).colorScheme.surface,
+  Widget build(BuildContext context) => Scaffold(
     backgroundColor: const Color(0xFF05070B),
     body: PageView.builder(
       controller: _page,
@@ -1848,23 +1848,11 @@ class _LiveHomeState extends State<LiveHome> with WidgetsBindingObserver {
                     child: const Icon(Icons.add_rounded),
                   ).animate().scale(begin: const Offset(.78, .78), duration: 240.ms, curve: Curves.easeOutBack)
                 : null,
-            bottomNavigationBar: desktop ? null : defaultTargetPlatform == TargetPlatform.iOS
-                ? SafeArea(
-                    top: false,
-                    child: CupertinoTabBar(
-                      currentIndex: tab,
-                      onTap: selectTab,
-                      activeColor: cBlue,
-                      backgroundColor: Theme.of(context).colorScheme.surface.withValues(alpha: .94),
-                      border: const Border(top: BorderSide(color: cLine)),
-                      items: const [
-                        BottomNavigationBarItem(icon: Icon(CupertinoIcons.house), label: 'Home'),
-                        BottomNavigationBarItem(icon: Icon(CupertinoIcons.search), label: 'Explore'),
-                        BottomNavigationBarItem(icon: Icon(CupertinoIcons.bell), label: 'Alerts'),
-                        BottomNavigationBarItem(icon: Icon(CupertinoIcons.chat_bubble_2), label: 'Messages'),
-                        BottomNavigationBarItem(icon: Icon(CupertinoIcons.person_crop_circle), label: 'Profile'),
-                      ],
-                    ),
+            bottomNavigationBar: desktop ? null : (defaultTargetPlatform == TargetPlatform.iOS || kIsWeb)
+                ? _BinerFloatingNavBar(
+                    currentIndex: tab,
+                    onTap: selectTab,
+                    labels: labels,
                   )
                 : Padding(
                     padding: const EdgeInsets.fromLTRB(12, 0, 12, 8),
@@ -2340,4 +2328,126 @@ class Brand extends StatelessWidget {
     shaderCallback: (bounds) => const LinearGradient(colors: [Color(0xFFF7FBFF), cBlue, Color(0xFF9B8CFF)]).createShader(bounds),
     child: const Text('BinerMention', style: TextStyle(fontSize: 21, fontWeight: FontWeight.w900, letterSpacing: -.45, color: Colors.white)),
   ).animate().fadeIn(duration: 350.ms).slideX(begin: -.04, duration: 350.ms);
+}
+
+
+class _BinerFloatingNavBar extends StatelessWidget {
+  const _BinerFloatingNavBar({
+    required this.currentIndex,
+    required this.onTap,
+    required this.labels,
+  });
+
+  final int currentIndex;
+  final ValueChanged<int> onTap;
+  final List<String> labels;
+
+  static const _icons = <IconData>[
+    CupertinoIcons.house_fill,
+    CupertinoIcons.search,
+    CupertinoIcons.bell_fill,
+    CupertinoIcons.paperplane_fill,
+    CupertinoIcons.person_fill,
+  ];
+
+  @override
+  Widget build(BuildContext context) {
+    final dark = Theme.of(context).brightness == Brightness.dark;
+    final foreground = dark ? Colors.white : const Color(0xFF172033);
+    return SafeArea(
+      top: false,
+      minimum: const EdgeInsets.fromLTRB(18, 0, 18, 9),
+      child: Center(
+        child: ConstrainedBox(
+          constraints: const BoxConstraints(maxWidth: 440),
+          child: ClipRRect(
+            borderRadius: BorderRadius.circular(38),
+            child: BackdropFilter(
+              filter: ImageFilter.blur(sigmaX: 26, sigmaY: 26),
+              child: Container(
+                height: 62,
+                padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 7),
+                decoration: BoxDecoration(
+                  color: dark
+                      ? const Color(0xD91B1B20)
+                      : const Color(0xEAF7F8FC),
+                  borderRadius: BorderRadius.circular(38),
+                  border: Border.all(
+                    color: dark
+                        ? Colors.white.withValues(alpha: .13)
+                        : const Color(0xFF172033).withValues(alpha: .10),
+                  ),
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.black.withValues(alpha: dark ? .24 : .10),
+                      blurRadius: 28,
+                      offset: const Offset(0, 9),
+                    ),
+                  ],
+                ),
+                child: Row(
+                  children: List.generate(_icons.length, (index) {
+                    final selected = currentIndex == index;
+                    return Expanded(
+                      child: Semantics(
+                        button: true,
+                        selected: selected,
+                        label: labels[index],
+                        child: Tooltip(
+                          message: labels[index],
+                          child: GestureDetector(
+                            behavior: HitTestBehavior.opaque,
+                            onTap: () => onTap(index),
+                            child: AnimatedContainer(
+                              duration: const Duration(milliseconds: 240),
+                              curve: Curves.easeOutCubic,
+                              margin: const EdgeInsets.symmetric(horizontal: 2),
+                              decoration: BoxDecoration(
+                                color: selected
+                                    ? (dark
+                                        ? const Color(0xFF090A0E)
+                                        : Colors.white)
+                                    : Colors.transparent,
+                                borderRadius: BorderRadius.circular(30),
+                                boxShadow: selected
+                                    ? [
+                                        BoxShadow(
+                                          color: Colors.black.withValues(
+                                            alpha: dark ? .24 : .08,
+                                          ),
+                                          blurRadius: 12,
+                                          offset: const Offset(0, 3),
+                                        ),
+                                      ]
+                                    : const [],
+                              ),
+                              child: Center(
+                                child: AnimatedScale(
+                                  scale: selected ? 1.08 : 1,
+                                  duration: const Duration(milliseconds: 220),
+                                  child: Icon(
+                                    _icons[index],
+                                    size: 21,
+                                    color: selected
+                                        ? (dark
+                                            ? Colors.white
+                                            : const Color(0xFF172033))
+                                        : foreground.withValues(alpha: .72),
+                                  ),
+                                ),
+                              ),
+                            ),
+                          ),
+                        ),
+                      ),
+                    );
+                  }),
+                ),
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
+  }
 }

@@ -80,7 +80,7 @@ class _BinerMediaViewerPageState extends State<_BinerMediaViewerPage> {
   @override
   Widget build(BuildContext context) {
     final controller = _video;
-    return Scaffold(backgroundColor: Theme.of(context).colorScheme.surface,
+    return Scaffold(
       backgroundColor: Theme.of(context).colorScheme.surface,
       appBar: AppBar(
         backgroundColor: const Color(0xFF05070B),
