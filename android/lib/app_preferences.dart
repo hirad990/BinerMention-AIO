@@ -242,7 +242,6 @@ const Map<String, Map<String, String>> _binerTranslations = {
   'بر اساس لایک، بازنشر و کامنت': {'en':'Based on likes, reposts and comments','ar':'بناءً على الإعجابات وإعادة النشر والتعليقات','tr':'Beğeni, yeniden paylaşım ve yorumlara göre'},
   'با انتشار پست و دریافت تعامل، این بخش به‌تدریج کامل می‌شود.': {'en':'This section fills in as you publish posts and receive engagement.','ar':'سيكتمل هذا القسم تدريجياً عند نشر المنشورات وتلقي التفاعل.','tr':'Gönderi paylaşıp etkileşim aldıkça bu bölüm tamamlanır.'},
   'آمار فقط از داده‌های ذخیره‌شده در سامانه محاسبه می‌شود.': {'en':'Insights are calculated only from data stored in the system.','ar':'تُحسب الإحصاءات من البيانات المخزنة في النظام فقط.','tr':'İstatistikler yalnızca sistemde saklanan verilerden hesaplanır.'},
-  'پست $display': {'en':'$display posts','ar':'$display منشورات','tr':'$display gönderi'},
   'گروه': {'en':'Group','ar':'مجموعة','tr':'Grup'},
   'پست': {'en':'Post','ar':'منشور','tr':'Gönderi'},
   'پست‌ها': {'en':'Posts','ar':'المنشورات','tr':'Gönderiler'},
@@ -291,12 +290,10 @@ const Map<String, Map<String, String>> _binerTranslations = {
   'پس از مسدودسازی، ارسال پیام در این گفت‌وگو متوقف می‌شود.': {'en':'After blocking, messaging in this conversation will stop.','ar':'بعد الحظر، سيتوقف إرسال الرسائل في هذه المحادثة.','tr':'Engelledikten sonra bu sohbette mesajlaşma durur.'},
   'کاربر مسدود شد.': {'en':'User blocked.','ar':'تم حظر المستخدم.','tr':'Kullanıcı engellendi.'},
   'متنی برای پردازش وجود ندارد.': {'en':'There is no text to process.','ar':'لا يوجد نص لمعالجته.','tr':'İşlenecek metin yok.'},
-  'پردازش متن انجام نشد: $e': {'en':'Text processing failed: $e','ar':'تعذرت معالجة النص: $e','tr':'Metin işlenemedi: $e'},
   'متن پیام کپی شد.': {'en':'Message text copied.','ar':'تم نسخ نص الرسالة.','tr':'Mesaj metni kopyalandı.'},
   'برای بازارسال، ابتدا یک گفت‌وگوی دیگر بساز.': {'en':'Create another conversation before forwarding.','ar':'أنشئ محادثة أخرى قبل إعادة التوجيه.','tr':'İletmeden önce başka bir sohbet oluştur.'},
   'انتخاب مقصد بازارسال': {'en':'Choose forwarding destination','ar':'اختر وجهة إعادة التوجيه','tr':'İletme hedefini seç'},
   'گفت‌وگو': {'en':'Chat','ar':'محادثة','tr':'Sohbet'},
-  '↗ بازارسال‌شده\n$body': {'en':'↗ Forwarded\n$body','ar':'↗ تمت إعادة التوجيه\n$body','tr':'↗ İletildi\n$body'},
   'پیام بازارسال شد.': {'en':'Message forwarded.','ar':'تمت إعادة توجيه الرسالة.','tr':'Mesaj iletildi.'},
   'گزارش گفت‌وگو': {'en':'Report conversation','ar':'الإبلاغ عن المحادثة','tr':'Sohbeti bildir'},
   'مسدود کردن کاربر': {'en':'Block user','ar':'حظر المستخدم','tr':'Kullanıcıyı engelle'},
@@ -413,6 +410,16 @@ String? _translateDynamicBinerText(String value, String language) {
   if (postCount != null) {
     final n = postCount.group(1)!;
     return switch (language) { 'en' => '$n posts', 'ar' => '$n منشورات', 'tr' => '$n gönderi', _ => null };
+  }
+  final profilePosts = RegExp(r'^پست (.+)$').firstMatch(value);
+  if (profilePosts != null) {
+    final n = profilePosts.group(1)!;
+    return switch (language) { 'en' => '$n posts', 'ar' => '$n منشورات', 'tr' => '$n gönderi', _ => null };
+  }
+  final processing = RegExp(r'^پردازش متن انجام نشد: (.*)$').firstMatch(value);
+  if (processing != null) {
+    final error = processing.group(1)!;
+    return switch (language) { 'en' => 'Text processing failed: $error', 'ar' => 'تعذرت معالجة النص: $error', 'tr' => 'Metin işlenemedi: $error', _ => null };
   }
   final members = RegExp(r'^(\d+) عضو  ·  (.*)
   if (members != null) {
