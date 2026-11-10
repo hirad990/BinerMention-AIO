@@ -137,7 +137,7 @@ class _GroupRoomsPageState extends State<GroupRoomsPage> {
                   Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
                     Text(title, maxLines: 1, overflow: TextOverflow.ellipsis, style: const TextStyle(fontWeight: FontWeight.w900, fontSize: 14)),
                     const SizedBox(height: 4),
-                    Text(binerText('${group['members_count'] ?? 0} عضو  ·  ${group['last_message'] ?? 'گفت‌وگوی تازه'}'), maxLines: 1, overflow: TextOverflow.ellipsis, style: TextStyle(fontSize: 11, color: Theme.of(context).colorScheme.onSurfaceVariant)),
+                    Text(binerText('${group['members_count'] ?? 0} عضو  ·  ${group['last_message'] ?? binerText('گفت‌وگوی تازه')}'), maxLines: 1, overflow: TextOverflow.ellipsis, style: TextStyle(fontSize: 11, color: Theme.of(context).colorScheme.onSurfaceVariant)),
                   ])),
                   IconButton(
                     tooltip: binerText('کپی لینک گروه'),
