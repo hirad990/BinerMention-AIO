@@ -11,6 +11,11 @@ import 'app_preferences.dart';
 const binerBlue = Color(0xFF54C8FF);
 const binerViolet = Color(0xFF9B8CFF);
 
+Color binerScaffoldBackground(BuildContext context) =>
+    defaultTargetPlatform == TargetPlatform.iOS
+        ? Colors.transparent
+        : Theme.of(context).colorScheme.surface;
+
 /// Shared Material 3 theme with a Persian-friendly typeface and adaptive surfaces.
 ThemeData buildBinerTheme(Brightness brightness, {Color seedColor = binerBlue}) {
   final dark = brightness == Brightness.dark;
