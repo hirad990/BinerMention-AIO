@@ -113,15 +113,15 @@ class _CreatorStudioPageState extends State<CreatorStudioPage> {
           child: StatefulBuilder(builder: (ctx, refresh) => Column(mainAxisSize: MainAxisSize.min, children: [
             _handle(),
             const SizedBox(height: 12),
-            Row(children: [const Expanded(child: Text(binerText('گاوصندوق پیش‌نویس‌ها'), style: TextStyle(fontSize: 19, fontWeight: FontWeight.w900))), _miniAction(Icons.add_rounded, binerText('پیش‌نویس تازه'), () => Navigator.pop(ctx, 'new'))]),
+            Row(children: [Expanded(child: Text(binerText('گاوصندوق پیش‌نویس‌ها'), style: TextStyle(fontSize: 19, fontWeight: FontWeight.w900))), _miniAction(Icons.add_rounded, binerText('پیش‌نویس تازه'), () => Navigator.pop(ctx, 'new'))]),
             const SizedBox(height: 12),
-            if (drafts.isEmpty) const Padding(padding: EdgeInsets.all(22), child: Text(binerText('هنوز پیش‌نویسی ذخیره نکردی.'), style: TextStyle(color: Colors.white60))),
+            if (drafts.isEmpty) Padding(padding: EdgeInsets.all(22), child: Text(binerText('هنوز پیش‌نویسی ذخیره نکردی.'), style: TextStyle(color: Colors.white60))),
             ...List.generate(drafts.length, (i) => Container(
               margin: const EdgeInsets.only(bottom: 8),
               decoration: BoxDecoration(color: Colors.white.withValues(alpha: .045), borderRadius: BorderRadius.circular(16)),
               child: ListTile(
                 title: Text(drafts[i], maxLines: 2, overflow: TextOverflow.ellipsis),
-                subtitle: Text('${drafts[i].length} نویسه', style: const TextStyle(color: Colors.white54, fontSize: 11)),
+                subtitle: Text(binerText('${drafts[i].length} نویسه'), style: const TextStyle(color: Colors.white54, fontSize: 11)),
                 onTap: () => Navigator.pop(ctx, 'edit:$i'),
                 trailing: IconButton(onPressed: () { drafts.removeAt(i); _persist('creator_drafts_v1', drafts); refresh(() {}); }, icon: const Icon(Icons.delete_outline, color: Color(0xFFFF8293))),
               ),
@@ -178,7 +178,7 @@ class _CreatorStudioPageState extends State<CreatorStudioPage> {
           _chip(binerText('فهرست‌سازی'), () => output = controller.text.split('\n').where((e) => e.trim().isNotEmpty).map((e) => '• ${e.trim()}').join('\n'), () => refresh(() {})),
           _chip(binerText('نقل‌قول'), () => output = controller.text.split('\n').map((e) => '“${e.trim()}”').join('\n'), () => refresh(() {})),
         ]),
-        if (output.isNotEmpty) ...[const SizedBox(height: 12), SelectableText(output, style: const TextStyle(height: 1.6)) , _secondary(binerText('کپی خروجی'), () => _copy(output))],
+        if (output.isNotEmpty) ...[SizedBox(height: 12), SelectableText(output, style: TextStyle(height: 1.6)) , _secondary(binerText('کپی خروجی'), () => _copy(output))],
       ]),
     )));
     controller.dispose();
@@ -189,7 +189,7 @@ class _CreatorStudioPageState extends State<CreatorStudioPage> {
       padding: const EdgeInsets.all(18),
       child: Column(mainAxisSize: MainAxisSize.min, children: [
         _handle(), const SizedBox(height: 12),
-        const Align(alignment: Alignment.centerRight, child: Text(binerText('کتابخانهٔ پاسخ‌های آماده'), style: TextStyle(fontSize: 19, fontWeight: FontWeight.w900))),
+        Align(alignment: Alignment.centerRight, child: Text(binerText('کتابخانهٔ پاسخ‌های آماده'), style: TextStyle(fontSize: 19, fontWeight: FontWeight.w900))),
         const SizedBox(height: 10),
         ...List.generate(snippets.length, (i) => ListTile(
           contentPadding: EdgeInsets.zero,
@@ -245,7 +245,7 @@ class _CreatorStudioPageState extends State<CreatorStudioPage> {
         const SizedBox(height: 16),
         SelectableText(text, textAlign: TextAlign.start, style: const TextStyle(fontSize: 19, height: 1.9, letterSpacing: .1)),
         const SizedBox(height: 16),
-        Text('${text.split(RegExp(r'\s+')).length} واژه · حدود ${(text.split(RegExp(r'\s+binerText(')).length / 180).ceil()} دقیقه مطالعه'), style: const TextStyle(color: Colors.white54, fontSize: 11)),
+        Text('${text.split(RegExp(r'\s+')).length} واژه · حدود ${(text.split(RegExp(r'\s+binerText(')).length / 180).ceil()} دقیقه مطالعه'), style: TextStyle(color: Colors.white54, fontSize: 11)),
       ])),
     ));
   }
@@ -260,7 +260,7 @@ class _CreatorStudioPageState extends State<CreatorStudioPage> {
         Container(padding: const EdgeInsets.all(14), decoration: BoxDecoration(color: Colors.white.withValues(alpha: .05), borderRadius: BorderRadius.circular(16)), child: Row(crossAxisAlignment: CrossAxisAlignment.start, children: [
           const CircleAvatar(backgroundColor: Color(0xFF18314B), child: Icon(Icons.person_rounded, color: _blue)),
           const SizedBox(width: 12),
-          Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [Text(binerText('پیش‌نمایش پروفایل'), style: TextStyle(fontWeight: FontWeight.w800)), const SizedBox(height: 6), Text(controller.text.isEmpty ? binerText('بیوی تو اینجا نمایش داده می‌شود.') : controller.text, style: const TextStyle(color: Colors.white70, height: 1.5))])),
+          Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [Text(binerText('پیش‌نمایش پروفایل'), style: TextStyle(fontWeight: FontWeight.w800)), SizedBox(height: 6), Text(controller.text.isEmpty ? binerText('بیوی تو اینجا نمایش داده می‌شود.') : controller.text, style: TextStyle(color: Colors.white70, height: 1.5))])),
         ])),
         _secondary(binerText('کپی بیو'), () => _copy(controller.text.trim())),
       ]),
@@ -314,8 +314,8 @@ class _CreatorStudioPageState extends State<CreatorStudioPage> {
           refresh(() {});
         }),
         if (parts.isNotEmpty) ...[
-          Text('${parts.length} بخش آماده شد', style: const TextStyle(color: _blue, fontWeight: FontWeight.w800)),
-          SizedBox(height: 220, child: ListView.builder(itemCount: parts.length, itemBuilder: (_, i) => Container(margin: const EdgeInsets.only(top: 8), padding: const EdgeInsets.all(12), decoration: BoxDecoration(color: Colors.white.withValues(alpha: .05), borderRadius: BorderRadius.circular(14)), child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [Text('بخش ${i + 1} · ${parts[i].length}/280', style: const TextStyle(color: _blue, fontSize: 11)), const SizedBox(height: 5), Text(parts[i])])))),
+          Text(binerText('${parts.length} بخش آماده شد'), style: const TextStyle(color: _blue, fontWeight: FontWeight.w800)),
+          SizedBox(height: 220, child: ListView.builder(itemCount: parts.length, itemBuilder: (_, i) => Container(margin: const EdgeInsets.only(top: 8), padding: const EdgeInsets.all(12), decoration: BoxDecoration(color: Colors.white.withValues(alpha: .05), borderRadius: BorderRadius.circular(14)), child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [Text(binerText('بخش ${i + 1} · ${parts[i].length}/280'), style: const TextStyle(color: _blue, fontSize: 11)), const SizedBox(height: 5), Text(parts[i])])))),
           _secondary(binerText('کپی کل رشته‌پست'), () => _copy(parts.asMap().entries.map((e) => '${e.value}\n(${e.key + 1}/${parts.length})').join('\n\n'))),
         ],
       ]),
@@ -342,13 +342,13 @@ class _CreatorStudioPageState extends State<CreatorStudioPage> {
   List<_StudioTool> get _tools => [
     _StudioTool(binerText('گاوصندوق پیش‌نویس‌ها'), binerText('نوشتن را ذخیره کن و بعداً ادامه بده'), Icons.inventory_2_outlined, _violet, _draftVault),
     _StudioTool(binerText('آزمایشگاه هشتگ'), binerText('ساخت هشتگ از موضوع و کلیدواژه'), Icons.tag_rounded, _blue, _hashtagLab),
-    _StudioTool(binerText('کارگاه ویرایش متن'), binerText('پاک‌سازی فاصله، نقل‌قول و فهرست‌سازی'), Icons.auto_fix_high_rounded, const Color(0xFF66D6B2), _formatter),
-    _StudioTool(binerText('کتابخانهٔ پاسخ آماده'), binerText('عبارت‌های پرکاربردت را سریع کپی کن'), Icons.library_books_outlined, const Color(0xFFFFC46B), _snippetLibrary),
-    _StudioTool(binerText('فیلتر واژه‌ها'), binerText('فهرست واژه‌هایی که نمی‌خواهی ببینی'), Icons.filter_alt_outlined, const Color(0xFFFF8293), _muteWords),
+    _StudioTool(binerText('کارگاه ویرایش متن'), binerText('پاک‌سازی فاصله، نقل‌قول و فهرست‌سازی'), Icons.auto_fix_high_rounded, Color(0xFF66D6B2), _formatter),
+    _StudioTool(binerText('کتابخانهٔ پاسخ آماده'), binerText('عبارت‌های پرکاربردت را سریع کپی کن'), Icons.library_books_outlined, Color(0xFFFFC46B), _snippetLibrary),
+    _StudioTool(binerText('فیلتر واژه‌ها'), binerText('فهرست واژه‌هایی که نمی‌خواهی ببینی'), Icons.filter_alt_outlined, Color(0xFFFF8293), _muteWords),
     _StudioTool(binerText('حالت مطالعه'), binerText('خواندن متن در محیط خلوت و خوانا'), Icons.menu_book_rounded, _blue, _readingMode),
     _StudioTool(binerText('استودیوی بیوگرافی'), binerText('ساخت و پیش‌نمایش بیوی پروفایل'), Icons.badge_outlined, _violet, _bioWorkshop),
-    _StudioTool(binerText('مولد ایدهٔ پست'), binerText('پیشنهاد موضوع برای انتشار بعدی'), Icons.lightbulb_outline_rounded, const Color(0xFFFFC46B), _ideaGenerator),
-    _StudioTool(binerText('تحلیل‌گر متن'), binerText('آمار نویسه، واژه، هشتگ و زمان مطالعه'), Icons.query_stats_rounded, const Color(0xFF66D6B2), _textAnalyzer),
+    _StudioTool(binerText('مولد ایدهٔ پست'), binerText('پیشنهاد موضوع برای انتشار بعدی'), Icons.lightbulb_outline_rounded, Color(0xFFFFC46B), _ideaGenerator),
+    _StudioTool(binerText('تحلیل‌گر متن'), binerText('آمار نویسه، واژه، هشتگ و زمان مطالعه'), Icons.query_stats_rounded, Color(0xFF66D6B2), _textAnalyzer),
     _StudioTool(binerText('برنامه‌ریز رشته‌پست'), binerText('تقسیم متن بلند به پست‌های کوتاه'), Icons.view_stream_outlined, _blue, _threadPlanner),
   ];
 
@@ -391,7 +391,7 @@ class _CreatorStudioPageState extends State<CreatorStudioPage> {
               const SizedBox(height: 6),
               Text(binerText('۱۰ ابزار کاربردی برای نوشتن، مدیریت متن و ساخت محتوای بهتر.'), style: TextStyle(color: Colors.white.withValues(alpha: .68), fontSize: 12, height: 1.6)),
               const SizedBox(height: 16),
-              Row(children: [_metric(binerText('پیش‌نویس'), '${drafts.length}'), const SizedBox(width: 8), _metric(binerText('عبارت آماده'), '${snippets.length}'), const SizedBox(width: 8), _metric(binerText('فیلتر'), '${mutedWords.length}')]),
+              Row(children: [_metric(binerText('پیش‌نویس'), '${drafts.length}'), SizedBox(width: 8), _metric(binerText('عبارت آماده'), '${snippets.length}'), SizedBox(width: 8), _metric(binerText('فیلتر'), '${mutedWords.length}')]),
             ]),
           ))),
           SliverPadding(padding: const EdgeInsets.fromLTRB(18, 0, 18, 30), sliver: SliverGrid(
