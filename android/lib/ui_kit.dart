@@ -28,7 +28,7 @@ ThemeData buildBinerTheme(Brightness brightness, {Color seedColor = binerBlue}) 
   return base.copyWith(
     platform: defaultTargetPlatform,
     brightness: brightness,
-    scaffoldBackgroundColor: Colors.transparent,
+    scaffoldBackgroundColor: pageSurface,
     colorScheme: ColorScheme.fromSeed(
       seedColor: seedColor,
       brightness: brightness,
