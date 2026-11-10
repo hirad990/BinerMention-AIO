@@ -1,3 +1,4 @@
+import 'localized_text.dart';
 import 'dart:ui';
 
 import 'package:flutter/foundation.dart';
@@ -407,10 +408,10 @@ class BinerSectionHeader extends StatelessWidget {
         Expanded(child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text(title, style: Theme.of(context).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.w900, letterSpacing: -.35)),
+            BinerLocalizedText(title, style: Theme.of(context).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.w900, letterSpacing: -.35)),
             if (subtitle != null && subtitle!.isNotEmpty) ...[
               const SizedBox(height: 4),
-              Text(subtitle!, style: Theme.of(context).textTheme.bodySmall?.copyWith(color: Theme.of(context).colorScheme.onSurfaceVariant, height: 1.45)),
+              BinerLocalizedText(subtitle!, style: Theme.of(context).textTheme.bodySmall?.copyWith(color: Theme.of(context).colorScheme.onSurfaceVariant, height: 1.45)),
             ],
           ],
         )),
@@ -452,10 +453,10 @@ class BinerEmptyState extends StatelessWidget {
             child: Icon(icon, size: 34, color: Theme.of(context).colorScheme.primary),
           ),
           const SizedBox(height: 16),
-          Text(title, textAlign: TextAlign.center, style: const TextStyle(fontSize: 17, fontWeight: FontWeight.w900)),
+          BinerLocalizedText(title, textAlign: TextAlign.center, style: const TextStyle(fontSize: 17, fontWeight: FontWeight.w900)),
           if (description != null) ...[
             const SizedBox(height: 7),
-            Text(description!, textAlign: TextAlign.center, style: TextStyle(color: Theme.of(context).colorScheme.onSurfaceVariant, height: 1.55)),
+            BinerLocalizedText(description!, textAlign: TextAlign.center, style: TextStyle(color: Theme.of(context).colorScheme.onSurfaceVariant, height: 1.55)),
           ],
           if (action != null) ...[const SizedBox(height: 18), action!],
         ],
