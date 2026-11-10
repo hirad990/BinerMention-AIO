@@ -304,6 +304,7 @@ const Map<String, Map<String, String>> _binerTranslations = {
   'کتابخانهٔ پاسخ آماده': {'en':'Quick reply library','ar':'مكتبة الردود الجاهزة','tr':'Hazır yanıt kitaplığı'},
   'فیلتر واژه‌ها': {'en':'Word filter','ar':'تصفية الكلمات','tr':'Kelime filtresi'},
   'حالت مطالعه': {'en':'Reading mode','ar':'وضع القراءة','tr':'Okuma modu'},
+  ' کامنت': {'en':' comments','ar':' تعليقات','tr':' yorum'},
 };
 String binerText(String fa, {String? en, String? ar, String? tr}) {
   final language = BinerPreferences.instance.locale.languageCode;
@@ -361,7 +362,62 @@ String? _translateDynamicBinerText(String value, String language) {
     final chars = section.group(2)!;
     return switch (language) { 'en' => 'Part $n · $chars/280', 'ar' => 'الجزء $n · $chars/280', 'tr' => 'Bölüm $n · $chars/280', _ => null };
   }
-  final members = RegExp(r'^(\d+) عضو  ·  (.*)$').firstMatch(value);
+  final hoursMinutes = RegExp(r'^(\d+) ساعت و (\d+) دقیقه
+  if (members != null) {
+    final n = members.group(1)!;
+    final last = members.group(2)!;
+    return switch (language) {
+      'en' => '$n members · $last',
+      'ar' => '$n أعضاء · $last',
+      'tr' => '$n üye · $last',
+      _ => null,
+    };
+  }
+  return null;
+}
+).firstMatch(value);
+  if (hoursMinutes != null) {
+    final hours = hoursMinutes.group(1)!;
+    final minutes = hoursMinutes.group(2)!;
+    return switch (language) {
+      'en' => '$hours hr $minutes min',
+      'ar' => '$hours ساعة و $minutes دقيقة',
+      'tr' => '$hours sa $minutes dk',
+      _ => null,
+    };
+  }
+  final reply = RegExp(r'^پاسخ به پست #(\d+)
+  if (members != null) {
+    final n = members.group(1)!;
+    final last = members.group(2)!;
+    return switch (language) {
+      'en' => '$n members · $last',
+      'ar' => '$n أعضاء · $last',
+      'tr' => '$n üye · $last',
+      _ => null,
+    };
+  }
+  return null;
+}
+).firstMatch(value);
+  if (reply != null) {
+    final id = reply.group(1)!;
+    return switch (language) { 'en' => 'Reply to post #$id', 'ar' => 'الرد على المنشور #$id', 'tr' => '#$id gönderisine yanıt', _ => null };
+  }
+  final members = RegExp(r'^(\d+) عضو  ·  (.*)
+  if (members != null) {
+    final n = members.group(1)!;
+    final last = members.group(2)!;
+    return switch (language) {
+      'en' => '$n members · $last',
+      'ar' => '$n أعضاء · $last',
+      'tr' => '$n üye · $last',
+      _ => null,
+    };
+  }
+  return null;
+}
+).firstMatch(value);
   if (members != null) {
     final n = members.group(1)!;
     final last = members.group(2)!;
