@@ -135,6 +135,7 @@ class _BinerMediaViewerPageState extends State<_BinerMediaViewerPage> {
                 child: Center(
                   child: Image.network(
                     widget.url,
+                    cacheWidth: (MediaQuery.of(context).size.width * MediaQuery.of(context).devicePixelRatio).round().clamp(1, 1600).toInt(),
                     fit: BoxFit.contain,
                     filterQuality: FilterQuality.medium,
                     loadingBuilder: (context, child, progress) => progress == null
