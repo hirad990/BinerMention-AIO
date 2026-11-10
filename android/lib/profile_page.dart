@@ -274,7 +274,7 @@ class _UserProfilePageState extends State<UserProfilePage> {
 
   Widget _buildProfile() {
     final displayName = textOf('display_name', textOf('username', 'کاربر'));
-    return Scaffold(
+    return Scaffold(backgroundColor: Theme.of(context).colorScheme.surface,
       body: SafeArea(
         child: loading && user == null
             ? const Center(child: BinerSkeleton(lines: 3))
