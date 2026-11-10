@@ -21,6 +21,7 @@ ThemeData buildBinerTheme(Brightness brightness, {Color seedColor = binerBlue}) 
     _ => GoogleFonts.notoSansArabicTextTheme(base.textTheme),
   };
   return base.copyWith(
+    platform: defaultTargetPlatform,
     brightness: brightness,
     scaffoldBackgroundColor: Colors.transparent,
     colorScheme: ColorScheme.fromSeed(
