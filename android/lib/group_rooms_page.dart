@@ -68,7 +68,7 @@ class _GroupRoomsPageState extends State<GroupRoomsPage> {
   }
 
   @override
-  Widget build(BuildContext context) => Scaffold(backgroundColor: Theme.of(context).colorScheme.surface,
+  Widget build(BuildContext context) => Scaffold(backgroundColor: binerScaffoldBackground(context),
     appBar: AppBar(
       title: Text(binerText('اتاق‌های گفتگو')),
       actions: [
