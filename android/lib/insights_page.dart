@@ -80,7 +80,7 @@ class _InsightsPageState extends State<InsightsPage> {
   );
 
   @override Widget build(BuildContext context) => Scaffold(backgroundColor: Theme.of(context).colorScheme.surface,
-    appBar: AppBar(title: Text('Biner Insights'), actions: [IconButton(tooltip: binerText('به‌روزرسانی آمار'), onPressed: _reload, icon: const Icon(Icons.refresh_rounded))]),
+    appBar: AppBar(title: Text('Biner Insights'), actions: [IconButton(tooltip: binerText('به‌روزرسانی آمار'), onPressed: _reload, icon: Icon(Icons.refresh_rounded))]),
     body: FutureBuilder<Map<String, dynamic>>(
       future: _future,
       builder: (context, snapshot) {
@@ -88,18 +88,18 @@ class _InsightsPageState extends State<InsightsPage> {
         if (snapshot.hasError) return BinerEmptyState(
           icon: Icons.cloud_off_rounded, title: binerText('آمار بارگذاری نشد'),
           description: binerText('اتصال به سرور یا دسترسی API را بررسی کن و دوباره تلاش کن.'),
-          action: FilledButton.icon(onPressed: _reload, icon: const Icon(Icons.refresh_rounded), label: Text(binerText('تلاش دوباره'))),
+          action: FilledButton.icon(onPressed: _reload, icon: Icon(Icons.refresh_rounded), label: Text(binerText('تلاش دوباره'))),
         );
         final data = snapshot.data ?? const <String, dynamic>{};
         final stats = data['stats'] is Map ? Map<String, dynamic>.from(data['stats'] as Map) : <String, dynamic>{};
         final top = (data['top_posts'] as List? ?? const []).whereType<Map>().toList();
         final entries = <(String, String, IconData, Color)>[
-          (binerText('پست‌های منتشرشده'), 'posts', Icons.article_outlined, const Color(0xFF54C8FF)),
-          (binerText('دنبال‌کنندگان'), 'followers', Icons.people_alt_outlined, const Color(0xFF9B8CFF)),
-          (binerText('لایک دریافتی'), 'likes_received', Icons.favorite_border_rounded, const Color(0xFFFF78B8)),
-          (binerText('بازنشر دریافتی'), 'reposts_received', Icons.repeat_rounded, const Color(0xFF27C995)),
-          (binerText('کامنت دریافتی'), 'comments_received', Icons.chat_bubble_outline_rounded, const Color(0xFFFFB45E)),
-          (binerText('بازدید ثبت‌شده'), 'views', Icons.visibility_outlined, const Color(0xFF54C8FF)),
+          (binerText('پست‌های منتشرشده'), 'posts', Icons.article_outlined, Color(0xFF54C8FF)),
+          (binerText('دنبال‌کنندگان'), 'followers', Icons.people_alt_outlined, Color(0xFF9B8CFF)),
+          (binerText('لایک دریافتی'), 'likes_received', Icons.favorite_border_rounded, Color(0xFFFF78B8)),
+          (binerText('بازنشر دریافتی'), 'reposts_received', Icons.repeat_rounded, Color(0xFF27C995)),
+          (binerText('کامنت دریافتی'), 'comments_received', Icons.chat_bubble_outline_rounded, Color(0xFFFFB45E)),
+          (binerText('بازدید ثبت‌شده'), 'views', Icons.visibility_outlined, Color(0xFF54C8FF)),
         ];
         return RefreshIndicator(
           onRefresh: _reload,
