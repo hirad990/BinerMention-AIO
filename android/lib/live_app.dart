@@ -431,7 +431,8 @@ class LiveHome extends StatefulWidget {
   @override State<LiveHome> createState() => _LiveHomeState();
 }
 class _LiveHomeState extends State<LiveHome> with WidgetsBindingObserver {
-  int tab = 0; bool loading = true, posting = false, followingFeed = false; String? error;
+  int tab = 0;
+  int _tabDirection = 1; bool loading = true, posting = false, followingFeed = false; String? error;
   final posts = <Map<String, dynamic>>[];
   final storyItems = <Map<String, dynamic>>[];
   final savedPosts = <Map<String, dynamic>>[];
@@ -1805,6 +1806,7 @@ class _LiveHomeState extends State<LiveHome> with WidgetsBindingObserver {
         const Icon(Icons.person_rounded, color: cBlue),
       ];
       void selectTab(int index) => setState(() {
+        if (index != tab) _tabDirection = index > tab ? 1 : -1;
         tab = index;
         if (index == 2) _notificationsFuture = widget.api.notifications();
         if (index == 3) _conversationsFuture = widget.api.conversations();
@@ -1839,7 +1841,36 @@ class _LiveHomeState extends State<LiveHome> with WidgetsBindingObserver {
                     const SizedBox(width: 14),
                     Expanded(child: SafeArea(child: IndexedStack(index: tab, children: pages))),
                   ])
-                : SafeArea(child: IndexedStack(index: tab, children: pages)),
+                : SafeArea(
+                    child: AnimatedSwitcher(
+                      duration: const Duration(milliseconds: 300),
+                      reverseDuration: const Duration(milliseconds: 260),
+                      switchInCurve: Curves.easeOutCubic,
+                      switchOutCurve: Curves.easeInCubic,
+                      transitionBuilder: (child, animation) {
+                        final incoming = animation.status != AnimationStatus.reverse;
+                        final offset = incoming ? _tabDirection * .075 : -_tabDirection * .075;
+                        final slide = Tween<Offset>(
+                          begin: Offset(offset, 0),
+                          end: Offset.zero,
+                        ).animate(CurvedAnimation(
+                          parent: animation,
+                          curve: Curves.easeOutCubic,
+                        ));
+                        return FadeTransition(
+                          opacity: animation,
+                          child: SlideTransition(
+                            position: slide,
+                            child: child,
+                          ),
+                        );
+                      },
+                      child: KeyedSubtree(
+                        key: ValueKey<int>(tab),
+                        child: pages[tab],
+                      ),
+                    ),
+                  ),
             floatingActionButton: tab == 0
                 ? FloatingActionButton(
                     onPressed: posting ? null : compose,
