@@ -1163,20 +1163,85 @@ class _LiveHomeState extends State<LiveHome> with WidgetsBindingObserver {
   }
   Widget home() => Column(
     children: [
-      Padding(padding: const EdgeInsets.fromLTRB(16, 12, 16, 8), child: Row(children: [
-        const Brand(), const Spacer(),
-        IconButton(tooltip: 'BinerAI', onPressed: openBinerAI, icon: const Icon(Icons.auto_awesome_rounded, color: Color(0xFF9B8CFF))),
-        IconButton(tooltip: 'Biner Insights', onPressed: openInsights, icon: const Icon(Icons.insights_rounded, color: cBlue)),
-        Container(decoration: BoxDecoration(color: Theme.of(context).brightness == Brightness.dark ? cGlass : const Color(0xEFFFFFFF), borderRadius: BorderRadius.circular(18), border: Border.all(color: cLine)), child: IconButton(onPressed: searchUser, icon: const Icon(Icons.search_rounded, color: cBlue), tooltip: 'جست‌وجوی کاربر')),
-        const SizedBox(width: 4),
-        IconButton(
-          tooltip: widget.isDark ? 'حالت روشن' : 'حالت تیره',
-          onPressed: widget.onToggleTheme,
-          icon: Icon(widget.isDark ? Icons.light_mode_rounded : Icons.dark_mode_rounded, color: cBlue),
-        ),
-        const SizedBox(width: 4),
-        Hero(tag: 'biner-profile-avatar', child: Container(padding: const EdgeInsets.all(2), decoration: BoxDecoration(shape: BoxShape.circle, gradient: const LinearGradient(colors: [cBlue, Color(0xFF725BFF)])), child: CircleAvatar(radius: 17, backgroundColor: Theme.of(context).colorScheme.surface, backgroundImage: (me?['avatar_url']?.toString().startsWith('https://') ?? false) ? NetworkImage(me!['avatar_url'].toString()) : null, child: (me?['avatar_url']?.toString().startsWith('https://') ?? false) ? null : const Icon(Icons.person, size: 18)))),
-      ])),
+      Padding(
+        padding: const EdgeInsets.fromLTRB(16, 10, 16, 8),
+        child: Row(children: [
+          const Brand(),
+          const Spacer(),
+          IconButton(
+            tooltip: 'جست‌وجوی کاربر',
+            onPressed: searchUser,
+            icon: const Icon(Icons.search_rounded),
+          ),
+          PopupMenuButton<String>(
+            tooltip: 'ابزارها و تنظیمات',
+            onSelected: (action) {
+              switch (action) {
+                case 'ai':
+                  openBinerAI();
+                case 'insights':
+                  openInsights();
+                case 'theme':
+                  widget.onToggleTheme();
+              }
+            },
+            itemBuilder: (_) => [
+              const PopupMenuItem(
+                value: 'ai',
+                child: ListTile(
+                  dense: true,
+                  contentPadding: EdgeInsets.zero,
+                  leading: Icon(Icons.auto_awesome_rounded, color: Color(0xFF9B8CFF)),
+                  title: Text('BinerAI'),
+                ),
+              ),
+              const PopupMenuItem(
+                value: 'insights',
+                child: ListTile(
+                  dense: true,
+                  contentPadding: EdgeInsets.zero,
+                  leading: Icon(Icons.insights_rounded, color: cBlue),
+                  title: Text('آمار حساب'),
+                ),
+              ),
+              PopupMenuItem(
+                value: 'theme',
+                child: ListTile(
+                  dense: true,
+                  contentPadding: EdgeInsets.zero,
+                  leading: Icon(widget.isDark ? Icons.light_mode_rounded : Icons.dark_mode_rounded),
+                  title: Text(widget.isDark ? 'حالت روشن' : 'حالت تیره'),
+                ),
+              ),
+            ],
+            child: const Padding(
+              padding: EdgeInsets.all(10),
+              child: Icon(Icons.more_horiz_rounded),
+            ),
+          ),
+          const SizedBox(width: 3),
+          Hero(
+            tag: 'biner-profile-avatar',
+            child: Container(
+              padding: const EdgeInsets.all(2),
+              decoration: const BoxDecoration(
+                shape: BoxShape.circle,
+                gradient: LinearGradient(colors: [cBlue, Color(0xFF725BFF)]),
+              ),
+              child: CircleAvatar(
+                radius: 17,
+                backgroundColor: Theme.of(context).colorScheme.surface,
+                backgroundImage: (me?['avatar_url']?.toString().startsWith('https://') ?? false)
+                    ? ResizeImage.resizeIfNeeded(96, 96, NetworkImage(me!['avatar_url'].toString()))
+                    : null,
+                child: (me?['avatar_url']?.toString().startsWith('https://') ?? false)
+                    ? null
+                    : const Icon(Icons.person, size: 18),
+              ),
+            ),
+          ),
+        ]),
+      ),
       Row(children: [
         Expanded(child: InkWell(
           onTap: () { if (followingFeed) { setState(() => followingFeed = false); refresh(); } },
