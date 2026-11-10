@@ -214,10 +214,19 @@ class _GroupChatPageState extends State<GroupChatPage> {
         if (!mounted) return;
         if (mediaId == null) throw const ApiException('شناسه رسانه دریافت نشد.');
       }
-      await widget.api.sendGroupMessage(widget.groupId, text, mediaId: mediaId);
+      final sent = await widget.api.sendGroupMessage(widget.groupId, text, mediaId: mediaId);
       if (!mounted) return;
       _controller.clear();
-      await _load();
+      setState(() => _items.add(Map<String, dynamic>.from(sent)));
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (_scroll.hasClients) {
+          _scroll.animateTo(
+            _scroll.position.maxScrollExtent,
+            duration: const Duration(milliseconds: 180),
+            curve: Curves.easeOut,
+          );
+        }
+      });
     } on ApiException catch (e) {
       if (mounted) ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(e.message)));
     } catch (_) {
