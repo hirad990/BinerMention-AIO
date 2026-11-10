@@ -41,13 +41,36 @@ class _BinerLiveAppState extends State<BinerLiveApp> {
   }
   @override void initState() { super.initState(); init(); }
   Future<void> init() async {
-    await BinerMediaEditor.recoverLostData();
-    await BinerPreferences.instance.load();
-    final prefs = await SharedPreferences.getInstance();
-    themeMode = prefs.getBool('biner_theme_dark') == false ? ThemeMode.light : ThemeMode.dark;
-    await api.restoreSession();
-    if (api.isAuthenticated) { try { await api.me(); loggedIn = true; } on ApiException { loggedIn = false; } }
-    if (mounted) setState(() => ready = true);
+    // Optional startup services must never leave the app stuck on its splash.
+    try {
+      await BinerMediaEditor.recoverLostData();
+    } catch (_) {
+      // The user can still select media again from the picker.
+    }
+    try {
+      await BinerPreferences.instance.load();
+    } catch (_) {
+      // Continue with in-memory defaults if local preferences are unavailable.
+    }
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      themeMode = prefs.getBool('biner_theme_dark') == false
+          ? ThemeMode.light
+          : ThemeMode.dark;
+    } catch (_) {
+      themeMode = ThemeMode.dark;
+    }
+    try {
+      await api.restoreSession();
+      if (api.isAuthenticated) {
+        await api.me();
+        loggedIn = true;
+      }
+    } catch (_) {
+      loggedIn = false;
+    } finally {
+      if (mounted) setState(() => ready = true);
+    }
   }
   void signedIn() => setState(() => loggedIn = true);
   Future<void> logout() async { await api.logout(); if (mounted) setState(() => loggedIn = false); }
