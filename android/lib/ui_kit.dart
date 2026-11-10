@@ -76,6 +76,63 @@ ThemeData buildBinerTheme(Brightness brightness, {Color seedColor = binerBlue}) 
       margin: EdgeInsets.zero,
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(22), side: BorderSide(color: seedColor.withValues(alpha: .14))),
     ),
+    dialogTheme: DialogThemeData(
+      backgroundColor: cardSurface,
+      surfaceTintColor: Colors.transparent,
+      elevation: 0,
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24), side: BorderSide(color: outline)),
+      titleTextStyle: TextStyle(color: textColor, fontSize: 19, fontWeight: FontWeight.w900),
+      contentTextStyle: TextStyle(color: textColor, height: 1.55),
+    ),
+    bottomSheetTheme: BottomSheetThemeData(
+      backgroundColor: cardSurface,
+      modalBackgroundColor: cardSurface,
+      surfaceTintColor: Colors.transparent,
+      elevation: 0,
+      shape: const RoundedRectangleBorder(borderRadius: BorderRadius.vertical(top: Radius.circular(26))),
+    ),
+    listTileTheme: ListTileThemeData(
+      iconColor: textColor.withValues(alpha: .78),
+      textColor: textColor,
+      contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 2),
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(15)),
+    ),
+    iconButtonTheme: IconButtonThemeData(
+      style: IconButton.styleFrom(foregroundColor: textColor, shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14))),
+    ),
+    outlinedButtonTheme: OutlinedButtonThemeData(
+      style: OutlinedButton.styleFrom(
+        foregroundColor: seedColor,
+        side: BorderSide(color: seedColor.withValues(alpha: .38)),
+        minimumSize: const Size(0, 46),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(15)),
+        textStyle: const TextStyle(fontWeight: FontWeight.w800),
+      ),
+    ),
+    chipTheme: ChipThemeData(
+      backgroundColor: subtleSurface,
+      selectedColor: seedColor.withValues(alpha: .18),
+      side: BorderSide(color: outline),
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(13)),
+      labelStyle: TextStyle(color: textColor, fontWeight: FontWeight.w600),
+      secondaryLabelStyle: TextStyle(color: textColor),
+      padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 3),
+    ),
+    progressIndicatorTheme: ProgressIndicatorThemeData(color: seedColor, linearTrackColor: seedColor.withValues(alpha: .13), circularTrackColor: seedColor.withValues(alpha: .13)),
+    floatingActionButtonTheme: FloatingActionButtonThemeData(
+      backgroundColor: seedColor,
+      foregroundColor: dark ? const Color(0xFF071426) : Colors.white,
+      elevation: 2,
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(18)),
+    ),
+    tabBarTheme: TabBarThemeData(
+      labelColor: seedColor,
+      unselectedLabelColor: dark ? const Color(0xFF9BAEC6) : const Color(0xFF65758B),
+      indicatorColor: seedColor,
+      dividerColor: outline.withValues(alpha: .5),
+      labelStyle: const TextStyle(fontWeight: FontWeight.w800),
+      unselectedLabelStyle: const TextStyle(fontWeight: FontWeight.w600),
+    ),
     filledButtonTheme: FilledButtonThemeData(
       style: FilledButton.styleFrom(
         minimumSize: const Size(0, 48),
