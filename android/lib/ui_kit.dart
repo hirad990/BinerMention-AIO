@@ -10,7 +10,7 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:shimmer/shimmer.dart';
 import 'app_preferences.dart';
 
-const binerBlue = Color(0xFF1D9BF0);
+Color get binerBlue => BinerPreferences.instance.accent;
 const binerViolet = Color(0xFF7856FF);
 
 Color binerScaffoldBackground(BuildContext context) =>
@@ -19,7 +19,7 @@ Color binerScaffoldBackground(BuildContext context) =>
         : Theme.of(context).colorScheme.surface;
 
 /// Shared Material 3 theme with a Persian-friendly typeface and adaptive surfaces.
-ThemeData buildBinerTheme(Brightness brightness, {Color seedColor = binerBlue}) {
+ThemeData buildBinerTheme(Brightness brightness, {Color? seedColor}) {\n  final accentColor = seedColor ?? BinerPreferences.instance.accent;
   final dark = brightness == Brightness.dark;
   final ios = defaultTargetPlatform == TargetPlatform.iOS;
   final base = dark ? ThemeData.dark(useMaterial3: true) : ThemeData.light(useMaterial3: true);
@@ -38,7 +38,7 @@ ThemeData buildBinerTheme(Brightness brightness, {Color seedColor = binerBlue}) 
     brightness: brightness,
     scaffoldBackgroundColor: defaultTargetPlatform == TargetPlatform.iOS ? Colors.transparent : pageSurface,
     colorScheme: ColorScheme.fromSeed(
-      seedColor: seedColor,
+      seedColor: accentColor,
       brightness: brightness,
       surface: pageSurface,
       surfaceContainer: cardSurface,
@@ -57,10 +57,10 @@ ThemeData buildBinerTheme(Brightness brightness, {Color seedColor = binerBlue}) 
     popupMenuTheme: PopupMenuThemeData(
       color: dark ? const Color(0xFF16181C) : const Color(0xFFFFFFFF),
       elevation: 0,
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(18), side: BorderSide(color: seedColor.withValues(alpha: .38))),
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(18), side: BorderSide(color: accentColor.withValues(alpha: .38))),
       textStyle: TextStyle(color: dark ? const Color(0xFFF5F5F7) : const Color(0xFF142033)),
     ),
-    snackBarTheme: SnackBarThemeData(behavior: SnackBarBehavior.floating, backgroundColor: dark ? const Color(0xFF16181C) : const Color(0xFF0F1419), elevation: 0, shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(18), side: BorderSide(color: seedColor.withValues(alpha: .38))), insetPadding: const EdgeInsets.fromLTRB(16, 0, 16, 12), contentTextStyle: TextStyle(color: dark ? const Color(0xFFF5F5F7) : const Color(0xFF142033), fontWeight: FontWeight.w600)),
+    snackBarTheme: SnackBarThemeData(behavior: SnackBarBehavior.floating, backgroundColor: dark ? const Color(0xFF16181C) : const Color(0xFF0F1419), elevation: 0, shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(18), side: BorderSide(color: accentColor.withValues(alpha: .38))), insetPadding: const EdgeInsets.fromLTRB(16, 0, 16, 12), contentTextStyle: TextStyle(color: dark ? const Color(0xFFF5F5F7) : const Color(0xFF142033), fontWeight: FontWeight.w600)),
     splashFactory: InkRipple.splashFactory,
     pageTransitionsTheme: const PageTransitionsTheme(builders: {
       TargetPlatform.android: FadeUpwardsPageTransitionsBuilder(),
@@ -113,7 +113,7 @@ ThemeData buildBinerTheme(Brightness brightness, {Color seedColor = binerBlue}) 
     outlinedButtonTheme: OutlinedButtonThemeData(
       style: OutlinedButton.styleFrom(
         foregroundColor: seedColor,
-        side: BorderSide(color: seedColor.withValues(alpha: .38)),
+        side: BorderSide(color: accentColor.withValues(alpha: .38)),
         minimumSize: const Size(0, 46),
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(ios ? 22 : 15)),
         textStyle: TextStyle(fontWeight: ios ? FontWeight.w700 : FontWeight.w800),
@@ -160,11 +160,11 @@ ThemeData buildBinerTheme(Brightness brightness, {Color seedColor = binerBlue}) 
       contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
       border: OutlineInputBorder(
         borderRadius: BorderRadius.circular(ios ? 21 : 18),
-        borderSide: BorderSide(color: seedColor.withValues(alpha: .34)),
+        borderSide: BorderSide(color: accentColor.withValues(alpha: .34)),
       ),
       enabledBorder: OutlineInputBorder(
         borderRadius: BorderRadius.circular(ios ? 21 : 18),
-        borderSide: BorderSide(color: seedColor.withValues(alpha: .28)),
+        borderSide: BorderSide(color: accentColor.withValues(alpha: .28)),
       ),
       focusedBorder: OutlineInputBorder(
         borderRadius: BorderRadius.circular(ios ? 21 : 18),
