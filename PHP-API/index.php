@@ -198,6 +198,7 @@ try {
  }
  if($path==='/v1/ai/ask'&&$method==='POST'){
   $u=auth($db);$question=txt($b['question']??'',500);if($question==='')err('Question is required.',422,'validation_error');
+  $aiBucket=hash('sha256','biner-ai-user|'.(int)$u['id']);$q=$db->prepare('INSERT INTO api_rate_limits(bucket_hash,window_started_at,request_count) VALUES(?,UTC_TIMESTAMP(),1) ON DUPLICATE KEY UPDATE request_count=IF(window_started_at<DATE_SUB(UTC_TIMESTAMP(),INTERVAL 60 SECOND),1,request_count+1),window_started_at=IF(window_started_at<DATE_SUB(UTC_TIMESTAMP(),INTERVAL 60 SECOND),UTC_TIMESTAMP(),window_started_at)');$q->execute([$aiBucket]);$q=$db->prepare('SELECT request_count FROM api_rate_limits WHERE bucket_hash=?');$q->execute([$aiBucket]);if((int)$q->fetchColumn()>12)err('برای حفظ منابع، حداکثر ۱۲ درخواست BinerAI در هر دقیقه مجاز است.',429,'ai_rate_limited');
   $handle=txt($b['username']??'',24);if($handle===''&&preg_match('/@([A-Za-z0-9_]{3,24})/',$question,$match))$handle=$match[1];
   $profile=null;$recent=[];$sources=[];$context=['platform'=>'BinerMention','retrieved_at'=>gmdate('c'),'public_profile'=>null,'public_posts'=>[],'my_joined_groups'=>[]];
   if($handle!==''){
