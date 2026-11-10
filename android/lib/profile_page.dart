@@ -145,7 +145,7 @@ class _UserProfilePageState extends State<UserProfilePage> {
             child: Row(children: [
               Icon(followers ? Icons.people_alt_rounded : Icons.person_add_alt_1_rounded, color: binerBlue),
               const SizedBox(width: 10),
-              Text(followers ? binerText('دنبال‌کنندگان',en:'Followers',ar:'المتابعون',tr:'Takipçiler') : binerText('دنبال‌شوندگان',en:'Following',ar:'المتابَعون',tr:'Takip edilenler'), style: const TextStyle(fontSize: 20, fontWeight: FontWeight.w800)),
+              Text(followers ? binerText('دنبال‌کنندگان',en:'Followers',ar:'المتابعون',tr:'Takipçiler') : binerText('دنبال‌شوندگان',en:'Following',ar:'المتابَعون',tr:'Takip edilenler'), style: TextStyle(fontSize: 20, fontWeight: FontWeight.w800)),
             ]),
           ),
           Expanded(
@@ -282,7 +282,7 @@ class _UserProfilePageState extends State<UserProfilePage> {
                 ? Center(child: Padding(padding: const EdgeInsets.all(24), child: Column(mainAxisSize: MainAxisSize.min, children: [
                     Text(error!, textAlign: TextAlign.center),
                     const SizedBox(height: 12),
-                    FilledButton.icon(onPressed: load, icon: const Icon(Icons.refresh_rounded), label: Text(binerText('تلاش دوباره',en:'Try again',ar:'حاول مرة أخرى',tr:'Tekrar dene'))),
+                    FilledButton.icon(onPressed: load, icon: Icon(Icons.refresh_rounded), label: Text(binerText('تلاش دوباره',en:'Try again',ar:'حاول مرة أخرى',tr:'Tekrar dene'))),
                   ])))
                 : RefreshIndicator(
                     onRefresh: load,
@@ -355,14 +355,14 @@ class _UserProfilePageState extends State<UserProfilePage> {
                           child: Row(children: [
                             const Icon(Icons.grid_view_rounded, color: binerBlue),
                             const SizedBox(width: 8),
-                            Text(binerText('پست‌ها',en:'Posts',ar:'المنشورات',tr:'Gönderiler'), style: const TextStyle(fontSize: 20, fontWeight: FontWeight.w900)),
+                            Text(binerText('پست‌ها',en:'Posts',ar:'المنشورات',tr:'Gönderiler'), style: TextStyle(fontSize: 20, fontWeight: FontWeight.w900)),
                             const Spacer(),
                             Text('${posts.length}', style: TextStyle(color: muted, fontWeight: FontWeight.w700)),
                           ]),
                         ),
                       ),
                       if (posts.isEmpty)
-                        SliverToBoxAdapter(child: Padding(padding: const EdgeInsets.all(34), child: Center(child: Text(binerText('هنوز پستی منتشر نشده.'), style: TextStyle(color: muted)))))
+                        SliverToBoxAdapter(child: Padding(padding: EdgeInsets.all(34), child: Center(child: Text(binerText('هنوز پستی منتشر نشده.'), style: TextStyle(color: muted)))))
                       else
                         SliverList(delegate: SliverChildBuilderDelegate((context, index) => postCard(posts[index]), childCount: posts.length)),
                       const SliverToBoxAdapter(child: SizedBox(height: 28)),
