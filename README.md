@@ -23,3 +23,4 @@ This repository was empty when bootstrapping began. The first milestone establis
 - Multi-part Threads can be composed from the post composer (up to 10 segments); each continuation is stored as a reply to the root post so the complete sequence is available from the root's replies.
 - Like and repost actions now confirm the requested active state from the API before finalizing the UI state.
 - The selected accent color is reactive across the app shell, feed, profile and shared UI components; Material primary/secondary colors use the saved accent preference.
+- BinerAI uses the same saved accent preference as the rest of the app.\n
