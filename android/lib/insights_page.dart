@@ -22,7 +22,8 @@ class _InsightsPageState extends State<InsightsPage> {
   String _number(dynamic value) {
     final parsed = int.tryParse(value?.toString() ?? '');
     if (parsed == null) return '—';
-    return parsed.toString().replaceAllMapped(RegExp(r'\B(?=(\d{3})+(?!\d))'), (_) => binerText('٬'));
+    final separator = BinerPreferences.instance.locale.languageCode == 'fa' ? '٬' : ',';
+    return parsed.toString().replaceAllMapped(RegExp(r'\B(?=(\d{3})+(?!\d))'), (_) => separator);
   }
 
   String _readingTime(dynamic raw) {
