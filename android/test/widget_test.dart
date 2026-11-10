@@ -81,4 +81,24 @@ void main() {
     preferences.fastMode = false;
   });
 
+  test('translates shared app labels in all supported locales', () {
+    final preferences = BinerPreferences.instance;
+
+    preferences.locale = const Locale('en');
+    expect(binerText('اتاق‌های گفتگو'), 'Chat rooms');
+    expect(binerText('پاسخ به پست #42'), 'Reply to post #42');
+    expect(binerText('۲ دقیقه'), '۲ دقیقه');
+
+    preferences.locale = const Locale('ar');
+    expect(binerText('اتاق‌های گفتگو'), 'غرف المحادثة');
+    expect(binerText('پست‌های منتشرشده'), 'المنشورات المنشورة');
+
+    preferences.locale = const Locale('tr');
+    expect(binerText('اتاق‌های گفتگو'), 'Sohbet odaları');
+    expect(binerText('۳ دقیقه'), '۳ dk');
+
+    preferences.locale = const Locale('fa');
+    expect(binerText('اتاق‌های گفتگو'), 'اتاق‌های گفتگو');
+  });
+
 }
