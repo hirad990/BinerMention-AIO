@@ -302,6 +302,17 @@ const Map<String, Map<String, String>> _binerTranslations = {
   'فیلتر واژه‌ها': {'en':'Word filter','ar':'تصفية الكلمات','tr':'Kelime filtresi'},
   'حالت مطالعه': {'en':'Reading mode','ar':'وضع القراءة','tr':'Okuma modu'},
   ' کامنت': {'en':' comments','ar':' تعليقات','tr':' yorum'},
+  'اتصال به سرور برقرار نشد. اینترنت و وضعیت API را بررسی کن.': {'en':'Could not connect to the server. Check your internet and API status.','ar':'تعذر الاتصال بالخادم. تحقق من الإنترنت وحالة API.','tr':'Sunucuya bağlanılamadı. İnternetini ve API durumunu kontrol et.'},
+  'سرور موقتاً در دسترس نیست.': {'en':'The server is temporarily unavailable.','ar':'الخادم غير متاح مؤقتاً.','tr':'Sunucu geçici olarak kullanılamıyor.'},
+  'درخواست انجام نشد.': {'en':'The request could not be completed.','ar':'تعذر إكمال الطلب.','tr':'İstek tamamlanamadı.'},
+  'سرور توکن ورود را برنگرداند.': {'en':'The server did not return a session token.','ar':'لم يُرجع الخادم رمز الجلسة.','tr':'Sunucu oturum belirtecini döndürmedi.'},
+  'برای بارگذاری فایل وارد حساب شو.': {'en':'Sign in to upload a file.','ar':'سجّل الدخول لرفع ملف.','tr':'Dosya yüklemek için giriş yap.'},
+  'فایل انتخاب‌شده خالی است.': {'en':'The selected file is empty.','ar':'الملف المحدد فارغ.','tr':'Seçilen dosya boş.'},
+  'بارگذاری فایل انجام نشد.': {'en':'File upload failed.','ar':'فشل رفع الملف.','tr':'Dosya yüklenemedi.'},
+  'بارگذاری فایل ناموفق بود؛ اتصال و محدودیت آپلود سرور را بررسی کن.': {'en':'File upload failed. Check the connection and server upload limits.','ar':'فشل رفع الملف. تحقق من الاتصال وحدود الرفع على الخادم.','tr':'Dosya yüklenemedi. Bağlantıyı ve sunucu yükleme sınırlarını kontrol et.'},
+  'سرور شناسه گفت‌وگو را برنگرداند.': {'en':'The server did not return a conversation ID.','ar':'لم يُرجع الخادم معرّف المحادثة.','tr':'Sunucu sohbet kimliğini döndürmedi.'},
+  'سرویس ترجمه در دسترس نیست.': {'en':'The translation service is unavailable.','ar':'خدمة الترجمة غير متاحة.','tr':'Çeviri hizmeti kullanılamıyor.'},
+  'ترجمه‌ای دریافت نشد.': {'en':'No translation was returned.','ar':'لم يتم استلام ترجمة.','tr':'Çeviri sonucu alınamadı.'},
 };
 String binerText(String fa, {String? en, String? ar, String? tr}) {
   final language = BinerPreferences.instance.locale.languageCode;
