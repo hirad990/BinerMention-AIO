@@ -91,7 +91,7 @@ ThemeData buildBinerTheme(Brightness brightness, {Color seedColor = binerBlue}) 
       modalBackgroundColor: cardSurface,
       surfaceTintColor: Colors.transparent,
       elevation: 0,
-      shape: const RoundedRectangleBorder(borderRadius: BorderRadius.vertical(top: Radius.circular(26))),
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.vertical(top: Radius.circular(ios ? 30 : 26))),
     ),
     listTileTheme: ListTileThemeData(
       iconColor: textColor.withValues(alpha: .78),
@@ -107,8 +107,8 @@ ThemeData buildBinerTheme(Brightness brightness, {Color seedColor = binerBlue}) 
         foregroundColor: seedColor,
         side: BorderSide(color: seedColor.withValues(alpha: .38)),
         minimumSize: const Size(0, 46),
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(15)),
-        textStyle: const TextStyle(fontWeight: FontWeight.w800),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(ios ? 22 : 15)),
+        textStyle: TextStyle(fontWeight: ios ? FontWeight.w700 : FontWeight.w800),
       ),
     ),
     chipTheme: ChipThemeData(
@@ -125,7 +125,7 @@ ThemeData buildBinerTheme(Brightness brightness, {Color seedColor = binerBlue}) 
       backgroundColor: seedColor,
       foregroundColor: dark ? const Color(0xFF071426) : Colors.white,
       elevation: 2,
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(18)),
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(ios ? 22 : 18)),
     ),
     tabBarTheme: TabBarThemeData(
       labelColor: seedColor,
@@ -151,15 +151,15 @@ ThemeData buildBinerTheme(Brightness brightness, {Color seedColor = binerBlue}) 
       fillColor: subtleSurface,
       contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
       border: OutlineInputBorder(
-        borderRadius: BorderRadius.circular(18),
+        borderRadius: BorderRadius.circular(ios ? 21 : 18),
         borderSide: BorderSide(color: seedColor.withValues(alpha: .34)),
       ),
       enabledBorder: OutlineInputBorder(
-        borderRadius: BorderRadius.circular(18),
+        borderRadius: BorderRadius.circular(ios ? 21 : 18),
         borderSide: BorderSide(color: seedColor.withValues(alpha: .28)),
       ),
       focusedBorder: OutlineInputBorder(
-        borderRadius: BorderRadius.circular(18),
+        borderRadius: BorderRadius.circular(ios ? 21 : 18),
         borderSide: BorderSide(color: seedColor, width: 1.5),
       ),
     ),
@@ -261,10 +261,11 @@ class BinerLiquidGlass extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final dark = Theme.of(context).brightness == Brightness.dark;
+    final ios = defaultTargetPlatform == TargetPlatform.iOS;
     final reduceEffects = BinerPreferences.instance.fastMode;
     final surface = DecoratedBox(
       decoration: BoxDecoration(
-        color: Theme.of(context).colorScheme.surface.withValues(alpha: dark ? .94 : .97),
+        color: Theme.of(context).colorScheme.surface.withValues(alpha: ios ? (dark ? .78 : .82) : (dark ? .94 : .97)),
         borderRadius: borderRadius,
         border: Border.all(
           color: Theme.of(context).colorScheme.outlineVariant.withValues(alpha: .65),
@@ -281,7 +282,7 @@ class BinerLiquidGlass extends StatelessWidget {
           child: reduceEffects
               ? surface
               : BackdropFilter(
-                  filter: ImageFilter.blur(sigmaX: 9, sigmaY: 9),
+                  filter: ImageFilter.blur(sigmaX: ios ? 18 : 9, sigmaY: ios ? 18 : 9),
                   child: surface,
                 ),
         ),
