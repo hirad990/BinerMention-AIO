@@ -350,6 +350,23 @@ const Map<String, List<String>> _uiTranslations = {
   'یک پروژهٔ کوچک را از ایده تا نتیجه روایت کن.': ['Tell the story of a small project from idea to result.', 'احكِ عن مشروع صغير من الفكرة حتى النتيجة.', 'Küçük bir projeyi fikirden sonuca kadar anlat.'],
   'یک کتاب یا فیلم که نگاهت را تغییر داد معرفی کن.': ['Recommend a book or film that changed your perspective.', 'اقترح كتاباً أو فيلماً غيّر نظرتك.', 'Bakış açını değiştiren bir kitap veya film öner.'],
   'یک سؤال بپرس که باعث شروع یک گفت‌وگوی واقعی شود.': ['Ask a question that can start a genuine conversation.', 'اطرح سؤالاً يفتح باب حوار حقيقي.', 'Gerçek bir sohbet başlatacak bir soru sor.'],
+  'گروه': ['Group', 'مجموعة', 'Grup'],
+  'دنبال‌شونده‌ها': ['Following', 'المتابَعون', 'Takip edilenler'],
+  'کمی صبر کن…': ['Please wait…', 'يرجى الانتظار…', 'Lütfen bekle…'],
+  'دنبال می‌کنی': ['Following', 'تتابعه', 'Takip ediliyor'],
+  'دنبال‌کردن': ['Follow', 'متابعة', 'Takip et'],
+  'فونت گوشی': ['System font', 'خط النظام', 'Sistem yazı tipi'],
+  'وزیرمتن': ['Vazirmatn', 'وزيرمتن', 'Vazirmatn'],
+  'فونت اصلی': ['Default font', 'الخط الافتراضي', 'Varsayılan yazı tipi'],
+  'انتخاب عکس پروفایل': ['Choose profile photo', 'اختيار صورة الملف الشخصي', 'Profil fotoğrafı seç'],
+  'تغییر عکس انتخاب‌شده': ['Change selected photo', 'تغيير الصورة المحددة', 'Seçili fotoğrafı değiştir'],
+  'شناسه فایل از سرور دریافت نشد.': ['The server did not return the file ID.', 'لم يُرجع الخادم معرّف الملف.', 'Sunucu dosya kimliğini döndürmedi.'],
+  'Creator Studio · ۱۰ ابزار': ['Creator Studio · 10 tools', 'استوديو المنشئ · 10 أدوات', 'İçerik stüdyosu · 10 araç'],
+  'محتوای نامناسب': ['Inappropriate content', 'محتوى غير ملائم', 'Uygunsuz içerik'],
+  'ارسال گزارش': ['Submit report', 'إرسال البلاغ', 'Şikâyeti gönder'],
+  'مسدود کن': ['Block', 'حظر', 'Engelle'],
+  'بازگشت': ['Back', 'رجوع', 'Geri'],
+  'سرعت پخش': ['Playback speed', 'سرعة التشغيل', 'Oynatma hızı'],
 };
 
 String? _translateDynamicUiText(String value, String language) {
@@ -364,6 +381,8 @@ String? _translateDynamicUiText(String value, String language) {
     RegExp(r'^([0-9]+) پیام اخیر'): ['%1 recent messages', '%1 رسالة حديثة', '%1 son mesaj'],
     RegExp(r'^([0-9]+) عضو  ·  (.*)'): ['%1 members · %2', '%1 أعضاء · %2', '%1 üye · %2'],
     RegExp(r'^پست (.+)'): ['Post by %1', 'منشور بواسطة %1', '%1 kullanıcısının gönderisi'],
+    RegExp(r'^پاسخ به پست #([0-9]+)'): ['Reply to post #%1', 'الرد على المنشور #%1', '#%1 gönderisine yanıt'],
+    RegExp(r'^پردازش متن انجام نشد: (.*)'): ['Text processing failed: %1', 'تعذرت معالجة النص: %1', 'Metin işlenemedi: %1'],
     RegExp(r'^(.+) واژه · حدود ([0-9]+) دقیقه مطالعه'): ['%1 words · about %2 min read', '%1 كلمة · نحو %2 دقيقة قراءة', '%1 kelime · yaklaşık %2 dk okuma'],
   };
   for (final entry in patterns.entries) {
