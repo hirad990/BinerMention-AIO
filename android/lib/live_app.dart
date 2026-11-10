@@ -1024,10 +1024,9 @@ class _LiveHomeState extends State<LiveHome> with WidgetsBindingObserver {
           ? await widget.api.createPost(text, mediaId: mediaId, pollOptions: pollOptions)
           : await widget.api.addComment(replyToId, text, mediaId: mediaId);
       if (threadParts.isNotEmpty && replyToId == null) {
-        var parentId = int.parse(item['id'].toString());
+        final threadRootId = int.parse(item['id'].toString());
         for (final part in threadParts) {
-          final next = await widget.api.createPost(part, replyToId: parentId);
-          parentId = int.parse(next['id'].toString());
+          await widget.api.createPost(part, replyToId: threadRootId);
         }
       }
       if (replyToId == null && mounted) setState(() => posts.insert(0, item));
@@ -1098,7 +1097,12 @@ class _LiveHomeState extends State<LiveHome> with WidgetsBindingObserver {
     final oldFlag = _asBool(p[flag]), oldCount = int.tryParse((p[count] ?? 0).toString()) ?? 0;
     setState(() { p[flag] = !oldFlag; p[count] = oldCount + (oldFlag ? -1 : 1); });
     try {
-      await widget.api.togglePostAction(id, actionName, !oldFlag);
+      final confirmed = await widget.api.togglePostAction(id, actionName, !oldFlag);
+      if (!mounted) return;
+      setState(() {
+        p[flag] = confirmed;
+        p[count] = oldCount + (confirmed == oldFlag ? 0 : (confirmed ? 1 : -1));
+      });
     } on ApiException catch (e) {
       if (!mounted) return;
       setState(() { p[flag] = oldFlag; p[count] = oldCount; });
