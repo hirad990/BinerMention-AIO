@@ -354,6 +354,14 @@ const Map<String, List<String>> _uiTranslations = {
   'شناسه فایل از سرور دریافت نشد.': ['The server did not return the file ID.', 'لم يُرجع الخادم معرّف الملف.', 'Sunucu dosya kimliğini döndürmedi.'],
   'Creator Studio · ۱۰ ابزار': ['Creator Studio · 10 tools', 'استوديو المنشئ · 10 أدوات', 'İçerik stüdyosu · 10 araç'],
   'آمار از رویدادهای ثبت‌شده در BinerMention محاسبه می‌شود؛ هر شاخص باید قابل ردیابی و توضیح باشد.': ['Statistics are calculated from recorded BinerMention events; every metric should be traceable and explainable.', 'تُحسب الإحصاءات من أحداث BinerMention المسجلة؛ ويجب أن يكون كل مؤشر قابلاً للتتبع والتفسير.', 'İstatistikler kaydedilen BinerMention olaylarından hesaplanır; her ölçüm izlenebilir ve açıklanabilir olmalıdır.'],
+  'منابع استفاده‌شده': ['Sources used', 'المصادر المستخدمة', 'Kullanılan kaynaklar'],
+  'مدل زبانی متصل است': ['Language model connected', 'النموذج اللغوي متصل', 'Dil modeli bağlı'],
+  'مدل زبانی هنوز روی سرور تنظیم نشده است.': ['The language model is not configured on the server yet.', 'لم يتم إعداد النموذج اللغوي على الخادم بعد.', 'Dil modeli henüz sunucuda yapılandırılmadı.'],
+  'بررسی دوباره': ['Check again', 'تحقق مرة أخرى', 'Yeniden kontrol et'],
+  'بازدیدهای ۷ روز اخیر': ['Views in the last 7 days', 'المشاهدات خلال آخر ٧ أيام', 'Son 7 gündeki görüntülemeler'],
+  'بر اساس رویدادهای واقعی ثبت‌شده': ['Based on recorded events', 'استناداً إلى الأحداث المسجلة', 'Kaydedilen olaylara göre'],
+  'هنوز داده‌ای برای نمودار وجود ندارد.': ['There is no chart data yet.', 'لا توجد بيانات للرسم البياني بعد.', 'Henüz grafik verisi yok.'],
+  'روند بازدید': ['Views trend', 'اتجاه المشاهدات', 'Görüntüleme eğilimi'],
   'انتخاب مقصد': ['Choose destination', 'اختر الوجهة', 'Hedef seç'],
 };
 
