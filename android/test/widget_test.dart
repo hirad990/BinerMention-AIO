@@ -58,6 +58,7 @@ void main() {
     preferences.fastMode = true;
     await tester.pumpWidget(
       const MaterialApp(
+        key: ValueKey('fast-mode'),
         home: Scaffold(
           body: BinerLiquidGlass(child: Text('surface content')),
         ),
@@ -69,6 +70,7 @@ void main() {
     preferences.fastMode = false;
     await tester.pumpWidget(
       const MaterialApp(
+        key: ValueKey('blur-mode'),
         home: Scaffold(
           body: BinerLiquidGlass(child: Text('surface content')),
         ),
