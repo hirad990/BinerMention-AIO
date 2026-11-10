@@ -62,7 +62,7 @@ class _CreatorStudioPageState extends State<CreatorStudioPage> {
     if (mounted) _toast(binerText('کپی شد'));
   }
 
-  Future<String?> _editText({String title = binerText('متن'), String initial = '', int maxLength = 5000}) async {
+  Future<String?> _editText({String title = 'متن', String initial = '', int maxLength = 5000}) async {
     final controller = TextEditingController(text: initial);
     final result = await showDialog<String>(
       context: context,
@@ -72,7 +72,7 @@ class _CreatorStudioPageState extends State<CreatorStudioPage> {
         child: Padding(
           padding: const EdgeInsets.all(20),
           child: Column(mainAxisSize: MainAxisSize.min, crossAxisAlignment: CrossAxisAlignment.stretch, children: [
-            Text(title, style: const TextStyle(fontSize: 19, fontWeight: FontWeight.w900)),
+            Text(binerText(title), style: const TextStyle(fontSize: 19, fontWeight: FontWeight.w900)),
             const SizedBox(height: 14),
             TextField(
               controller: controller,
