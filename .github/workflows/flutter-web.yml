@@ -47,8 +47,16 @@ jobs:
           mkdir -p "$RUNNER_TEMP/binerm_mention/web/icons"
           cp android/web/manifest.json "$RUNNER_TEMP/binerm_mention/web/manifest.json"
           cp android/web/binermention-push-sw.js "$RUNNER_TEMP/binerm_mention/web/binermention-push-sw.js"
-          cp f9ce68bae32185e60d387b03ed84504f88a5cc7c.png "$RUNNER_TEMP/binerm_mention/web/icons/icon-192.png"
-          cp f9ce68bae32185e60d387b03ed84504f88a5cc7c.png "$RUNNER_TEMP/binerm_mention/web/icons/icon-512.png"
+          python3 - "$RUNNER_TEMP/binerm_mention/web/icons" <<'PY'
+          import sys
+          from pathlib import Path
+          from PIL import Image, ImageOps
+          source = Image.open("f9ce68bae32185e60d387b03ed84504f88a5cc7c.png").convert("RGBA")
+          target = Path(sys.argv[1])
+          for size in (192, 512):
+              icon = ImageOps.fit(source, (size, size), method=Image.Resampling.LANCZOS)
+              icon.save(target / f"icon-{size}.png", optimize=True)
+          PY
           python3 - "$RUNNER_TEMP/binerm_mention/web/index.html" <<'PY'
           import sys
           from pathlib import Path
@@ -70,7 +78,7 @@ jobs:
           </script>
           '''
           if 'binermention-push-sw.js' not in html:
-              html = html.replace('</head>', tags + '\\n</head>')
+              html = html.replace('</head>', tags + '\n</head>')
           p.write_text(html)
           PY
 
