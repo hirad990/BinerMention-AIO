@@ -72,8 +72,8 @@ class _GroupRoomsPageState extends State<GroupRoomsPage> {
     appBar: AppBar(
       title: Text(binerText('اتاق‌های گفتگو')),
       actions: [
-        IconButton(tooltip: binerText('ورود با لینک'), onPressed: _join, icon: const Icon(Icons.link_rounded)),
-        IconButton(tooltip: binerText('ساخت گروه'), onPressed: _create, icon: const Icon(Icons.add_circle_outline_rounded)),
+        IconButton(tooltip: binerText('ورود با لینک'), onPressed: _join, icon: Icon(Icons.link_rounded)),
+        IconButton(tooltip: binerText('ساخت گروه'), onPressed: _create, icon: Icon(Icons.add_circle_outline_rounded)),
       ],
     ),
     body: FutureBuilder<List<Map<String, dynamic>>>(
@@ -87,7 +87,7 @@ class _GroupRoomsPageState extends State<GroupRoomsPage> {
             icon: Icons.cloud_off_rounded,
             title: binerText('گروه‌ها بارگذاری نشدند'),
             description: binerText('اتصال API را بررسی کن و دوباره تلاش کن.'),
-            action: FilledButton.icon(onPressed: _reload, icon: const Icon(Icons.refresh_rounded), label: Text(binerText('تلاش دوباره'))),
+            action: FilledButton.icon(onPressed: _reload, icon: Icon(Icons.refresh_rounded), label: Text(binerText('تلاش دوباره'))),
           );
         }
         final groups = snapshot.data ?? const <Map<String, dynamic>>[];
@@ -97,8 +97,8 @@ class _GroupRoomsPageState extends State<GroupRoomsPage> {
             title: binerText('هنوز عضو گروهی نیستی'),
             description: binerText('یک اتاق گفتگو بساز یا با لینک داخلی bm: به گروهی بپیوند.'),
             action: Wrap(spacing: 10, children: [
-              FilledButton.icon(onPressed: _create, icon: const Icon(Icons.add_rounded), label: Text(binerText('ساخت گروه'))),
-              OutlinedButton.icon(onPressed: _join, icon: const Icon(Icons.link_rounded), label: Text(binerText('ورود با لینک'))),
+              FilledButton.icon(onPressed: _create, icon: Icon(Icons.add_rounded), label: Text(binerText('ساخت گروه'))),
+              OutlinedButton.icon(onPressed: _join, icon: Icon(Icons.link_rounded), label: Text(binerText('ورود با لینک'))),
             ]),
           );
         }
@@ -137,7 +137,7 @@ class _GroupRoomsPageState extends State<GroupRoomsPage> {
                   Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
                     Text(title, maxLines: 1, overflow: TextOverflow.ellipsis, style: const TextStyle(fontWeight: FontWeight.w900, fontSize: 14)),
                     const SizedBox(height: 4),
-                    Text('${group['members_count'] ?? 0} عضو  ·  ${group['last_message'] ?? 'گفت‌وگوی تازه'}', maxLines: 1, overflow: TextOverflow.ellipsis, style: TextStyle(fontSize: 11, color: Theme.of(context).colorScheme.onSurfaceVariant)),
+                    Text(binerText('${group['members_count'] ?? 0} عضو  ·  ${group['last_message'] ?? 'گفت‌وگوی تازه'}'), maxLines: 1, overflow: TextOverflow.ellipsis, style: TextStyle(fontSize: 11, color: Theme.of(context).colorScheme.onSurfaceVariant)),
                   ])),
                   IconButton(
                     tooltip: binerText('کپی لینک گروه'),
@@ -213,7 +213,7 @@ class _GroupChatPageState extends State<GroupChatPage> {
         final uploaded = await widget.api.uploadMedia(attachment);
         mediaId = int.tryParse(uploaded['id'].toString());
         if (!mounted) return;
-        if (mediaId == null) throw const ApiException(binerText('شناسه رسانه دریافت نشد.'));
+        if (mediaId == null) throw ApiException(binerText('شناسه رسانه دریافت نشد.'));
       }
       final sent = await widget.api.sendGroupMessage(widget.groupId, text, mediaId: mediaId);
       if (!mounted) return;
@@ -310,7 +310,7 @@ class _GroupChatPageState extends State<GroupChatPage> {
           border: Border.all(color: mine ? const Color(0x6654C8FF) : Theme.of(context).dividerColor.withValues(alpha: .4)),
         ),
         child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-          if (!mine) Padding(padding: const EdgeInsets.only(bottom: 5), child: Text(message['display_name']?.toString() ?? message['username']?.toString() ?? binerText('کاربر'), style: const TextStyle(color: Color(0xFF54C8FF), fontSize: 11, fontWeight: FontWeight.w900))),
+          if (!mine) Padding(padding: EdgeInsets.only(bottom: 5), child: Text(message['display_name']?.toString() ?? message['username']?.toString() ?? binerText('کاربر'), style: TextStyle(color: Color(0xFF54C8FF), fontSize: 11, fontWeight: FontWeight.w900))),
           if (mediaUrl.startsWith('https://')) ...[
             GestureDetector(
               onTap: () => BinerMediaViewer.open(context, url: mediaUrl, mimeType: mime, title: widget.title),
@@ -339,12 +339,12 @@ class _GroupChatPageState extends State<GroupChatPage> {
         const SizedBox(width: 10),
         Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
           Text(widget.title, maxLines: 1, overflow: TextOverflow.ellipsis, style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w900)),
-          Text('${_items.length} پیام اخیر', style: TextStyle(fontSize: 10, color: Theme.of(context).colorScheme.onSurfaceVariant)),
+          Text(binerText('${_items.length} پیام اخیر'), style: TextStyle(fontSize: 10, color: Theme.of(context).colorScheme.onSurfaceVariant)),
         ])),
       ]),
       actions: [
         IconButton(tooltip: 'BinerAI', onPressed: () => Navigator.of(context).push(MaterialPageRoute<void>(builder: (_) => BinerAIPage(api: widget.api))), icon: const Icon(Icons.auto_awesome_rounded, color: Color(0xFF9B8CFF))),
-        IconButton(tooltip: binerText('به‌روزرسانی'), onPressed: () => _load(showLoading: true), icon: const Icon(Icons.refresh_rounded)),
+        IconButton(tooltip: binerText('به‌روزرسانی'), onPressed: () => _load(showLoading: true), icon: Icon(Icons.refresh_rounded)),
       ],
     ),
     body: Column(children: [
@@ -360,7 +360,7 @@ class _GroupChatPageState extends State<GroupChatPage> {
                   itemCount: _items.length + 1,
                   itemBuilder: (context, index) {
                     if (index == 0) {
-                      return const Padding(padding: EdgeInsets.only(bottom: 12), child: Center(child: Text(binerText('پیام‌ها برای اعضای گروه قابل مشاهده‌اند.'), style: TextStyle(color: Colors.grey, fontSize: 11))));
+                      return Padding(padding: EdgeInsets.only(bottom: 12), child: Center(child: Text(binerText('پیام‌ها برای اعضای گروه قابل مشاهده‌اند.'), style: TextStyle(color: Colors.grey, fontSize: 11))));
                     }
                     final item = _items[index - 1];
                     final mine = item['sender_id']?.toString() == _myId?.toString();
