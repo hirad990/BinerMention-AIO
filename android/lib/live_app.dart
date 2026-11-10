@@ -420,7 +420,7 @@ class _StorySlideState extends State<_StorySlide> {
                   style: const TextStyle(color: Colors.white),
                   minLines: 1, maxLines: 3,
                   decoration: InputDecoration(
-                    hintText: 'به این استوری پاسخ بده…',
+                    hintText: binerText('به این استوری پاسخ بده…'),
                     hintStyle: const TextStyle(color: Colors.white60),
                     filled: true, fillColor: const Color(0xCC171B27),
                     border: OutlineInputBorder(borderRadius: BorderRadius.circular(22), borderSide: BorderSide.none),
@@ -932,7 +932,7 @@ class _LiveHomeState extends State<LiveHome> with WidgetsBindingObserver {
               BinerLocalizedText(replyToId == null ? 'پست جدید' : 'پاسخ به پست #$replyToId',
                   style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
               TextField(controller: controller, autofocus: true, minLines: 3, maxLines: 5, maxLength: 280,
-                  decoration: const InputDecoration(hintText: 'چه خبر؟  #هشتگ  @منشن', border: InputBorder.none)),
+                  decoration: InputDecoration(hintText: binerText('چه خبر؟  #هشتگ  @منشن'), border: InputBorder.none)),
               if (pollEnabled) ...[
                 const SizedBox(height: 8),
                 Row(children: [const Icon(Icons.poll_outlined, color: cBlue), const SizedBox(width: 8), Expanded(child: BinerLocalizedText(binerText('گزینه‌های نظرسنجی',en:'Poll options',ar:'خيارات الاستطلاع',tr:'Anket seçenekleri'), style: const TextStyle(fontWeight: FontWeight.w700))), IconButton(onPressed: () { if (pollControllers.length < 4) sheetSetState(() => pollControllers.add(TextEditingController())); }, icon: const Icon(Icons.add_circle_outline, color: cBlue))]),
@@ -1198,7 +1198,7 @@ class _LiveHomeState extends State<LiveHome> with WidgetsBindingObserver {
           TextButton.icon(style: TextButton.styleFrom(foregroundColor: cMuted, visualDensity: VisualDensity.compact, padding: const EdgeInsets.symmetric(horizontal: 5)), onPressed: () => showReplies(p), icon: const Icon(Icons.chat_bubble_outline, size: 17), label: BinerLocalizedText(fmt(p['replies_count'] ?? 0))),
           TextButton.icon(style: TextButton.styleFrom(foregroundColor: reposted ? const Color(0xFF00BA7C) : cMuted, visualDensity: VisualDensity.compact, padding: const EdgeInsets.symmetric(horizontal: 7)), onPressed: () => toggle(p, 'repost'), icon: const Icon(Icons.repeat, size: 17), label: BinerLocalizedText(fmt(p['reposts_count'] ?? 0))),
           TextButton.icon(style: TextButton.styleFrom(foregroundColor: liked ? const Color(0xFFF91880) : cMuted, visualDensity: VisualDensity.compact, padding: const EdgeInsets.symmetric(horizontal: 7)), onPressed: () => toggle(p, 'like'), icon: Icon(liked ? Icons.favorite : Icons.favorite_border, size: 17), label: BinerLocalizedText(fmt(p['likes_count'] ?? 0))),
-          IconButton(tooltip: savedPosts.any((item) => value(item, 'id') == value(p, 'id')) ? 'حذف از ذخیره‌ها' : 'ذخیره پست', visualDensity: VisualDensity.compact, onPressed: () => toggleSavedPost(p), icon: Icon(savedPosts.any((item) => value(item, 'id') == value(p, 'id')) ? Icons.bookmark_rounded : Icons.bookmark_border_rounded, color: savedPosts.any((item) => value(item, 'id') == value(p, 'id')) ? cBlue : cMuted, size: 20)),
+          IconButton(tooltip: savedPosts.any((item) => value(item, 'id') == value(p, 'id')) ? binerText('حذف از ذخیره‌ها') : binerText('ذخیره پست'), visualDensity: VisualDensity.compact, onPressed: () => toggleSavedPost(p), icon: Icon(savedPosts.any((item) => value(item, 'id') == value(p, 'id')) ? Icons.bookmark_rounded : Icons.bookmark_border_rounded, color: savedPosts.any((item) => value(item, 'id') == value(p, 'id')) ? cBlue : cMuted, size: 20)),
           IconButton(tooltip: binerText('کپی متن پست',en:'Copy post text',ar:'نسخ نص المنشور',tr:'Gönderi metnini kopyala'), visualDensity: VisualDensity.compact, onPressed: () => copyPost(p), icon: const Icon(Icons.content_copy_rounded, color: cMuted, size: 18)),
         ]),
       ])),
@@ -1213,12 +1213,12 @@ class _LiveHomeState extends State<LiveHome> with WidgetsBindingObserver {
           const Brand(),
           const Spacer(),
           IconButton(
-            tooltip: 'جست‌وجوی کاربر',
+            tooltip: binerText('جست‌وجوی کاربر'),
             onPressed: searchUser,
             icon: const Icon(Icons.search_rounded),
           ),
           PopupMenuButton<String>(
-            tooltip: 'ابزارها و تنظیمات',
+            tooltip: binerText('ابزارها و تنظیمات'),
             onSelected: (action) {
               switch (action) {
                 case 'ai':
@@ -1486,8 +1486,8 @@ class _LiveHomeState extends State<LiveHome> with WidgetsBindingObserver {
                 title: 'پیام‌ها',
                 subtitle: 'گفتگوهای خصوصی و اتاق‌های گروهی',
                 trailing: Row(mainAxisSize: MainAxisSize.min, children: [
-                  IconButton(tooltip: 'اتاق‌های گفتگو', onPressed: openGroupRooms, icon: const Icon(Icons.groups_rounded)),
-                  IconButton(tooltip: 'پیام جدید', onPressed: startConversation, icon: const Icon(Icons.edit_square)),
+                  IconButton(tooltip: binerText('اتاق‌های گفتگو'), onPressed: openGroupRooms, icon: const Icon(Icons.groups_rounded)),
+                  IconButton(tooltip: binerText('پیام جدید'), onPressed: startConversation, icon: const Icon(Icons.edit_square)),
                 ]),
               ),
             );
@@ -1572,7 +1572,7 @@ class _LiveHomeState extends State<LiveHome> with WidgetsBindingObserver {
                 results = q.trim().replaceFirst(RegExp(r'^@'), '').length >= 2 ? widget.api.searchUsers(q.trim()) : null;
               }),
               decoration: InputDecoration(
-                hintText: 'نام کاربری یا نام نمایشی…',
+                hintText: binerText('نام کاربری یا نام نمایشی…'),
                 prefixIcon: const Icon(Icons.search_rounded, color: cBlue),
                 filled: true, fillColor: Theme.of(ctx).inputDecorationTheme.fillColor,
                 border: OutlineInputBorder(borderRadius: BorderRadius.circular(18), borderSide: const BorderSide(color: cLine)),
@@ -1643,7 +1643,7 @@ class _LiveHomeState extends State<LiveHome> with WidgetsBindingObserver {
               Row(children: [Flexible(child: BinerLocalizedText(display, maxLines: 1, overflow: TextOverflow.ellipsis, style: const TextStyle(fontSize: 21, fontWeight: FontWeight.w900))), blueTick(u)]),
               const SizedBox(height: 3), BinerLocalizedText('@$username', style: const TextStyle(color: cMuted, fontSize: 13)),
             ])),
-            IconButton(tooltip: 'ویرایش پروفایل', onPressed: () => editProfile(u), icon: const Icon(Icons.edit_rounded, color: cBlue)),
+            IconButton(tooltip: binerText('ویرایش پروفایل'), onPressed: () => editProfile(u), icon: const Icon(Icons.edit_rounded, color: cBlue)),
           ]),
           if (bio.isNotEmpty) ...[const SizedBox(height: 16), BinerLocalizedText(bio, style: const TextStyle(fontSize: 14, height: 1.7))],
           if (website.isNotEmpty) ...[const SizedBox(height: 10), Row(children: [const Icon(Icons.link_rounded, color: cBlue, size: 18), const SizedBox(width: 8), Expanded(child: BinerLocalizedText(website, style: const TextStyle(color: cBlue), maxLines: 2, overflow: TextOverflow.ellipsis))])],
@@ -2044,7 +2044,7 @@ class _ChatPageState extends State<ChatPage> {
         context: context,
         builder: (ctx) => AlertDialog(
           title: BinerLocalizedText(binerText('گزارش گفت‌وگو',en:'Report conversation',ar:'الإبلاغ عن المحادثة',tr:'Sohbeti bildir')),
-          content: TextField(controller: reasonController, maxLength: 500, maxLines: 3, decoration: const InputDecoration(hintText: 'دلیل گزارش را بنویس…')),
+          content: TextField(controller: reasonController, maxLength: 500, maxLines: 3, decoration: InputDecoration(hintText: binerText('دلیل گزارش را بنویس…'))),
           actions: [
             TextButton(onPressed: () => Navigator.pop(ctx), child: const BinerLocalizedText('انصراف')),
             FilledButton(onPressed: () => Navigator.pop(ctx, reasonController.text.trim().isEmpty ? 'محتوای نامناسب' : reasonController.text.trim()), child: BinerLocalizedText(binerText('ارسال گزارش',en:'Submit report',ar:'إرسال البلاغ',tr:'Bildirimi gönder'))),
