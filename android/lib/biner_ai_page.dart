@@ -152,7 +152,7 @@ class _BinerAIPageState extends State<BinerAIPage> {
               Icon(configured ? Icons.check_circle_rounded : Icons.settings_suggest_rounded, size: 17, color: statusColor),
               const SizedBox(width: 8),
               Expanded(child: BinerLocalizedText(
-                configured ? 'مدل زبانی متصل است · ' + (snapshot.data?['model']?.toString() ?? '') : 'مدل زبانی هنوز روی سرور تنظیم نشده است.',
+                configured ? binerText('مدل زبانی متصل است') + ' · ' + (snapshot.data?['model']?.toString() ?? '') : binerText('مدل زبانی هنوز روی سرور تنظیم نشده است.'),
                 style: const TextStyle(fontSize: 11, fontWeight: FontWeight.w700),
               )),
               if (!configured) IconButton(
@@ -171,7 +171,7 @@ class _BinerAIPageState extends State<BinerAIPage> {
         const SizedBox(height: 18),
         const Center(child: BinerLocalizedText('پرسش کن؛ داده‌ها را شفاف ببین.', style: TextStyle(fontSize: 20, fontWeight: FontWeight.w900))),
         const SizedBox(height: 8),
-        const Center(child: BinerLocalizedText('BinerAI با مدل زبانی واقعی کار می‌کند و برای پاسخ‌گویی از پست‌ها و پروفایل‌های عمومی و اطلاعات گروه‌هایی که عضو آن‌ها هستی کمک می‌گیرد.', textAlign: TextAlign.center, style: TextStyle(color: Colors.grey, height: 1.7))),
+        const Center(child: BinerLocalizedText('BinerAI با مدل زبانی واقعی و اطلاعات پست‌ها، پروفایل‌های عمومی و گروه‌هایی که عضو آن‌ها هستی پاسخ می‌دهد.', textAlign: TextAlign.center, style: TextStyle(color: Colors.grey, height: 1.7))),
         const SizedBox(height: 24),
         for (final prompt in ['درباره @hirad990 چه اطلاعاتی در BinerMention ثبت شده؟', 'آخرین پست‌های @hirad990 را نشان بده', 'درباره این موضوع چه پست‌هایی منتشر شده؟'])
           Padding(padding: const EdgeInsets.only(bottom: 9), child: OutlinedButton.icon(onPressed: _busy ? null : () => _ask(prompt), icon: const Icon(Icons.bolt_rounded), label: BinerLocalizedText(prompt), style: OutlinedButton.styleFrom(alignment: Alignment.centerLeft, padding: const EdgeInsets.all(14), side: BorderSide(color: _blue.withValues(alpha: .25))))),
