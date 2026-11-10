@@ -374,6 +374,9 @@ class BinerApi {
   Future<Map<String, dynamic>> insights() async =>
       await _request('GET', 'v1/insights');
 
+  Future<Map<String, dynamic>> aiStatus() async =>
+      await _request('GET', 'v1/ai/status');
+
   Future<Map<String, dynamic>> askBinerAI(String question, {String? username}) async {
     final payload = <String, dynamic>{'question': question};
     if (username != null && username.trim().isNotEmpty) payload['username'] = username.trim();
