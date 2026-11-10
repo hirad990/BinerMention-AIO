@@ -1679,14 +1679,14 @@ class _LiveHomeState extends State<LiveHome> with WidgetsBindingObserver {
             Text(binerText('زبان برنامه', en:'App language', ar:'لغة التطبيق', tr:'Uygulama dili'), style: TextStyle(fontWeight: FontWeight.w700)),
             const SizedBox(height: 8),
             Wrap(spacing: 8, runSpacing: 8, children: [
-              for (final item in const [('fa',binerText('فارسی')),('en','English'),('ar',binerText('العربية')),('tr','Türkçe')])
+              for (final item in [('fa','فارسی'),('en','English'),('ar','العربية'),('tr','Türkçe')])
                 ChoiceChip(label: Text(item.$2), selected: prefs.locale.languageCode == item.$1, onSelected: (_) => prefs.setLanguage(item.$1)),
             ]),
             const SizedBox(height: 16),
             Text(binerText('فونت برنامه', en:'App font', ar:'خط التطبيق', tr:'Uygulama yazı tipi'), style: TextStyle(fontWeight: FontWeight.w700)),
             const SizedBox(height: 8),
             Wrap(spacing: 8, runSpacing: 8, children: [
-              for (final item in const [('system',binerText('فونت گوشی')),('vazir',binerText('وزیرمتن')),('noto',binerText('فونت اصلی'))])
+              for (final item in [('system',binerText('فونت گوشی')),('vazir',binerText('وزیرمتن')),('noto',binerText('فونت اصلی'))])
                 ChoiceChip(label: Text(item.$2), selected: prefs.fontFamily == item.$1, onSelected: (_) => prefs.setFontFamily(item.$1)),
             ]),
             const SizedBox(height: 16),
