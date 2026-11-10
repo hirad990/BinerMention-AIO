@@ -245,7 +245,7 @@ class _CreatorStudioPageState extends State<CreatorStudioPage> {
         const SizedBox(height: 16),
         SelectableText(text, textAlign: TextAlign.start, style: const TextStyle(fontSize: 19, height: 1.9, letterSpacing: .1)),
         const SizedBox(height: 16),
-        Text('${text.split(RegExp(r'\s+')).length} واژه · حدود ${(text.split(RegExp(r'\s+binerText(')).length / 180).ceil()} دقیقه مطالعه'), style: TextStyle(color: Colors.white54, fontSize: 11)),
+        Text(binerText('${text.split(RegExp(r'\s+')).length} واژه · حدود ${(text.split(RegExp(r'\s+')).length / 180).ceil()} دقیقه مطالعه'), style: TextStyle(color: Colors.white54, fontSize: 11)),
       ])),
     ));
   }
