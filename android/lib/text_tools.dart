@@ -1,5 +1,6 @@
 import 'dart:convert';
 import 'package:http/http.dart' as http;
+import 'app_preferences.dart';
 
 class BinerTextTools {
   static String summarize(String input, {int maxSentences = 3}) {
@@ -24,10 +25,10 @@ class BinerTextTools {
     if (text.trim().isEmpty) return text;
     final uri = Uri.https('api.mymemory.translated.net', '/get', {'q': text, 'langpair': 'autodetect|$targetLanguage'});
     final response = await http.get(uri, headers: {'Accept':'application/json'}).timeout(const Duration(seconds: 18));
-    if (response.statusCode != 200) throw Exception('سرویس ترجمه در دسترس نیست.');
+    if (response.statusCode != 200) throw Exception(binerText('سرویس ترجمه در دسترس نیست.'));
     final data = jsonDecode(utf8.decode(response.bodyBytes)) as Map<String,dynamic>;
     final translated = (data['responseData'] as Map?)?['translatedText']?.toString();
-    if (translated == null || translated.isEmpty) throw Exception('ترجمه‌ای دریافت نشد.');
+    if (translated == null || translated.isEmpty) throw Exception(binerText('ترجمه‌ای دریافت نشد.'));
     return translated;
   }
 }
