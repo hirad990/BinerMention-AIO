@@ -100,7 +100,7 @@ class _BinerLiveAppState extends State<BinerLiveApp> {
         ),
       ),
       child: !ready
-          ? Scaffold(backgroundColor: Theme.of(context).colorScheme.surface,key: const ValueKey('boot'), body: Center(child: CircularProgressIndicator(color: cBlue)))
+          ? Scaffold(backgroundColor: binerScaffoldBackground(context),key: const ValueKey('boot'), body: Center(child: CircularProgressIndicator(color: cBlue)))
           : loggedIn
               ? LiveHome(key: const ValueKey('home'), api: api, logout: logout, onToggleTheme: toggleTheme, isDark: themeMode == ThemeMode.dark)
               : LiveAuth(key: const ValueKey('auth'), api: api, onDone: signedIn),
@@ -134,7 +134,7 @@ class _LiveAuthState extends State<LiveAuth> with TickerProviderStateMixin {
   @override Widget build(BuildContext context) {
     final dark=Theme.of(context).brightness==Brightness.dark;
     final prefs=BinerPreferences.instance;
-    return Scaffold(backgroundColor: defaultTargetPlatform == TargetPlatform.iOS ? Colors.transparent : Theme.of(context).colorScheme.surface,
+    return Scaffold(backgroundColor: binerScaffoldBackground(context),
       body: Stack(children:[
         Positioned.fill(child: AnimatedBuilder(animation:ambient,builder:(context,_)=>CustomPaint(painter:_AuthGlowPainter(ambient.value,dark)))),
         SafeArea(child: Center(child: SingleChildScrollView(padding:const EdgeInsets.fromLTRB(22,26,22,30),child:ConstrainedBox(
