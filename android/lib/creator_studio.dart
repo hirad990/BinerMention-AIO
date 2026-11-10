@@ -173,9 +173,9 @@ class _CreatorStudioPageState extends State<CreatorStudioPage> {
         TextField(controller: controller, minLines: 3, maxLines: 6, decoration: const InputDecoration(hintText: 'متن خودت را وارد کن…')),
         const SizedBox(height: 10),
         Wrap(spacing: 8, runSpacing: 8, children: [
-          _chip('پاک‌سازی فاصله‌ها', () => output = controller.text.replaceAll(RegExp(r'[ \t]+'), ' ').replaceAll(RegExp(r'\n{3,}'), '\n\n').trim()),
-          _chip('فهرست‌سازی', () => output = controller.text.split('\n').where((e) => e.trim().isNotEmpty).map((e) => '• ${e.trim()}').join('\n')),
-          _chip('نقل‌قول', () => output = controller.text.split('\n').map((e) => '“${e.trim()}”').join('\n')),
+          _chip('پاک‌سازی فاصله‌ها', () => output = controller.text.replaceAll(RegExp(r'[ \t]+'), ' ').replaceAll(RegExp(r'\n{3,}'), '\n\n').trim(), () => refresh(() {})),
+          _chip('فهرست‌سازی', () => output = controller.text.split('\n').where((e) => e.trim().isNotEmpty).map((e) => '• ${e.trim()}').join('\n'), () => refresh(() {})),
+          _chip('نقل‌قول', () => output = controller.text.split('\n').map((e) => '“${e.trim()}”').join('\n'), () => refresh(() {})),
         ]),
         if (output.isNotEmpty) ...[const SizedBox(height: 12), SelectableText(output, style: const TextStyle(height: 1.6)) , _secondary('کپی خروجی', () => _copy(output))],
       ]),
