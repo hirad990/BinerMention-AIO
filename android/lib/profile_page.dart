@@ -197,7 +197,7 @@ class _UserProfilePageState extends State<UserProfilePage> {
     final mediaUrl = post['media_url']?.toString() ?? '';
     final mime = post['mime_type']?.toString() ?? '';
     final isVideo = mime.startsWith('video/') ||
-        RegExp(r'\\.(mp4|webm)(\\?|$)', caseSensitive: false).hasMatch(mediaUrl);
+        RegExp(r'\.(mp4|webm)(\?|$)', caseSensitive: false).hasMatch(mediaUrl);
 
     return BinerSurfaceCard(
       margin: const EdgeInsets.fromLTRB(16, 5, 16, 7),
