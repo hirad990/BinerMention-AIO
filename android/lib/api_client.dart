@@ -85,8 +85,8 @@ class BinerApi {
     } catch (_) {
       throw ApiException(
         response.statusCode >= 500
-            ? binerText(binerText('سرور موقتاً در دسترس نیست.'))
-            : binerText(binerText('پاسخ سرور معتبر نیست (HTTP ${response.statusCode}).')),
+            ? binerText('سرور موقتاً در دسترس نیست.')
+            : binerText('پاسخ سرور معتبر نیست (HTTP ${response.statusCode}).'),
         statusCode: response.statusCode,
       );
     }
@@ -97,7 +97,7 @@ class BinerApi {
         (await _prefs).remove(_tokenKey);
       }
       throw ApiException(
-        (data['message'] as String?) ?? binerText('درخواست انجام نشد.'),
+        binerText((data['message'] as String?) ?? 'درخواست انجام نشد.'),
         statusCode: response.statusCode,
       );
     }
@@ -204,7 +204,7 @@ class BinerApi {
       final decoded = jsonDecode(utf8.decode(response.bodyBytes));
       if (decoded is! Map<String, dynamic>) throw const FormatException();
       if (response.statusCode < 200 || response.statusCode >= 300 || decoded['ok'] == false) {
-        throw ApiException(decoded['message']?.toString() ?? binerText('بارگذاری فایل انجام نشد.'), statusCode: response.statusCode);
+        throw ApiException(binerText(decoded['message']?.toString() ?? 'بارگذاری فایل انجام نشد.'), statusCode: response.statusCode);
       }
       return Map<String, dynamic>.from(decoded['media'] as Map);
     } on ApiException {
