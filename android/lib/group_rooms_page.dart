@@ -7,6 +7,7 @@ import 'biner_ai_page.dart';
 import 'media_editor.dart';
 import 'media_viewer.dart';
 import 'ui_kit.dart';
+import 'app_preferences.dart';
 
 class GroupRoomsPage extends StatefulWidget {
   const GroupRoomsPage({super.key, required this.api});
@@ -33,11 +34,11 @@ class _GroupRoomsPageState extends State<GroupRoomsPage> {
     final title = await showDialog<String>(
       context: context,
       builder: (ctx) => AlertDialog(
-        title: const Text('ساخت اتاق گفتگو'),
-        content: TextField(controller: controller, autofocus: true, maxLength: 80, decoration: const InputDecoration(labelText: 'نام گروه')),
+        title: Text(binerText('ساخت اتاق گفتگو')),
+        content: TextField(controller: controller, autofocus: true, maxLength: 80, decoration: InputDecoration(labelText: binerText('نام گروه'))),
         actions: [
-          TextButton(onPressed: () => Navigator.pop(ctx), child: const Text('انصراف')),
-          FilledButton(onPressed: () => Navigator.pop(ctx, controller.text.trim()), child: const Text('ساخت گروه')),
+          TextButton(onPressed: () => Navigator.pop(ctx), child: Text(binerText('انصراف'))),
+          FilledButton(onPressed: () => Navigator.pop(ctx, controller.text.trim()), child: Text(binerText('ساخت گروه'))),
         ],
       ),
     );
@@ -52,11 +53,11 @@ class _GroupRoomsPageState extends State<GroupRoomsPage> {
     final link = await showDialog<String>(
       context: context,
       builder: (ctx) => AlertDialog(
-        title: const Text('ورود به گروه'),
+        title: Text(binerText('ورود به گروه')),
         content: TextField(controller: controller, autofocus: true, autocorrect: false, decoration: const InputDecoration(hintText: 'bm:xxxxxxxxxxxxxxxx')),
         actions: [
-          TextButton(onPressed: () => Navigator.pop(ctx), child: const Text('انصراف')),
-          FilledButton(onPressed: () => Navigator.pop(ctx, controller.text.trim()), child: const Text('ورود')),
+          TextButton(onPressed: () => Navigator.pop(ctx), child: Text(binerText('انصراف'))),
+          FilledButton(onPressed: () => Navigator.pop(ctx, controller.text.trim()), child: Text(binerText('ورود'))),
         ],
       ),
     );
@@ -69,10 +70,10 @@ class _GroupRoomsPageState extends State<GroupRoomsPage> {
   @override
   Widget build(BuildContext context) => Scaffold(backgroundColor: Theme.of(context).colorScheme.surface,
     appBar: AppBar(
-      title: const Text('اتاق‌های گفتگو'),
+      title: Text(binerText('اتاق‌های گفتگو')),
       actions: [
-        IconButton(tooltip: 'ورود با لینک', onPressed: _join, icon: const Icon(Icons.link_rounded)),
-        IconButton(tooltip: 'ساخت گروه', onPressed: _create, icon: const Icon(Icons.add_circle_outline_rounded)),
+        IconButton(tooltip: binerText('ورود با لینک'), onPressed: _join, icon: const Icon(Icons.link_rounded)),
+        IconButton(tooltip: binerText('ساخت گروه'), onPressed: _create, icon: const Icon(Icons.add_circle_outline_rounded)),
       ],
     ),
     body: FutureBuilder<List<Map<String, dynamic>>>(
@@ -84,20 +85,20 @@ class _GroupRoomsPageState extends State<GroupRoomsPage> {
         if (snapshot.hasError) {
           return BinerEmptyState(
             icon: Icons.cloud_off_rounded,
-            title: 'گروه‌ها بارگذاری نشدند',
-            description: 'اتصال API را بررسی کن و دوباره تلاش کن.',
-            action: FilledButton.icon(onPressed: _reload, icon: const Icon(Icons.refresh_rounded), label: const Text('تلاش دوباره')),
+            title: binerText('گروه‌ها بارگذاری نشدند'),
+            description: binerText('اتصال API را بررسی کن و دوباره تلاش کن.'),
+            action: FilledButton.icon(onPressed: _reload, icon: const Icon(Icons.refresh_rounded), label: Text(binerText('تلاش دوباره'))),
           );
         }
         final groups = snapshot.data ?? const <Map<String, dynamic>>[];
         if (groups.isEmpty) {
           return BinerEmptyState(
             icon: Icons.forum_outlined,
-            title: 'هنوز عضو گروهی نیستی',
-            description: 'یک اتاق گفتگو بساز یا با لینک داخلی bm: به گروهی بپیوند.',
+            title: binerText('هنوز عضو گروهی نیستی'),
+            description: binerText('یک اتاق گفتگو بساز یا با لینک داخلی bm: به گروهی بپیوند.'),
             action: Wrap(spacing: 10, children: [
-              FilledButton.icon(onPressed: _create, icon: const Icon(Icons.add_rounded), label: const Text('ساخت گروه')),
-              OutlinedButton.icon(onPressed: _join, icon: const Icon(Icons.link_rounded), label: const Text('ورود با لینک')),
+              FilledButton.icon(onPressed: _create, icon: const Icon(Icons.add_rounded), label: Text(binerText('ساخت گروه'))),
+              OutlinedButton.icon(onPressed: _join, icon: const Icon(Icons.link_rounded), label: Text(binerText('ورود با لینک'))),
             ]),
           );
         }
@@ -110,13 +111,13 @@ class _GroupRoomsPageState extends State<GroupRoomsPage> {
             itemBuilder: (context, index) {
               if (index == 0) {
                 return BinerSectionHeader(
-                  title: 'گروه‌های تو',
-                  subtitle: 'گفتگوهای گروهی خصوصی و قابل مدیریت',
+                  title: binerText('گروه‌های تو'),
+                  subtitle: binerText('گفتگوهای گروهی خصوصی و قابل مدیریت'),
                 );
               }
               final group = groups[index - 1];
               final id = int.tryParse(group['id'].toString()) ?? 0;
-              final title = group['title']?.toString() ?? 'گروه';
+              final title = group['title']?.toString() ?? binerText('گروه');
               final invite = group['invite_link']?.toString() ?? '';
               return BinerSurfaceCard(
                 margin: const EdgeInsets.only(bottom: 10),
@@ -139,10 +140,10 @@ class _GroupRoomsPageState extends State<GroupRoomsPage> {
                     Text('${group['members_count'] ?? 0} عضو  ·  ${group['last_message'] ?? 'گفت‌وگوی تازه'}', maxLines: 1, overflow: TextOverflow.ellipsis, style: TextStyle(fontSize: 11, color: Theme.of(context).colorScheme.onSurfaceVariant)),
                   ])),
                   IconButton(
-                    tooltip: 'کپی لینک گروه',
+                    tooltip: binerText('کپی لینک گروه'),
                     onPressed: invite.isEmpty ? null : () async {
                       await Clipboard.setData(ClipboardData(text: invite));
-                      if (context.mounted) _message('لینک گروه کپی شد.');
+                      if (context.mounted) _message(binerText('لینک گروه کپی شد.'));
                     },
                     icon: const Icon(Icons.link_rounded),
                   ),
@@ -197,7 +198,7 @@ class _GroupChatPageState extends State<GroupChatPage> {
     } catch (_) {
       if (mounted) {
         setState(() => _loading = false);
-        ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('بارگذاری پیام‌های گروه انجام نشد.')));
+        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(binerText('بارگذاری پیام‌های گروه انجام نشد.'))));
       }
     }
   }
@@ -212,7 +213,7 @@ class _GroupChatPageState extends State<GroupChatPage> {
         final uploaded = await widget.api.uploadMedia(attachment);
         mediaId = int.tryParse(uploaded['id'].toString());
         if (!mounted) return;
-        if (mediaId == null) throw const ApiException('شناسه رسانه دریافت نشد.');
+        if (mediaId == null) throw const ApiException(binerText('شناسه رسانه دریافت نشد.'));
       }
       final sent = await widget.api.sendGroupMessage(widget.groupId, text, mediaId: mediaId);
       if (!mounted) return;
@@ -230,7 +231,7 @@ class _GroupChatPageState extends State<GroupChatPage> {
     } on ApiException catch (e) {
       if (mounted) ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(e.message)));
     } catch (_) {
-      if (mounted) ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('ارسال پیام انجام نشد. دوباره تلاش کن.')));
+      if (mounted) ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(binerText('ارسال پیام انجام نشد. دوباره تلاش کن.'))));
     } finally {
       if (mounted) setState(() => _sending = false);
     }
@@ -247,7 +248,7 @@ class _GroupChatPageState extends State<GroupChatPage> {
         if (int.tryParse(item['id'].toString()) == id) { group = item; break; }
       }
       if (group == null || !mounted) return;
-      await Navigator.of(context).push(MaterialPageRoute<void>(builder: (_) => GroupChatPage(api: widget.api, groupId: id, title: group!['title']?.toString() ?? 'گروه')));
+      await Navigator.of(context).push(MaterialPageRoute<void>(builder: (_) => GroupChatPage(api: widget.api, groupId: id, title: group!['title']?.toString() ?? binerText('گروه'))));
     } on ApiException catch (e) {
       if (mounted) ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(e.message)));
     }
@@ -309,7 +310,7 @@ class _GroupChatPageState extends State<GroupChatPage> {
           border: Border.all(color: mine ? const Color(0x6654C8FF) : Theme.of(context).dividerColor.withValues(alpha: .4)),
         ),
         child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-          if (!mine) Padding(padding: const EdgeInsets.only(bottom: 5), child: Text(message['display_name']?.toString() ?? message['username']?.toString() ?? 'کاربر', style: const TextStyle(color: Color(0xFF54C8FF), fontSize: 11, fontWeight: FontWeight.w900))),
+          if (!mine) Padding(padding: const EdgeInsets.only(bottom: 5), child: Text(message['display_name']?.toString() ?? message['username']?.toString() ?? binerText('کاربر'), style: const TextStyle(color: Color(0xFF54C8FF), fontSize: 11, fontWeight: FontWeight.w900))),
           if (mediaUrl.startsWith('https://')) ...[
             GestureDetector(
               onTap: () => BinerMediaViewer.open(context, url: mediaUrl, mimeType: mime, title: widget.title),
@@ -343,7 +344,7 @@ class _GroupChatPageState extends State<GroupChatPage> {
       ]),
       actions: [
         IconButton(tooltip: 'BinerAI', onPressed: () => Navigator.of(context).push(MaterialPageRoute<void>(builder: (_) => BinerAIPage(api: widget.api))), icon: const Icon(Icons.auto_awesome_rounded, color: Color(0xFF9B8CFF))),
-        IconButton(tooltip: 'به‌روزرسانی', onPressed: () => _load(showLoading: true), icon: const Icon(Icons.refresh_rounded)),
+        IconButton(tooltip: binerText('به‌روزرسانی'), onPressed: () => _load(showLoading: true), icon: const Icon(Icons.refresh_rounded)),
       ],
     ),
     body: Column(children: [
@@ -359,7 +360,7 @@ class _GroupChatPageState extends State<GroupChatPage> {
                   itemCount: _items.length + 1,
                   itemBuilder: (context, index) {
                     if (index == 0) {
-                      return const Padding(padding: EdgeInsets.only(bottom: 12), child: Center(child: Text('پیام‌ها برای اعضای گروه قابل مشاهده‌اند.', style: TextStyle(color: Colors.grey, fontSize: 11))));
+                      return const Padding(padding: EdgeInsets.only(bottom: 12), child: Center(child: Text(binerText('پیام‌ها برای اعضای گروه قابل مشاهده‌اند.'), style: TextStyle(color: Colors.grey, fontSize: 11))));
                     }
                     final item = _items[index - 1];
                     final mine = item['sender_id']?.toString() == _myId?.toString();
@@ -390,7 +391,7 @@ class _GroupChatPageState extends State<GroupChatPage> {
             radius: 24,
             child: Row(crossAxisAlignment: CrossAxisAlignment.end, children: [
               IconButton(
-                tooltip: 'ارسال عکس یا ویدیو',
+                tooltip: binerText('ارسال عکس یا ویدیو'),
                 onPressed: _sending ? null : () async {
                   final file = await BinerMediaEditor.pickMedia();
                   if (file != null && mounted) await _send(attachment: file);
@@ -401,7 +402,7 @@ class _GroupChatPageState extends State<GroupChatPage> {
                 controller: _controller,
                 minLines: 1, maxLines: 5,
                 onSubmitted: (_) => _send(),
-                decoration: const InputDecoration(hintText: 'پیام گروه…', filled: false, border: InputBorder.none, contentPadding: EdgeInsets.symmetric(horizontal: 8, vertical: 12)),
+                decoration: InputDecoration(hintText: binerText('پیام گروه…'), filled: false, border: InputBorder.none, contentPadding: EdgeInsets.symmetric(horizontal: 8, vertical: 12)),
               )),
               const SizedBox(width: 5),
               IconButton.filled(
