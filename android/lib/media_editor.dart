@@ -61,7 +61,7 @@ class BinerMediaEditor {
       rethrow;
     } on MissingPluginException {
       return null;
-    } on FileSystemException {
+    } catch (_) {
       return null;
     }
   }
