@@ -362,6 +362,10 @@ const Map<String, List<String>> _uiTranslations = {
   'بر اساس رویدادهای واقعی ثبت‌شده': ['Based on recorded events', 'استناداً إلى الأحداث المسجلة', 'Kaydedilen olaylara göre'],
   'هنوز داده‌ای برای نمودار وجود ندارد.': ['There is no chart data yet.', 'لا توجد بيانات للرسم البياني بعد.', 'Henüz grafik verisi yok.'],
   'روند بازدید': ['Views trend', 'اتجاه المشاهدات', 'Görüntüleme eğilimi'],
+  'تعاملات ۷ روز اخیر': ['Engagement in the last 7 days', 'التفاعلات خلال آخر ٧ أيام', 'Son 7 gündeki etkileşimler'],
+  'بازدید': ['Views', 'المشاهدات', 'Görüntüleme'],
+  'تعامل': ['Engagement', 'التفاعل', 'Etkileşim'],
+
   'انتخاب مقصد': ['Choose destination', 'اختر الوجهة', 'Hedef seç'],
 };
 
