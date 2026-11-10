@@ -47,7 +47,7 @@ jobs:
 
       - name: Format Dart source
         working-directory: ${{ runner.temp }}/binerm_mention
-        run: dart format --output=none --set-exit-if-changed lib
+        run: dart format lib
 
       - name: Analyze Flutter source
         working-directory: ${{ runner.temp }}/binerm_mention
