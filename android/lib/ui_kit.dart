@@ -19,6 +19,7 @@ Color binerScaffoldBackground(BuildContext context) =>
 /// Shared Material 3 theme with a Persian-friendly typeface and adaptive surfaces.
 ThemeData buildBinerTheme(Brightness brightness, {Color seedColor = binerBlue}) {
   final dark = brightness == Brightness.dark;
+  final isIOS = defaultTargetPlatform == TargetPlatform.iOS;
   final base = dark ? ThemeData.dark(useMaterial3: true) : ThemeData.light(useMaterial3: true);
   final textColor = dark ? const Color(0xFFF4F7FF) : const Color(0xFF142033);
   final pageSurface = dark ? const Color(0xFF0B111B) : const Color(0xFFF5F8FC);
@@ -50,7 +51,7 @@ ThemeData buildBinerTheme(Brightness brightness, {Color seedColor = binerBlue}) 
       displayColor: textColor,
     ),
     popupMenuTheme: PopupMenuThemeData(
-      color: dark ? const Color(0xFF182536) : const Color(0xFFFFFFFF),
+      color: (dark ? const Color(0xFF182536) : const Color(0xFFFFFFFF)).withValues(alpha: isIOS ? .78 : 1),
       elevation: 0,
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(18), side: BorderSide(color: seedColor.withValues(alpha: .38))),
       textStyle: TextStyle(color: dark ? const Color(0xFFF5F5F7) : const Color(0xFF142033)),
@@ -76,13 +77,13 @@ ThemeData buildBinerTheme(Brightness brightness, {Color seedColor = binerBlue}) 
     ),
     dividerTheme: DividerThemeData(color: (dark ? Colors.white : const Color(0xFF253B56)).withValues(alpha: .10), thickness: 1, space: 1),
     cardTheme: CardThemeData(
-      color: cardSurface,
+      color: cardSurface.withValues(alpha: isIOS ? .76 : 1),
       elevation: 0,
       margin: EdgeInsets.zero,
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(22), side: BorderSide(color: seedColor.withValues(alpha: .14))),
     ),
     dialogTheme: DialogThemeData(
-      backgroundColor: cardSurface,
+      backgroundColor: cardSurface.withValues(alpha: isIOS ? .82 : 1),
       surfaceTintColor: Colors.transparent,
       elevation: 0,
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24), side: BorderSide(color: outline)),
@@ -90,8 +91,8 @@ ThemeData buildBinerTheme(Brightness brightness, {Color seedColor = binerBlue}) 
       contentTextStyle: TextStyle(color: textColor, height: 1.55),
     ),
     bottomSheetTheme: BottomSheetThemeData(
-      backgroundColor: cardSurface,
-      modalBackgroundColor: cardSurface,
+      backgroundColor: cardSurface.withValues(alpha: isIOS ? .78 : 1),
+      modalBackgroundColor: cardSurface.withValues(alpha: isIOS ? .78 : 1),
       surfaceTintColor: Colors.transparent,
       elevation: 0,
       shape: const RoundedRectangleBorder(borderRadius: BorderRadius.vertical(top: Radius.circular(26))),
