@@ -2,6 +2,7 @@ import 'dart:math' as math;
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'app_preferences.dart';
 
 const _blue = Color(0xFF54C8FF);
 const _violet = Color(0xFF9B8CFF);
@@ -33,9 +34,9 @@ class _CreatorStudioPageState extends State<CreatorStudioPage> {
     setState(() {
       drafts = prefs.getStringList('creator_drafts_v1') ?? [];
       snippets = prefs.getStringList('creator_snippets_v1') ?? [
-        'ممنون از اینکه دیدگاهت را به اشتراک گذاشتی.',
-        'این موضوع ارزش بررسی بیشتری دارد.',
-        'یک نکتهٔ مهم که نباید فراموش کنیم:'
+        binerText('ممنون از اینکه دیدگاهت را به اشتراک گذاشتی.'),
+        binerText('این موضوع ارزش بررسی بیشتری دارد.'),
+        binerText('یک نکتهٔ مهم که نباید فراموش کنیم:')
       ];
       mutedWords = prefs.getStringList('creator_muted_words_v1') ?? [];
       loaded = true;
@@ -58,10 +59,10 @@ class _CreatorStudioPageState extends State<CreatorStudioPage> {
 
   Future<void> _copy(String value) async {
     await Clipboard.setData(ClipboardData(text: value));
-    if (mounted) _toast('کپی شد');
+    if (mounted) _toast(binerText('کپی شد'));
   }
 
-  Future<String?> _editText({String title = 'متن', String initial = '', int maxLength = 5000}) async {
+  Future<String?> _editText({String title = binerText('متن'), String initial = '', int maxLength = 5000}) async {
     final controller = TextEditingController(text: initial);
     final result = await showDialog<String>(
       context: context,
@@ -80,7 +81,7 @@ class _CreatorStudioPageState extends State<CreatorStudioPage> {
               maxLines: 8,
               maxLength: maxLength,
               decoration: InputDecoration(
-                hintText: 'اینجا بنویس…',
+                hintText: binerText('اینجا بنویس…'),
                 filled: true,
                 fillColor: Colors.white.withValues(alpha: .045),
                 border: OutlineInputBorder(borderRadius: BorderRadius.circular(16), borderSide: BorderSide.none),
@@ -88,9 +89,9 @@ class _CreatorStudioPageState extends State<CreatorStudioPage> {
             ),
             const SizedBox(height: 10),
             Row(children: [
-              Expanded(child: TextButton(onPressed: () => Navigator.pop(ctx), child: const Text('لغو'))),
+              Expanded(child: TextButton(onPressed: () => Navigator.pop(ctx), child: Text(binerText('لغو')))),
               const SizedBox(width: 8),
-              Expanded(child: FilledButton(onPressed: () => Navigator.pop(ctx, controller.text.trim()), child: const Text('ذخیره'))),
+              Expanded(child: FilledButton(onPressed: () => Navigator.pop(ctx, controller.text.trim()), child: Text(binerText('ذخیره')))),
             ]),
           ]),
         ),
@@ -112,9 +113,9 @@ class _CreatorStudioPageState extends State<CreatorStudioPage> {
           child: StatefulBuilder(builder: (ctx, refresh) => Column(mainAxisSize: MainAxisSize.min, children: [
             _handle(),
             const SizedBox(height: 12),
-            Row(children: [const Expanded(child: Text('گاوصندوق پیش‌نویس‌ها', style: TextStyle(fontSize: 19, fontWeight: FontWeight.w900))), _miniAction(Icons.add_rounded, 'پیش‌نویس تازه', () => Navigator.pop(ctx, 'new'))]),
+            Row(children: [const Expanded(child: Text(binerText('گاوصندوق پیش‌نویس‌ها'), style: TextStyle(fontSize: 19, fontWeight: FontWeight.w900))), _miniAction(Icons.add_rounded, binerText('پیش‌نویس تازه'), () => Navigator.pop(ctx, 'new'))]),
             const SizedBox(height: 12),
-            if (drafts.isEmpty) const Padding(padding: EdgeInsets.all(22), child: Text('هنوز پیش‌نویسی ذخیره نکردی.', style: TextStyle(color: Colors.white60))),
+            if (drafts.isEmpty) const Padding(padding: EdgeInsets.all(22), child: Text(binerText('هنوز پیش‌نویسی ذخیره نکردی.'), style: TextStyle(color: Colors.white60))),
             ...List.generate(drafts.length, (i) => Container(
               margin: const EdgeInsets.only(bottom: 8),
               decoration: BoxDecoration(color: Colors.white.withValues(alpha: .045), borderRadius: BorderRadius.circular(16)),
@@ -130,12 +131,12 @@ class _CreatorStudioPageState extends State<CreatorStudioPage> {
       );
       if (!mounted || action == null) break;
       if (action == 'new') {
-        final text = await _editText(title: 'پیش‌نویس تازه');
+        final text = await _editText(title: binerText('پیش‌نویس تازه'));
         if (text != null && text.isNotEmpty) { setState(() => drafts.insert(0, text)); await _persist('creator_drafts_v1', drafts); }
       } else if (action.startsWith('edit:')) {
         final i = int.tryParse(action.substring(5));
         if (i != null && i < drafts.length) {
-          final text = await _editText(title: 'ویرایش پیش‌نویس', initial: drafts[i]);
+          final text = await _editText(title: binerText('ویرایش پیش‌نویس'), initial: drafts[i]);
           if (text != null) { setState(() { if (text.isEmpty) { drafts.removeAt(i); } else { drafts[i] = text; } }); await _persist('creator_drafts_v1', drafts); }
         }
       }
@@ -146,18 +147,18 @@ class _CreatorStudioPageState extends State<CreatorStudioPage> {
     final controller = TextEditingController();
     String result = '';
     await showDialog<void>(context: context, builder: (ctx) => StatefulBuilder(builder: (ctx, refresh) => _toolDialog(
-      'آزمایشگاه هشتگ',
-      'موضوع یا چند کلمه وارد کن؛ هشتگ‌های پیشنهادی به‌صورت محلی ساخته می‌شوند.',
+      binerText('آزمایشگاه هشتگ'),
+      binerText('موضوع یا چند کلمه وارد کن؛ هشتگ‌های پیشنهادی به‌صورت محلی ساخته می‌شوند.'),
       Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
-        TextField(controller: controller, onChanged: (_) => refresh(() {}), decoration: const InputDecoration(hintText: 'مثلاً برنامه‌نویسی، تکنولوژی، هنر')),
+        TextField(controller: controller, onChanged: (_) => refresh(() {}), decoration: InputDecoration(hintText: binerText('مثلاً برنامه‌نویسی، تکنولوژی، هنر'))),
         const SizedBox(height: 12),
         if (result.isNotEmpty) SelectableText(result, style: const TextStyle(color: _blue, height: 1.8, fontWeight: FontWeight.w700)),
-        _primary('ساخت هشتگ', () {
+        _primary(binerText('ساخت هشتگ'), () {
           final words = controller.text.split(RegExp(r'[^\p{L}\p{N}_]+', unicode: true)).where((e) => e.length > 1).toSet().take(8);
           result = words.map((e) => '#${e.replaceAll(RegExp(r'[^\p{L}\p{N}_]', unicode: true), '')}').join(' ');
           refresh(() {});
         }),
-        if (result.isNotEmpty) _secondary('کپی هشتگ‌ها', () => _copy(result)),
+        if (result.isNotEmpty) _secondary(binerText('کپی هشتگ‌ها'), () => _copy(result)),
       ]),
     )));
     controller.dispose();
@@ -167,17 +168,17 @@ class _CreatorStudioPageState extends State<CreatorStudioPage> {
     final controller = TextEditingController();
     String output = '';
     await showDialog<void>(context: context, builder: (ctx) => StatefulBuilder(builder: (ctx, refresh) => _toolDialog(
-      'کارگاه ویرایش متن',
-      'متن را مرتب کن و نسخهٔ تمیزشده را کپی کن.',
+      binerText('کارگاه ویرایش متن'),
+      binerText('متن را مرتب کن و نسخهٔ تمیزشده را کپی کن.'),
       Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
-        TextField(controller: controller, minLines: 3, maxLines: 6, decoration: const InputDecoration(hintText: 'متن خودت را وارد کن…')),
+        TextField(controller: controller, minLines: 3, maxLines: 6, decoration: InputDecoration(hintText: binerText('متن خودت را وارد کن…'))),
         const SizedBox(height: 10),
         Wrap(spacing: 8, runSpacing: 8, children: [
-          _chip('پاک‌سازی فاصله‌ها', () => output = controller.text.replaceAll(RegExp(r'[ \t]+'), ' ').replaceAll(RegExp(r'\n{3,}'), '\n\n').trim(), () => refresh(() {})),
-          _chip('فهرست‌سازی', () => output = controller.text.split('\n').where((e) => e.trim().isNotEmpty).map((e) => '• ${e.trim()}').join('\n'), () => refresh(() {})),
-          _chip('نقل‌قول', () => output = controller.text.split('\n').map((e) => '“${e.trim()}”').join('\n'), () => refresh(() {})),
+          _chip(binerText('پاک‌سازی فاصله‌ها'), () => output = controller.text.replaceAll(RegExp(r'[ \t]+'), ' ').replaceAll(RegExp(r'\n{3,}'), '\n\n').trim(), () => refresh(() {})),
+          _chip(binerText('فهرست‌سازی'), () => output = controller.text.split('\n').where((e) => e.trim().isNotEmpty).map((e) => '• ${e.trim()}').join('\n'), () => refresh(() {})),
+          _chip(binerText('نقل‌قول'), () => output = controller.text.split('\n').map((e) => '“${e.trim()}”').join('\n'), () => refresh(() {})),
         ]),
-        if (output.isNotEmpty) ...[const SizedBox(height: 12), SelectableText(output, style: const TextStyle(height: 1.6)) , _secondary('کپی خروجی', () => _copy(output))],
+        if (output.isNotEmpty) ...[const SizedBox(height: 12), SelectableText(output, style: const TextStyle(height: 1.6)) , _secondary(binerText('کپی خروجی'), () => _copy(output))],
       ]),
     )));
     controller.dispose();
@@ -188,7 +189,7 @@ class _CreatorStudioPageState extends State<CreatorStudioPage> {
       padding: const EdgeInsets.all(18),
       child: Column(mainAxisSize: MainAxisSize.min, children: [
         _handle(), const SizedBox(height: 12),
-        const Align(alignment: Alignment.centerRight, child: Text('کتابخانهٔ پاسخ‌های آماده', style: TextStyle(fontSize: 19, fontWeight: FontWeight.w900))),
+        const Align(alignment: Alignment.centerRight, child: Text(binerText('کتابخانهٔ پاسخ‌های آماده'), style: TextStyle(fontSize: 19, fontWeight: FontWeight.w900))),
         const SizedBox(height: 10),
         ...List.generate(snippets.length, (i) => ListTile(
           contentPadding: EdgeInsets.zero,
@@ -196,11 +197,11 @@ class _CreatorStudioPageState extends State<CreatorStudioPage> {
           trailing: IconButton(onPressed: () => Navigator.pop(ctx, 'copy:$i'), icon: const Icon(Icons.copy_rounded, color: _blue)),
           onTap: () => Navigator.pop(ctx, 'copy:$i'),
         )),
-        _primary('افزودن پاسخ آماده', () => Navigator.pop(ctx, 'new')),
+        _primary(binerText('افزودن پاسخ آماده'), () => Navigator.pop(ctx, 'new')),
       ]),
     )));
     if (value == 'new') {
-      final text = await _editText(title: 'پاسخ آمادهٔ جدید');
+      final text = await _editText(title: binerText('پاسخ آمادهٔ جدید'));
       if (text != null && text.isNotEmpty) { setState(() => snippets.add(text)); await _persist('creator_snippets_v1', snippets); }
     } else if (value != null && value.startsWith('copy:')) {
       final i = int.tryParse(value.substring(5));
@@ -211,12 +212,12 @@ class _CreatorStudioPageState extends State<CreatorStudioPage> {
   Future<void> _muteWords() async {
     final controller = TextEditingController();
     await showDialog<void>(context: context, builder: (ctx) => StatefulBuilder(builder: (ctx, refresh) => _toolDialog(
-      'فیلتر واژه‌های دلخواه',
-      'واژه‌هایی که نمی‌خواهی در فید ببینی ذخیره کن. این فهرست آمادهٔ اتصال به فیلتر فید است.',
+      binerText('فیلتر واژه‌های دلخواه'),
+      binerText('واژه‌هایی که نمی‌خواهی در فید ببینی ذخیره کن. این فهرست آمادهٔ اتصال به فیلتر فید است.'),
       Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
-        TextField(controller: controller, decoration: const InputDecoration(hintText: 'یک واژه یا عبارت')),
+        TextField(controller: controller, decoration: InputDecoration(hintText: binerText('یک واژه یا عبارت'))),
         const SizedBox(height: 8),
-        _primary('افزودن واژه', () { final word = controller.text.trim(); if (word.isNotEmpty && !mutedWords.contains(word)) { setState(() => mutedWords.add(word)); _persist('creator_muted_words_v1', mutedWords); controller.clear(); refresh(() {}); } }),
+        _primary(binerText('افزودن واژه'), () { final word = controller.text.trim(); if (word.isNotEmpty && !mutedWords.contains(word)) { setState(() => mutedWords.add(word)); _persist('creator_muted_words_v1', mutedWords); controller.clear(); refresh(() {}); } }),
         const SizedBox(height: 8),
         Wrap(spacing: 6, runSpacing: 6, children: mutedWords.map((word) => InputChip(label: Text(word), onDeleted: () { setState(() => mutedWords.remove(word)); _persist('creator_muted_words_v1', mutedWords); refresh(() {}); })).toList()),
       ]),
@@ -227,11 +228,11 @@ class _CreatorStudioPageState extends State<CreatorStudioPage> {
   Future<void> _readingMode() async {
     final controller = TextEditingController();
     final text = await showDialog<String>(context: context, builder: (ctx) => _toolDialog(
-      'حالت مطالعهٔ متمرکز',
-      'متن یک پست را اینجا قرار بده تا بدون شلوغی و با خوانایی بیشتر نمایش داده شود.',
+      binerText('حالت مطالعهٔ متمرکز'),
+      binerText('متن یک پست را اینجا قرار بده تا بدون شلوغی و با خوانایی بیشتر نمایش داده شود.'),
       Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
-        TextField(controller: controller, minLines: 3, maxLines: 6, decoration: const InputDecoration(hintText: 'متن پست…')),
-        _primary('شروع مطالعه', () => Navigator.pop(ctx, controller.text.trim())),
+        TextField(controller: controller, minLines: 3, maxLines: 6, decoration: InputDecoration(hintText: binerText('متن پست…'))),
+        _primary(binerText('شروع مطالعه'), () => Navigator.pop(ctx, controller.text.trim())),
       ]),
     ));
     controller.dispose();
@@ -244,7 +245,7 @@ class _CreatorStudioPageState extends State<CreatorStudioPage> {
         const SizedBox(height: 16),
         SelectableText(text, textAlign: TextAlign.start, style: const TextStyle(fontSize: 19, height: 1.9, letterSpacing: .1)),
         const SizedBox(height: 16),
-        Text('${text.split(RegExp(r'\s+')).length} واژه · حدود ${(text.split(RegExp(r'\s+')).length / 180).ceil()} دقیقه مطالعه', style: const TextStyle(color: Colors.white54, fontSize: 11)),
+        Text('${text.split(RegExp(r'\s+')).length} واژه · حدود ${(text.split(RegExp(r'\s+binerText(')).length / 180).ceil()} دقیقه مطالعه'), style: const TextStyle(color: Colors.white54, fontSize: 11)),
       ])),
     ));
   }
@@ -252,16 +253,16 @@ class _CreatorStudioPageState extends State<CreatorStudioPage> {
   Future<void> _bioWorkshop() async {
     final controller = TextEditingController();
     await showDialog<void>(context: context, builder: (ctx) => StatefulBuilder(builder: (ctx, refresh) => _toolDialog(
-      'استودیوی بیوگرافی',
-      'بیوی کوتاه پروفایلت را بنویس، پیش‌نمایش بگیر و کپی کن.',
+      binerText('استودیوی بیوگرافی'),
+      binerText('بیوی کوتاه پروفایلت را بنویس، پیش‌نمایش بگیر و کپی کن.'),
       Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
-        TextField(controller: controller, maxLength: 160, minLines: 2, maxLines: 4, onChanged: (_) => refresh(() {}), decoration: const InputDecoration(hintText: 'علاقه‌مندی‌ها، تخصص‌ها و لینک‌ها…')),
+        TextField(controller: controller, maxLength: 160, minLines: 2, maxLines: 4, onChanged: (_) => refresh(() {}), decoration: InputDecoration(hintText: binerText('علاقه‌مندی‌ها، تخصص‌ها و لینک‌ها…'))),
         Container(padding: const EdgeInsets.all(14), decoration: BoxDecoration(color: Colors.white.withValues(alpha: .05), borderRadius: BorderRadius.circular(16)), child: Row(crossAxisAlignment: CrossAxisAlignment.start, children: [
           const CircleAvatar(backgroundColor: Color(0xFF18314B), child: Icon(Icons.person_rounded, color: _blue)),
           const SizedBox(width: 12),
-          Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [const Text('پیش‌نمایش پروفایل', style: TextStyle(fontWeight: FontWeight.w800)), const SizedBox(height: 6), Text(controller.text.isEmpty ? 'بیوی تو اینجا نمایش داده می‌شود.' : controller.text, style: const TextStyle(color: Colors.white70, height: 1.5))])),
+          Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [Text(binerText('پیش‌نمایش پروفایل'), style: TextStyle(fontWeight: FontWeight.w800)), const SizedBox(height: 6), Text(controller.text.isEmpty ? binerText('بیوی تو اینجا نمایش داده می‌شود.') : controller.text, style: const TextStyle(color: Colors.white70, height: 1.5))])),
         ])),
-        _secondary('کپی بیو', () => _copy(controller.text.trim())),
+        _secondary(binerText('کپی بیو'), () => _copy(controller.text.trim())),
       ]),
     )));
     controller.dispose();
@@ -269,38 +270,38 @@ class _CreatorStudioPageState extends State<CreatorStudioPage> {
 
   Future<void> _ideaGenerator() async {
     const ideas = [
-      'یک ابزار دیجیتال که زندگی روزمره را ساده‌تر می‌کند معرفی کن.',
-      'از یک اشتباه جالب که چیز مهمی به تو یاد داد بنویس.',
-      'یک باور رایج در دنیای فناوری را به چالش بکش.',
-      'سه منبع رایگان برای یادگیری یک مهارت معرفی کن.',
-      'اگر می‌توانستی یک قابلیت به شبکه‌های اجتماعی اضافه کنی، چه بود؟',
-      'یک پروژهٔ کوچک را از ایده تا نتیجه روایت کن.',
-      'یک کتاب یا فیلم که نگاهت را تغییر داد معرفی کن.',
-      'یک سؤال بپرس که باعث شروع یک گفت‌وگوی واقعی شود.',
+      binerText('یک ابزار دیجیتال که زندگی روزمره را ساده‌تر می‌کند معرفی کن.'),
+      binerText('از یک اشتباه جالب که چیز مهمی به تو یاد داد بنویس.'),
+      binerText('یک باور رایج در دنیای فناوری را به چالش بکش.'),
+      binerText('سه منبع رایگان برای یادگیری یک مهارت معرفی کن.'),
+      binerText('اگر می‌توانستی یک قابلیت به شبکه‌های اجتماعی اضافه کنی، چه بود؟'),
+      binerText('یک پروژهٔ کوچک را از ایده تا نتیجه روایت کن.'),
+      binerText('یک کتاب یا فیلم که نگاهت را تغییر داد معرفی کن.'),
+      binerText('یک سؤال بپرس که باعث شروع یک گفت‌وگوی واقعی شود.'),
     ];
     setState(() => _idea = ideas[random.nextInt(ideas.length)]);
     await showDialog<void>(context: context, builder: (ctx) => StatefulBuilder(builder: (ctx, refresh) => _toolDialog(
-      'مولد ایدهٔ پست',
-      'برای شروع نوشتن، یک جرقهٔ تازه بگیر.',
+      binerText('مولد ایدهٔ پست'),
+      binerText('برای شروع نوشتن، یک جرقهٔ تازه بگیر.'),
       Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
         Container(padding: const EdgeInsets.all(18), decoration: BoxDecoration(color: Theme.of(context).colorScheme.surfaceContainerHigh, borderRadius: BorderRadius.circular(18), border: Border.all(color: Theme.of(context).colorScheme.outlineVariant)), child: Text(_idea, style: const TextStyle(fontSize: 17, height: 1.6, fontWeight: FontWeight.w700))),
         const SizedBox(height: 12),
-        _primary('ایدهٔ بعدی', () { setState(() => _idea = ideas[random.nextInt(ideas.length)]); refresh(() {}); }),
-        _secondary('کپی ایده', () => _copy(_idea)),
+        _primary(binerText('ایدهٔ بعدی'), () { setState(() => _idea = ideas[random.nextInt(ideas.length)]); refresh(() {}); }),
+        _secondary(binerText('کپی ایده'), () => _copy(_idea)),
       ]),
     )));
   }
-  String _idea = 'برای شروع، یک ایده انتخاب کن.';
+  String _idea = binerText('برای شروع، یک ایده انتخاب کن.');
 
   Future<void> _threadPlanner() async {
     final controller = TextEditingController();
     List<String> parts = [];
     await showDialog<void>(context: context, builder: (ctx) => StatefulBuilder(builder: (ctx, refresh) => _toolDialog(
-      'برنامه‌ریز رشته‌پست',
-      'یک متن بلند را به بخش‌های حداکثر ۲۸۰ نویسه‌ای تقسیم کن.',
+      binerText('برنامه‌ریز رشته‌پست'),
+      binerText('یک متن بلند را به بخش‌های حداکثر ۲۸۰ نویسه‌ای تقسیم کن.'),
       Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
-        TextField(controller: controller, minLines: 3, maxLines: 6, maxLength: 10000, decoration: const InputDecoration(hintText: 'متن کامل رشته‌پست…')),
-        _primary('تقسیم متن', () {
+        TextField(controller: controller, minLines: 3, maxLines: 6, maxLength: 10000, decoration: InputDecoration(hintText: binerText('متن کامل رشته‌پست…'))),
+        _primary(binerText('تقسیم متن'), () {
           final words = controller.text.trim().split(RegExp(r'\s+')).where((e) => e.isNotEmpty);
           parts = [];
           var current = '';
@@ -315,7 +316,7 @@ class _CreatorStudioPageState extends State<CreatorStudioPage> {
         if (parts.isNotEmpty) ...[
           Text('${parts.length} بخش آماده شد', style: const TextStyle(color: _blue, fontWeight: FontWeight.w800)),
           SizedBox(height: 220, child: ListView.builder(itemCount: parts.length, itemBuilder: (_, i) => Container(margin: const EdgeInsets.only(top: 8), padding: const EdgeInsets.all(12), decoration: BoxDecoration(color: Colors.white.withValues(alpha: .05), borderRadius: BorderRadius.circular(14)), child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [Text('بخش ${i + 1} · ${parts[i].length}/280', style: const TextStyle(color: _blue, fontSize: 11)), const SizedBox(height: 5), Text(parts[i])])))),
-          _secondary('کپی کل رشته‌پست', () => _copy(parts.asMap().entries.map((e) => '${e.value}\n(${e.key + 1}/${parts.length})').join('\n\n'))),
+          _secondary(binerText('کپی کل رشته‌پست'), () => _copy(parts.asMap().entries.map((e) => '${e.value}\n(${e.key + 1}/${parts.length})').join('\n\n'))),
         ],
       ]),
     )));
@@ -334,21 +335,21 @@ class _CreatorStudioPageState extends State<CreatorStudioPage> {
       Text(title, style: const TextStyle(fontSize: 20, fontWeight: FontWeight.w900)),
       const SizedBox(height: 6), Text(subtitle, style: const TextStyle(color: Colors.white60, fontSize: 12, height: 1.5)),
       const SizedBox(height: 16), child,
-      Align(alignment: Alignment.centerLeft, child: TextButton(onPressed: () => Navigator.pop(context), child: const Text('بستن'))),
+      Align(alignment: Alignment.centerLeft, child: TextButton(onPressed: () => Navigator.pop(context), child: Text(binerText('بستن')))),
     ]))),
   );
 
   List<_StudioTool> get _tools => [
-    _StudioTool('گاوصندوق پیش‌نویس‌ها', 'نوشتن را ذخیره کن و بعداً ادامه بده', Icons.inventory_2_outlined, _violet, _draftVault),
-    _StudioTool('آزمایشگاه هشتگ', 'ساخت هشتگ از موضوع و کلیدواژه', Icons.tag_rounded, _blue, _hashtagLab),
-    _StudioTool('کارگاه ویرایش متن', 'پاک‌سازی فاصله، نقل‌قول و فهرست‌سازی', Icons.auto_fix_high_rounded, const Color(0xFF66D6B2), _formatter),
-    _StudioTool('کتابخانهٔ پاسخ آماده', 'عبارت‌های پرکاربردت را سریع کپی کن', Icons.library_books_outlined, const Color(0xFFFFC46B), _snippetLibrary),
-    _StudioTool('فیلتر واژه‌ها', 'فهرست واژه‌هایی که نمی‌خواهی ببینی', Icons.filter_alt_outlined, const Color(0xFFFF8293), _muteWords),
-    _StudioTool('حالت مطالعه', 'خواندن متن در محیط خلوت و خوانا', Icons.menu_book_rounded, _blue, _readingMode),
-    _StudioTool('استودیوی بیوگرافی', 'ساخت و پیش‌نمایش بیوی پروفایل', Icons.badge_outlined, _violet, _bioWorkshop),
-    _StudioTool('مولد ایدهٔ پست', 'پیشنهاد موضوع برای انتشار بعدی', Icons.lightbulb_outline_rounded, const Color(0xFFFFC46B), _ideaGenerator),
-    _StudioTool('تحلیل‌گر متن', 'آمار نویسه، واژه، هشتگ و زمان مطالعه', Icons.query_stats_rounded, const Color(0xFF66D6B2), _textAnalyzer),
-    _StudioTool('برنامه‌ریز رشته‌پست', 'تقسیم متن بلند به پست‌های کوتاه', Icons.view_stream_outlined, _blue, _threadPlanner),
+    _StudioTool(binerText('گاوصندوق پیش‌نویس‌ها'), binerText('نوشتن را ذخیره کن و بعداً ادامه بده'), Icons.inventory_2_outlined, _violet, _draftVault),
+    _StudioTool(binerText('آزمایشگاه هشتگ'), binerText('ساخت هشتگ از موضوع و کلیدواژه'), Icons.tag_rounded, _blue, _hashtagLab),
+    _StudioTool(binerText('کارگاه ویرایش متن'), binerText('پاک‌سازی فاصله، نقل‌قول و فهرست‌سازی'), Icons.auto_fix_high_rounded, const Color(0xFF66D6B2), _formatter),
+    _StudioTool(binerText('کتابخانهٔ پاسخ آماده'), binerText('عبارت‌های پرکاربردت را سریع کپی کن'), Icons.library_books_outlined, const Color(0xFFFFC46B), _snippetLibrary),
+    _StudioTool(binerText('فیلتر واژه‌ها'), binerText('فهرست واژه‌هایی که نمی‌خواهی ببینی'), Icons.filter_alt_outlined, const Color(0xFFFF8293), _muteWords),
+    _StudioTool(binerText('حالت مطالعه'), binerText('خواندن متن در محیط خلوت و خوانا'), Icons.menu_book_rounded, _blue, _readingMode),
+    _StudioTool(binerText('استودیوی بیوگرافی'), binerText('ساخت و پیش‌نمایش بیوی پروفایل'), Icons.badge_outlined, _violet, _bioWorkshop),
+    _StudioTool(binerText('مولد ایدهٔ پست'), binerText('پیشنهاد موضوع برای انتشار بعدی'), Icons.lightbulb_outline_rounded, const Color(0xFFFFC46B), _ideaGenerator),
+    _StudioTool(binerText('تحلیل‌گر متن'), binerText('آمار نویسه، واژه، هشتگ و زمان مطالعه'), Icons.query_stats_rounded, const Color(0xFF66D6B2), _textAnalyzer),
+    _StudioTool(binerText('برنامه‌ریز رشته‌پست'), binerText('تقسیم متن بلند به پست‌های کوتاه'), Icons.view_stream_outlined, _blue, _threadPlanner),
   ];
 
   Future<void> _textAnalyzer() async {
@@ -358,11 +359,11 @@ class _CreatorStudioPageState extends State<CreatorStudioPage> {
       final words = text.trim().isEmpty ? <String>[] : text.trim().split(RegExp(r'\s+'));
       final hashtags = RegExp(r'#[\p{L}\p{N}_]+', unicode: true).allMatches(text).length;
       final mentions = RegExp(r'@[A-Za-z0-9_]+').allMatches(text).length;
-      return _toolDialog('تحلیل‌گر متن', 'آمار زندهٔ نوشته؛ همه‌چیز روی خود دستگاه محاسبه می‌شود.', Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
-        TextField(controller: controller, minLines: 3, maxLines: 6, onChanged: (_) => refresh(() {}), decoration: const InputDecoration(hintText: 'متنت را وارد کن…')),
+      return _toolDialog(binerText('تحلیل‌گر متن'), binerText('آمار زندهٔ نوشته؛ همه‌چیز روی خود دستگاه محاسبه می‌شود.'), Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
+        TextField(controller: controller, minLines: 3, maxLines: 6, onChanged: (_) => refresh(() {}), decoration: InputDecoration(hintText: binerText('متنت را وارد کن…'))),
         const SizedBox(height: 12),
         Wrap(spacing: 8, runSpacing: 8, children: [
-          _metric('نویسه', '${text.length}'), _metric('واژه', '${words.length}'), _metric('هشتگ', '$hashtags'), _metric('منشن', '$mentions'), _metric('مطالعه', '${(words.length / 180).ceil()} دقیقه'),
+          _metric(binerText('نویسه'), '${text.length}'), _metric(binerText('واژه'), '${words.length}'), _metric(binerText('هشتگ'), '$hashtags'), _metric(binerText('منشن'), '$mentions'), _metric(binerText('مطالعه'), '${(words.length / 180).ceil()} دقیقه'),
         ]),
       ]));
     }));
@@ -386,11 +387,11 @@ class _CreatorStudioPageState extends State<CreatorStudioPage> {
             child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
               const Row(children: [Icon(Icons.bolt_rounded, color: _blue), SizedBox(width: 8), Text('BINER / CREATOR TOOLS', style: TextStyle(fontSize: 10, letterSpacing: 1.8, color: Colors.white70, fontWeight: FontWeight.w900))]),
               const SizedBox(height: 12),
-              const Text('ایده‌ات را به محتوا تبدیل کن.', style: TextStyle(fontSize: 23, fontWeight: FontWeight.w900, height: 1.3)),
+              Text(binerText('ایده‌ات را به محتوا تبدیل کن.'), style: TextStyle(fontSize: 23, fontWeight: FontWeight.w900, height: 1.3)),
               const SizedBox(height: 6),
-              Text('۱۰ ابزار کاربردی برای نوشتن، مدیریت متن و ساخت محتوای بهتر.', style: TextStyle(color: Colors.white.withValues(alpha: .68), fontSize: 12, height: 1.6)),
+              Text(binerText('۱۰ ابزار کاربردی برای نوشتن، مدیریت متن و ساخت محتوای بهتر.'), style: TextStyle(color: Colors.white.withValues(alpha: .68), fontSize: 12, height: 1.6)),
               const SizedBox(height: 16),
-              Row(children: [_metric('پیش‌نویس', '${drafts.length}'), const SizedBox(width: 8), _metric('عبارت آماده', '${snippets.length}'), const SizedBox(width: 8), _metric('فیلتر', '${mutedWords.length}')]),
+              Row(children: [_metric(binerText('پیش‌نویس'), '${drafts.length}'), const SizedBox(width: 8), _metric(binerText('عبارت آماده'), '${snippets.length}'), const SizedBox(width: 8), _metric(binerText('فیلتر'), '${mutedWords.length}')]),
             ]),
           ))),
           SliverPadding(padding: const EdgeInsets.fromLTRB(18, 0, 18, 30), sliver: SliverGrid(
