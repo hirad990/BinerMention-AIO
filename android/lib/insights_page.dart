@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'api_client.dart';
 import 'ui_kit.dart';
+import 'app_preferences.dart';
 
 class InsightsPage extends StatefulWidget {
   const InsightsPage({super.key, required this.api});
@@ -21,18 +22,18 @@ class _InsightsPageState extends State<InsightsPage> {
   String _number(dynamic value) {
     final parsed = int.tryParse(value?.toString() ?? '');
     if (parsed == null) return '—';
-    return parsed.toString().replaceAllMapped(RegExp(r'\B(?=(\d{3})+(?!\d))'), (_) => '٬');
+    return parsed.toString().replaceAllMapped(RegExp(r'\B(?=(\d{3})+(?!\d))'), (_) => binerText('٬'));
   }
 
   String _readingTime(dynamic raw) {
     final ms = int.tryParse(raw?.toString() ?? '') ?? 0;
-    if (ms <= 0) return 'هنوز داده‌ای ثبت نشده';
+    if (ms <= 0) return binerText('هنوز داده‌ای ثبت نشده');
     final minutes = (ms / 60000).floor();
-    if (minutes < 1) return 'کمتر از یک دقیقه';
+    if (minutes < 1) return binerText('کمتر از یک دقیقه');
     final hours = minutes ~/ 60;
     final rest = minutes % 60;
-    if (hours == 0) return '$minutes دقیقه';
-    return rest == 0 ? '$hours ساعت' : '$hours ساعت و $rest دقیقه';
+    if (hours == 0) return binerText('$minutes دقیقه');
+    return rest == 0 ? binerText('$hours ساعت') : binerText('$hours ساعت و $rest دقیقه');
   }
 
   Widget _stat({required String title, required dynamic value, required IconData icon, required Color color}) {
@@ -79,26 +80,26 @@ class _InsightsPageState extends State<InsightsPage> {
   );
 
   @override Widget build(BuildContext context) => Scaffold(backgroundColor: Theme.of(context).colorScheme.surface,
-    appBar: AppBar(title: const Text('Biner Insights'), actions: [IconButton(tooltip: 'به‌روزرسانی آمار', onPressed: _reload, icon: const Icon(Icons.refresh_rounded))]),
+    appBar: AppBar(title: Text('Biner Insights'), actions: [IconButton(tooltip: binerText('به‌روزرسانی آمار'), onPressed: _reload, icon: const Icon(Icons.refresh_rounded))]),
     body: FutureBuilder<Map<String, dynamic>>(
       future: _future,
       builder: (context, snapshot) {
         if (snapshot.connectionState == ConnectionState.waiting) return ListView(children: const [BinerSkeleton(lines: 2), BinerSkeleton(lines: 2), BinerSkeleton(lines: 2)]);
         if (snapshot.hasError) return BinerEmptyState(
-          icon: Icons.cloud_off_rounded, title: 'آمار بارگذاری نشد',
-          description: 'اتصال به سرور یا دسترسی API را بررسی کن و دوباره تلاش کن.',
-          action: FilledButton.icon(onPressed: _reload, icon: const Icon(Icons.refresh_rounded), label: const Text('تلاش دوباره')),
+          icon: Icons.cloud_off_rounded, title: binerText('آمار بارگذاری نشد'),
+          description: binerText('اتصال به سرور یا دسترسی API را بررسی کن و دوباره تلاش کن.'),
+          action: FilledButton.icon(onPressed: _reload, icon: const Icon(Icons.refresh_rounded), label: Text(binerText('تلاش دوباره'))),
         );
         final data = snapshot.data ?? const <String, dynamic>{};
         final stats = data['stats'] is Map ? Map<String, dynamic>.from(data['stats'] as Map) : <String, dynamic>{};
         final top = (data['top_posts'] as List? ?? const []).whereType<Map>().toList();
         final entries = <(String, String, IconData, Color)>[
-          ('پست‌های منتشرشده', 'posts', Icons.article_outlined, const Color(0xFF54C8FF)),
-          ('دنبال‌کنندگان', 'followers', Icons.people_alt_outlined, const Color(0xFF9B8CFF)),
-          ('لایک دریافتی', 'likes_received', Icons.favorite_border_rounded, const Color(0xFFFF78B8)),
-          ('بازنشر دریافتی', 'reposts_received', Icons.repeat_rounded, const Color(0xFF27C995)),
-          ('کامنت دریافتی', 'comments_received', Icons.chat_bubble_outline_rounded, const Color(0xFFFFB45E)),
-          ('بازدید ثبت‌شده', 'views', Icons.visibility_outlined, const Color(0xFF54C8FF)),
+          (binerText('پست‌های منتشرشده'), 'posts', Icons.article_outlined, const Color(0xFF54C8FF)),
+          (binerText('دنبال‌کنندگان'), 'followers', Icons.people_alt_outlined, const Color(0xFF9B8CFF)),
+          (binerText('لایک دریافتی'), 'likes_received', Icons.favorite_border_rounded, const Color(0xFFFF78B8)),
+          (binerText('بازنشر دریافتی'), 'reposts_received', Icons.repeat_rounded, const Color(0xFF27C995)),
+          (binerText('کامنت دریافتی'), 'comments_received', Icons.chat_bubble_outline_rounded, const Color(0xFFFFB45E)),
+          (binerText('بازدید ثبت‌شده'), 'views', Icons.visibility_outlined, const Color(0xFF54C8FF)),
         ];
         return RefreshIndicator(
           onRefresh: _reload,
@@ -112,14 +113,14 @@ class _InsightsPageState extends State<InsightsPage> {
                   decoration: const BoxDecoration(gradient: LinearGradient(begin: Alignment.topLeft, end: Alignment.bottomRight, colors: [Color(0xFF102B45), Color(0xFF211A45)]), borderRadius: BorderRadius.all(Radius.circular(18))),
                   padding: const EdgeInsets.all(18),
                   child: const Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-                    Row(children: [Icon(Icons.insights_rounded, color: Color(0xFF54C8FF)), SizedBox(width: 9), Text('نمای کلی حساب', style: TextStyle(color: Colors.white, fontSize: 18, fontWeight: FontWeight.w900))]),
+                    Row(children: [Icon(Icons.insights_rounded, color: Color(0xFF54C8FF)), SizedBox(width: 9), Text(binerText('نمای کلی حساب'), style: TextStyle(color: Colors.white, fontSize: 18, fontWeight: FontWeight.w900))]),
                     SizedBox(height: 8),
-                    Text('آمار از رویدادهای ثبت‌شده در BinerMention محاسبه می‌شود؛ هر شاخص باید قابل ردیابی و توضیح باشد.', style: TextStyle(color: Colors.white70, height: 1.6, fontSize: 12)),
+                    Text(binerText('آمار از رویدادهای ثبت‌شده در BinerMention محاسبه می‌شود؛ هر شاخص باید قابل ردیابی و توضیح باشد.'), style: TextStyle(color: Colors.white70, height: 1.6, fontSize: 12)),
                   ]),
                 ),
               ),
               const SizedBox(height: 19),
-              BinerSectionHeader(title: 'عملکرد حساب', subtitle: 'مجموع داده‌های ثبت‌شده تا این لحظه'),
+              BinerSectionHeader(title: binerText('عملکرد حساب'), subtitle: binerText('مجموع داده‌های ثبت‌شده تا این لحظه')),
               LayoutBuilder(builder: (context, constraints) {
                 final columns = constraints.maxWidth >= 520 ? 3 : 2;
                 final width = (constraints.maxWidth - (columns - 1) * 10) / columns;
@@ -128,24 +129,24 @@ class _InsightsPageState extends State<InsightsPage> {
                 ]);
               }),
               const SizedBox(height: 18),
-              BinerSectionHeader(title: 'زمان مطالعه', subtitle: 'مجموع زمان تعامل ثبت‌شده با پست‌های عمومی تو'),
+              BinerSectionHeader(title: binerText('زمان مطالعه'), subtitle: binerText('مجموع زمان تعامل ثبت‌شده با پست‌های عمومی تو')),
               BinerSurfaceCard(child: Row(children: [
                 Container(width: 44, height: 44, decoration: BoxDecoration(color: const Color(0xFF9B8CFF).withValues(alpha: .12), borderRadius: BorderRadius.circular(14)), child: const Icon(Icons.schedule_rounded, color: Color(0xFF9B8CFF))),
                 const SizedBox(width: 12),
                 Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
                   Text(_readingTime(stats['reading_time_ms']), style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w900)),
-                  Text('این شاخص از زمان فعال‌شدن ثبت رویدادها معتبر است.', style: TextStyle(color: Theme.of(context).colorScheme.onSurfaceVariant, fontSize: 11, height: 1.4)),
+                  Text(binerText('این شاخص از زمان فعال‌شدن ثبت رویدادها معتبر است.'), style: TextStyle(color: Theme.of(context).colorScheme.onSurfaceVariant, fontSize: 11, height: 1.4)),
                 ])),
               ])),
               const SizedBox(height: 20),
-              const BinerSectionHeader(title: 'پست‌های پربازده', subtitle: 'بر اساس لایک، بازنشر و کامنت'),
-              if (top.isEmpty) BinerEmptyState(icon: Icons.query_stats_rounded, title: 'هنوز دادهٔ کافی نداریم', description: 'با انتشار پست و دریافت تعامل، این بخش به‌تدریج کامل می‌شود.')
+              BinerSectionHeader(title: binerText('پست‌های پربازده'), subtitle: binerText('بر اساس لایک، بازنشر و کامنت')),
+              if (top.isEmpty) BinerEmptyState(icon: Icons.query_stats_rounded, title: binerText('هنوز دادهٔ کافی نداریم'), description: binerText('با انتشار پست و دریافت تعامل، این بخش به‌تدریج کامل می‌شود.'))
               else ...top.asMap().entries.map((entry) => _topPost(entry.value, entry.key)),
               const SizedBox(height: 10),
               BinerSurfaceCard(accent: const Color(0xFF9B8CFF), child: Row(crossAxisAlignment: CrossAxisAlignment.start, children: [
                 const Icon(Icons.verified_user_outlined, color: Color(0xFF9B8CFF), size: 20),
                 const SizedBox(width: 10),
-                Expanded(child: Text(data['transparency_note']?.toString() ?? 'آمار فقط از داده‌های ذخیره‌شده در سامانه محاسبه می‌شود.', style: TextStyle(color: Theme.of(context).colorScheme.onSurfaceVariant, fontSize: 11, height: 1.65))),
+                Expanded(child: Text(data['transparency_note']?.toString() ?? binerText('آمار فقط از داده‌های ذخیره‌شده در سامانه محاسبه می‌شود.'), style: TextStyle(color: Theme.of(context).colorScheme.onSurfaceVariant, fontSize: 11, height: 1.65))),
               ])),
             ],
           ),
