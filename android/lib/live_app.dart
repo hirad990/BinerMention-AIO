@@ -26,7 +26,7 @@ import 'package:image_picker/image_picker.dart';
 import 'package:intl/intl.dart';
 import 'package:video_player/video_player.dart';
 
-const cBg = Color(0xFF000000), cPanel = Color(0xF20A0A0C), cLine = Color(0x4439C5FF), cBlue = Color(0xFF54C8FF), cMuted = Color(0xFF9A9AA8), cGlass = Color(0xAA101014);
+const cBg = Color(0xFF000000), cPanel = Color(0xF2000000), cLine = Color(0x442F3336), cBlue = Color(0xFF1D9BF0), cMuted = Color(0xFF71767B), cGlass = Color(0xFF16181C);
 
 class BinerLiveApp extends StatefulWidget {
   const BinerLiveApp({super.key});
@@ -2377,148 +2377,46 @@ class Brand extends StatelessWidget {
 
 
 class _BinerFloatingNavBar extends StatelessWidget {
-  const _BinerFloatingNavBar({
-    required this.currentIndex,
-    required this.onTap,
-    required this.labels,
-  });
-
+  const _BinerFloatingNavBar({required this.currentIndex, required this.onTap, required this.labels});
   final int currentIndex;
   final ValueChanged<int> onTap;
   final List<String> labels;
 
   static const _icons = <IconData>[
-    CupertinoIcons.house_fill,
+    CupertinoIcons.house,
     CupertinoIcons.search,
-    CupertinoIcons.bell_fill,
-    CupertinoIcons.paperplane_fill,
-    CupertinoIcons.person_fill,
+    CupertinoIcons.bell,
+    CupertinoIcons.envelope,
+    CupertinoIcons.person,
   ];
 
   @override
   Widget build(BuildContext context) {
     final dark = Theme.of(context).brightness == Brightness.dark;
-    final foreground = dark ? Colors.white : const Color(0xFF172033);
     return SafeArea(
       top: false,
-      minimum: const EdgeInsets.fromLTRB(18, 0, 18, 9),
-      child: Center(
-        child: ConstrainedBox(
-          constraints: const BoxConstraints(maxWidth: 440),
-          child: ClipRRect(
-            borderRadius: BorderRadius.circular(38),
-            child: BackdropFilter(
-              filter: ImageFilter.blur(sigmaX: 32, sigmaY: 32),
-              child: Container(
-                height: 70,
-                padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 6),
-                decoration: BoxDecoration(
-                  color: dark
-                      ? const Color(0x991B1B20)
-                      : const Color(0xAAF7F8FC),
-                  borderRadius: BorderRadius.circular(38),
-                  border: Border.all(
-                    color: dark
-                        ? Colors.white.withValues(alpha: .13)
-                        : const Color(0xFF172033).withValues(alpha: .10),
-                  ),
-                  boxShadow: [
-                    BoxShadow(
-                      color: Colors.black.withValues(alpha: dark ? .24 : .10),
-                      blurRadius: 28,
-                      offset: const Offset(0, 9),
-                    ),
-                  ],
-                ),
-                child: Row(
-                  children: List.generate(_icons.length, (index) {
-                    final selected = currentIndex == index;
-                    return Expanded(
-                      child: Semantics(
-                        button: true,
-                        selected: selected,
-                        label: labels[index],
-                        child: Tooltip(
-                          message: labels[index],
-                          child: GestureDetector(
-                            behavior: HitTestBehavior.opaque,
-                            onTap: () => onTap(index),
-                            child: AnimatedContainer(
-                              duration: const Duration(milliseconds: 240),
-                              curve: Curves.easeOutCubic,
-                              margin: const EdgeInsets.symmetric(horizontal: 2),
-                              decoration: BoxDecoration(
-                                color: selected
-                                    ? (dark
-                                        ? const Color(0xFF090A0E)
-                                        : Colors.white)
-                                    : Colors.transparent,
-                                borderRadius: BorderRadius.circular(30),
-                                boxShadow: selected
-                                    ? [
-                                        BoxShadow(
-                                          color: Colors.black.withValues(
-                                            alpha: dark ? .24 : .08,
-                                          ),
-                                          blurRadius: 12,
-                                          offset: const Offset(0, 3),
-                                        ),
-                                      ]
-                                    : const [],
-                              ),
-                              child: Center(
-                                child: AnimatedScale(
-                                  scale: selected ? 1.06 : 1,
-                                  duration: const Duration(milliseconds: 220),
-                                  child: Column(
-                                    mainAxisSize: MainAxisSize.min,
-                                    mainAxisAlignment: MainAxisAlignment.center,
-                                    children: [
-                                      Icon(
-                                        _icons[index],
-                                        size: 20,
-                                        color: selected
-                                            ? (dark
-                                                ? Colors.white
-                                                : const Color(0xFF172033))
-                                            : foreground.withValues(alpha: .72),
-                                      ),
-                                      AnimatedSize(
-                                        duration: const Duration(milliseconds: 180),
-                                        curve: Curves.easeOutCubic,
-                                        child: selected
-                                            ? Padding(
-                                                padding: const EdgeInsets.only(top: 2),
-                                                child: BinerLocalizedText(
-                                                  labels[index],
-                                                  maxLines: 1,
-                                                  overflow: TextOverflow.ellipsis,
-                                                  style: TextStyle(
-                                                    fontSize: 9,
-                                                    height: 1,
-                                                    fontWeight: FontWeight.w700,
-                                                    color: dark
-                                                        ? Colors.white
-                                                        : const Color(0xFF172033),
-                                                  ),
-                                                ),
-                                              )
-                                            : const SizedBox(height: 0, width: 0),
-                                      ),
-                                    ],
-                                  ),
-                                ),
-                              ),
-                            ),
-                          ),
-                        ),
-                      ),
-                    );
-                  }),
+      child: Container(
+        height: 54,
+        decoration: BoxDecoration(
+          color: dark ? const Color(0xFF000000) : Colors.white,
+          border: Border(top: BorderSide(color: Theme.of(context).dividerColor.withValues(alpha: .75))),
+        ),
+        child: Row(
+          children: List.generate(_icons.length, (index) {
+            final selected = currentIndex == index;
+            return Expanded(
+              child: Semantics(
+                button: true,
+                selected: selected,
+                label: labels[index],
+                child: IconButton(
+                  tooltip: labels[index],
+                  onPressed: () => onTap(index),
+                  icon: Icon(_icons[index], size: 25, color: selected ? cBlue : (dark ? const Color(0xFFE7E9EA) : const Color(0xFF536471))),
                 ),
               ),
-            ),
-          ),
+            );
+          }),
         ),
       ),
     );
