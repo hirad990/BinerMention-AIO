@@ -35,6 +35,9 @@ jobs:
           cache: true
           cache-key: flutter-web-${{ runner.os }}-${{ hashFiles('android/pubspec.yaml') }}
 
+      - name: Install icon image tooling
+        run: python3 -m pip install --user Pillow
+
       - name: Generate Flutter Web scaffold
         run: flutter create --platforms=web --org ir.binercraft --project-name binerm_mention "$RUNNER_TEMP/binerm_mention"
 
