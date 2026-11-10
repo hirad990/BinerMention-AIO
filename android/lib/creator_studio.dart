@@ -2,6 +2,7 @@ import 'localized_text.dart';
 import 'dart:math' as math;
 import 'package:flutter/material.dart';
 import 'app_preferences.dart';
+import 'ui_kit.dart';
 import 'package:flutter/services.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -239,7 +240,7 @@ class _CreatorStudioPageState extends State<CreatorStudioPage> {
     controller.dispose();
     if (text == null || text.isEmpty || !mounted) return;
     await showDialog<void>(context: context, builder: (ctx) => Dialog(
-      backgroundColor: Theme.of(context).colorScheme.surface,
+      backgroundColor: binerScaffoldBackground(context),
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(26), side: BorderSide(color: _blue.withValues(alpha: .25))),
       child: Padding(padding: const EdgeInsets.all(24), child: Column(mainAxisSize: MainAxisSize.min, children: [
         const Icon(Icons.menu_book_rounded, color: _blue, size: 30),
@@ -377,7 +378,7 @@ class _CreatorStudioPageState extends State<CreatorStudioPage> {
   Widget build(BuildContext context) {
     final dark = Theme.of(context).brightness == Brightness.dark;
     return Scaffold(
-      backgroundColor: Theme.of(context).colorScheme.surface,
+      backgroundColor: binerScaffoldBackground(context),
       appBar: AppBar(title: const BinerLocalizedText('Creator Studio'), leading: IconButton(onPressed: () => Navigator.maybePop(context), icon: const Icon(Icons.arrow_back_rounded))),
       body: !loaded ? const Center(child: CircularProgressIndicator(color: _blue)) : CustomScrollView(
         physics: const BouncingScrollPhysics(),
