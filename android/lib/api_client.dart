@@ -74,7 +74,7 @@ class BinerApi {
     } on ApiException {
       rethrow;
     } catch (_) {
-      throw const ApiException('اتصال به سرور برقرار نشد. اینترنت و وضعیت API را بررسی کن.');
+      throw ApiException(binerText('اتصال به سرور برقرار نشد. اینترنت و وضعیت API را بررسی کن.'));
     }
 
     Map<String, dynamic> data;
@@ -85,8 +85,8 @@ class BinerApi {
     } catch (_) {
       throw ApiException(
         response.statusCode >= 500
-            ? 'سرور موقتاً در دسترس نیست.'
-            : 'پاسخ سرور معتبر نیست (HTTP ${response.statusCode}).',
+            ? binerText('سرور موقتاً در دسترس نیست.')
+            : binerText('پاسخ سرور معتبر نیست (HTTP ${response.statusCode}).'),
         statusCode: response.statusCode,
       );
     }
@@ -97,7 +97,7 @@ class BinerApi {
         (await _prefs).remove(_tokenKey);
       }
       throw ApiException(
-        (data['message'] as String?) ?? 'درخواست انجام نشد.',
+        (data['message'] as String?) ?? binerText('درخواست انجام نشد.'),
         statusCode: response.statusCode,
       );
     }
@@ -125,7 +125,7 @@ class BinerApi {
 
   Future<void> _saveToken(Map<String, dynamic> result) async {
     final value = result['token'];
-    if (value is! String || value.isEmpty) throw const ApiException('سرور توکن ورود را برنگرداند.');
+    if (value is! String || value.isEmpty) throw ApiException(binerText('سرور توکن ورود را برنگرداند.'));
     _token = value;
     await (await _prefs).setString(_tokenKey, value);
   }
@@ -183,14 +183,14 @@ class BinerApi {
   }
 
   Future<Map<String, dynamic>> uploadMedia(XFile file) async {
-    if (!isAuthenticated) throw const ApiException('برای بارگذاری فایل وارد حساب شو.');
+    if (!isAuthenticated) throw ApiException(binerText('برای بارگذاری فایل وارد حساب شو.'));
     try {
       final request = http.MultipartRequest('POST', _uri('v1/media'));
       request.headers['Accept'] = 'application/json';
       request.headers['Authorization'] = 'Bearer $_token';
       final fileLength = await file.length();
       if (fileLength <= 0) {
-        throw const ApiException('فایل انتخاب‌شده خالی است.');
+        throw ApiException(binerText('فایل انتخاب‌شده خالی است.'));
       }
       // Stream the file instead of loading the entire image/video into RAM.
       request.files.add(http.MultipartFile(
@@ -204,13 +204,13 @@ class BinerApi {
       final decoded = jsonDecode(utf8.decode(response.bodyBytes));
       if (decoded is! Map<String, dynamic>) throw const FormatException();
       if (response.statusCode < 200 || response.statusCode >= 300 || decoded['ok'] == false) {
-        throw ApiException(decoded['message']?.toString() ?? 'بارگذاری فایل انجام نشد.', statusCode: response.statusCode);
+        throw ApiException(decoded['message']?.toString() ?? binerText('بارگذاری فایل انجام نشد.'), statusCode: response.statusCode);
       }
       return Map<String, dynamic>.from(decoded['media'] as Map);
     } on ApiException {
       rethrow;
     } catch (_) {
-      throw const ApiException('بارگذاری فایل ناموفق بود؛ اتصال و محدودیت آپلود سرور را بررسی کن.');
+      throw ApiException(binerText('بارگذاری فایل ناموفق بود؛ اتصال و محدودیت آپلود سرور را بررسی کن.'));
     }
   }
 
@@ -293,7 +293,7 @@ class BinerApi {
   Future<int> createConversation(int userId) async {
     final result = await _request('POST', 'v1/conversations', body: {'user_id': userId});
     final id = int.tryParse(result['conversation_id'].toString());
-    if (id == null) throw const ApiException('سرور شناسه گفت‌وگو را برنگرداند.');
+    if (id == null) throw ApiException(binerText('سرور شناسه گفت‌وگو را برنگرداند.'));
     return id;
   }
 
