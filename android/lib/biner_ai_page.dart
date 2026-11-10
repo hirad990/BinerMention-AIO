@@ -110,7 +110,7 @@ class _BinerAIPageState extends State<BinerAIPage> {
 
   @override
   Widget build(BuildContext context) => Scaffold(backgroundColor: Theme.of(context).colorScheme.surface,
-    appBar: AppBar(title: const Row(children: [Icon(Icons.auto_awesome_rounded, color: _violet), SizedBox(width: 9), BinerLocalizedText('BinerAI', style: TextStyle(fontWeight: FontWeight.w900))]), actions: [IconButton(tooltip: 'گفت‌وگوی تازه', onPressed: _busy ? null : () => setState(_history.clear), icon: const Icon(Icons.add_comment_outlined))]),
+    appBar: AppBar(title: const Row(children: [Icon(Icons.auto_awesome_rounded, color: _violet), SizedBox(width: 9), BinerLocalizedText('BinerAI', style: TextStyle(fontWeight: FontWeight.w900))]), actions: [IconButton(tooltip: binerText('گفت‌وگوی تازه'), onPressed: _busy ? null : () => setState(_history.clear), icon: const Icon(Icons.add_comment_outlined))]),
     body: Column(children: [
       Expanded(child: _history.isEmpty ? ListView(physics: const AlwaysScrollableScrollPhysics(parent: BouncingScrollPhysics()), padding: const EdgeInsets.all(20), children: [
         const SizedBox(height: 28),
@@ -130,7 +130,7 @@ class _BinerAIPageState extends State<BinerAIPage> {
         if (_busy) const Padding(padding: EdgeInsets.all(16), child: Row(children: [SizedBox(width: 18, height: 18, child: CircularProgressIndicator(strokeWidth: 2, color: _blue)), SizedBox(width: 10), BinerLocalizedText('در حال بررسی داده‌ها…', style: TextStyle(color: Colors.grey))])),
       ])),
       SafeArea(top: false, child: Padding(padding: const EdgeInsets.fromLTRB(12, 8, 12, 12), child: Row(children: [
-        Expanded(child: TextField(controller: _controller, minLines: 1, maxLines: 4, onSubmitted: (_) => _ask(), decoration: InputDecoration(hintText: 'از BinerAI چیزی بپرس…', filled: true, border: OutlineInputBorder(borderRadius: BorderRadius.circular(20), borderSide: BorderSide.none)))),
+        Expanded(child: TextField(controller: _controller, minLines: 1, maxLines: 4, onSubmitted: (_) => _ask(), decoration: InputDecoration(hintText: binerText('از BinerAI چیزی بپرس…'), filled: true, border: OutlineInputBorder(borderRadius: BorderRadius.circular(20), borderSide: BorderSide.none)))),
         const SizedBox(width: 8),
         IconButton.filled(onPressed: _busy ? null : _ask, style: IconButton.styleFrom(backgroundColor: _blue, foregroundColor: const Color(0xFF071426)), icon: _busy ? const SizedBox(width: 18, height: 18, child: CircularProgressIndicator(strokeWidth: 2)) : const Icon(Icons.arrow_upward_rounded)),
       ]))),
