@@ -51,7 +51,7 @@ class _CreatorStudioPageState extends State<CreatorStudioPage> {
     ScaffoldMessenger.of(context).showSnackBar(SnackBar(
       content: Text(message),
       behavior: SnackBarBehavior.floating,
-      backgroundColor: const Color(0xFF18263A),
+      backgroundColor: Theme.of(context).colorScheme.surfaceContainerHigh,
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
     ));
   }
@@ -66,7 +66,7 @@ class _CreatorStudioPageState extends State<CreatorStudioPage> {
     final result = await showDialog<String>(
       context: context,
       builder: (ctx) => Dialog(
-        backgroundColor: const Color(0xFF101A2A),
+        backgroundColor: Theme.of(ctx).colorScheme.surfaceContainer,
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24), side: BorderSide(color: _blue.withValues(alpha: .25))),
         child: Padding(
           padding: const EdgeInsets.all(20),
@@ -105,7 +105,7 @@ class _CreatorStudioPageState extends State<CreatorStudioPage> {
       final action = await showModalBottomSheet<String>(
         context: context,
         isScrollControlled: true,
-        backgroundColor: const Color(0xFF0D1625),
+        backgroundColor: Theme.of(context).colorScheme.surfaceContainer,
         shape: const RoundedRectangleBorder(borderRadius: BorderRadius.vertical(top: Radius.circular(28))),
         builder: (ctx) => SafeArea(child: Padding(
           padding: const EdgeInsets.fromLTRB(18, 14, 18, 22),
@@ -237,7 +237,7 @@ class _CreatorStudioPageState extends State<CreatorStudioPage> {
     controller.dispose();
     if (text == null || text.isEmpty || !mounted) return;
     await showDialog<void>(context: context, builder: (ctx) => Dialog(
-      backgroundColor: const Color(0xFF080E19),
+      backgroundColor: Theme.of(context).colorScheme.surface,
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(26), side: BorderSide(color: _blue.withValues(alpha: .25))),
       child: Padding(padding: const EdgeInsets.all(24), child: Column(mainAxisSize: MainAxisSize.min, children: [
         const Icon(Icons.menu_book_rounded, color: _blue, size: 30),
@@ -374,7 +374,7 @@ class _CreatorStudioPageState extends State<CreatorStudioPage> {
   @override
   Widget build(BuildContext context) {
     final dark = Theme.of(context).brightness == Brightness.dark;
-    return Scaffold(
+    return Scaffold(backgroundColor: Theme.of(context).colorScheme.surface,
       backgroundColor: Colors.transparent,
       appBar: AppBar(title: const Text('Creator Studio'), leading: IconButton(onPressed: () => Navigator.maybePop(context), icon: const Icon(Icons.arrow_back_rounded))),
       body: !loaded ? const Center(child: CircularProgressIndicator(color: _blue)) : CustomScrollView(
