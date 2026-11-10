@@ -208,8 +208,7 @@ class BinerLiquidGlass extends StatelessWidget {
         color: Theme.of(context).colorScheme.surface.withValues(alpha: dark ? .94 : .97),
         borderRadius: borderRadius,
         border: Border.all(
-          color: (dark ? Colors.white : const Color(0xFF31506E))
-              .withValues(alpha: .10),
+          color: Theme.of(context).colorScheme.outlineVariant.withValues(alpha: .65),
         ),
       ),
       child: Padding(padding: padding, child: child),
@@ -297,7 +296,6 @@ class BinerSurfaceCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final dark = Theme.of(context).brightness == Brightness.dark;
-    final tint = accent ?? Theme.of(context).colorScheme.primary;
     final content = Container(
       padding: padding,
       decoration: BoxDecoration(
