@@ -289,37 +289,25 @@ const Map<String, List<String>> _uiTranslations = {
 
 String? _translateDynamicUiText(String value, String language) {
   final patterns = <RegExp, List<String>>{
-    RegExp(r'^(\\d+) دقیقه
-): ['$1 min', '$1 دقيقة', '$1 dk'],
-    RegExp(r'^(\\d+) ساعت
-): ['$1 hr', '$1 ساعة', '$1 sa'],
-    RegExp(r'^(\\d+) ساعت و (\\d+) دقیقه
-): ['$1 hr $2 min', '$1 ساعة و$2 دقيقة', '$1 sa $2 dk'],
-    RegExp(r'^(\\d+) نویسه
-): ['$1 characters', '$1 حرفاً', '$1 karakter'],
-    RegExp(r'^(\\d+) بخش آماده شد
-): ['$1 sections ready', 'تم تجهيز $1 أجزاء', '$1 bölüm hazır'],
-    RegExp(r'^بخش (\\d+) · (\\d+)/280
-): ['Part $1 · $2/280', 'الجزء $1 · $2/280', 'Bölüm $1 · $2/280'],
-    RegExp(r'^(\\d+) پیام اخیر
-): ['$1 recent messages', '$1 رسالة حديثة', '$1 son mesaj'],
-    RegExp(r'^(\\d+) عضو  ·  (.*)
-): ['$1 members · $2', '$1 أعضاء · $2', '$1 üye · $2'],
-    RegExp(r'^پست (.+)
-): ['Post by $1', 'منشور بواسطة $1', '$1 kullanıcısının gönderisi'],
-    RegExp(r'^(.+) واژه · حدود (\\d+) دقیقه مطالعه
-): ['$1 words · about $2 min read', '$1 كلمة · نحو $2 دقيقة قراءة', '$1 kelime · yaklaşık $2 dk okuma'],
-    RegExp(r'^بخش (\\d+) · (\\d+)/280
-): ['Part $1 · $2/280', 'الجزء $1 · $2/280', 'Bölüm $1 · $2/280'],
+    RegExp(r'^([0-9]+) دقیقه'): ['%1 min', '%1 دقيقة', '%1 dk'],
+    RegExp(r'^([0-9]+) ساعت و ([0-9]+) دقیقه'): ['%1 hr %2 min', '%1 ساعة و%2 دقيقة', '%1 sa %2 dk'],
+    RegExp(r'^([0-9]+) ساعت'): ['%1 hr', '%1 ساعة', '%1 sa'],
+    RegExp(r'^([0-9]+) نویسه'): ['%1 characters', '%1 حرفاً', '%1 karakter'],
+    RegExp(r'^([0-9]+) بخش آماده شد'): ['%1 sections ready', 'تم تجهيز %1 أجزاء', '%1 bölüm hazır'],
+    RegExp(r'^بخش ([0-9]+) · ([0-9]+)/280'): ['Part %1 · %2/280', 'الجزء %1 · %2/280', 'Bölüm %1 · %2/280'],
+    RegExp(r'^([0-9]+) پیام اخیر'): ['%1 recent messages', '%1 رسالة حديثة', '%1 son mesaj'],
+    RegExp(r'^([0-9]+) عضو  ·  (.*)'): ['%1 members · %2', '%1 أعضاء · %2', '%1 üye · %2'],
+    RegExp(r'^پست (.+)'): ['Post by %1', 'منشور بواسطة %1', '%1 kullanıcısının gönderisi'],
+    RegExp(r'^(.+) واژه · حدود ([0-9]+) دقیقه مطالعه'): ['%1 words · about %2 min read', '%1 كلمة · نحو %2 دقيقة قراءة', '%1 kelime · yaklaşık %2 dk okuma'],
   };
   for (final entry in patterns.entries) {
     final match = entry.key.firstMatch(value);
-    if (match == null) continue;
-    final template = entry.value[language == 'ar' ? 1 : language == 'tr' ? 2 : 0];
-    return template.replaceAllMapped(RegExp(r'\\$(\\d+)'), (m) {
-      final index = int.parse(m.group(1)!);
-      return index <= match.groupCount ? (match.group(index) ?? '') : '';
-    });
+    if (match == null || match.group(0) != value) continue;
+    var translated = entry.value[language == 'ar' ? 1 : language == 'tr' ? 2 : 0];
+    for (var i = 1; i <= match.groupCount; i++) {
+      translated = translated.replaceAll('%$i', match.group(i) ?? '');
+    }
+    return translated;
   }
   return null;
 }
