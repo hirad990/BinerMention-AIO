@@ -3,18 +3,20 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:binerm_mention/api_client.dart';
 import 'package:binerm_mention/live_app.dart';
+import 'package:binerm_mention/ui_kit.dart';
+import 'package:binerm_mention/app_preferences.dart';
 
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
   GoogleFonts.config.allowRuntimeFetching = false;
 
-  late BinerApi api;
+  BinerApi? api;
 
   Future<void> pumpAuth(WidgetTester tester) async {
     api = BinerApi();
     await tester.pumpWidget(
       MaterialApp(
-        home: LiveAuth(api: api, onDone: () {}),
+        home: LiveAuth(api: api!, onDone: () {}),
       ),
     );
     // The auth screen has ambient animations; pump a fixed duration rather
@@ -23,7 +25,8 @@ void main() {
   }
 
   tearDown(() {
-    api.dispose();
+    api?.dispose();
+    api = null;
   });
 
   testWidgets('shows the current sign-in screen', (tester) async {
@@ -51,4 +54,31 @@ void main() {
     await tester.pumpWidget(const SizedBox.shrink());
     await tester.pump(const Duration(milliseconds: 1));
   });
+  testWidgets('blur surface respects fast mode without losing its content', (tester) async {
+    final preferences = BinerPreferences.instance;
+    preferences.fastMode = true;
+    await tester.pumpWidget(
+      const MaterialApp(
+        key: ValueKey('fast-mode'),
+        home: Scaffold(
+          body: BinerLiquidGlass(child: Text('surface content')),
+        ),
+      ),
+    );
+    expect(find.text('surface content'), findsOneWidget);
+    expect(find.byType(BackdropFilter), findsNothing);
+
+    preferences.fastMode = false;
+    await tester.pumpWidget(
+      const MaterialApp(
+        key: ValueKey('blur-mode'),
+        home: Scaffold(
+          body: BinerLiquidGlass(child: Text('surface content')),
+        ),
+      ),
+    );
+    expect(find.byType(BackdropFilter), findsOneWidget);
+    preferences.fastMode = false;
+  });
+
 }

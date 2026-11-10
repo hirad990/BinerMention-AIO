@@ -41,13 +41,36 @@ class _BinerLiveAppState extends State<BinerLiveApp> {
   }
   @override void initState() { super.initState(); init(); }
   Future<void> init() async {
-    await BinerMediaEditor.recoverLostData();
-    await BinerPreferences.instance.load();
-    final prefs = await SharedPreferences.getInstance();
-    themeMode = prefs.getBool('biner_theme_dark') == false ? ThemeMode.light : ThemeMode.dark;
-    await api.restoreSession();
-    if (api.isAuthenticated) { try { await api.me(); loggedIn = true; } on ApiException { loggedIn = false; } }
-    if (mounted) setState(() => ready = true);
+    // Optional startup services must never leave the app stuck on its splash.
+    try {
+      await BinerMediaEditor.recoverLostData();
+    } catch (_) {
+      // The user can still select media again from the picker.
+    }
+    try {
+      await BinerPreferences.instance.load();
+    } catch (_) {
+      // Continue with in-memory defaults if local preferences are unavailable.
+    }
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      themeMode = prefs.getBool('biner_theme_dark') == false
+          ? ThemeMode.light
+          : ThemeMode.dark;
+    } catch (_) {
+      themeMode = ThemeMode.dark;
+    }
+    try {
+      await api.restoreSession();
+      if (api.isAuthenticated) {
+        await api.me();
+        loggedIn = true;
+      }
+    } catch (_) {
+      loggedIn = false;
+    } finally {
+      if (mounted) setState(() => ready = true);
+    }
   }
   void signedIn() => setState(() => loggedIn = true);
   Future<void> logout() async { await api.logout(); if (mounted) setState(() => loggedIn = false); }
@@ -216,10 +239,10 @@ class _StorySlide extends StatefulWidget {
 class _StorySlideState extends State<_StorySlide> {
   final _comment = TextEditingController();
   VideoPlayerController? _video;
-  late bool _liked = widget.story['is_liked'] == true || widget.story['is_liked']?.toString() == '1';
+  late bool _liked = widget.story['is_liked'] == true || widget.story['is_liked'] == 1 || widget.story['is_liked']?.toString() == '1';
   late int _likes = int.tryParse(widget.story['likes_count']?.toString() ?? '') ?? 0;
   late Future<List<Map<String, dynamic>>> _comments = widget.api.storyComments(int.parse(widget.story['id'].toString()));
-  bool _sending = false;
+  bool _sending = false, _videoFailed = false;
 
   String _storyValue(String key, [String fallback = '']) => widget.story[key]?.toString() ?? fallback;
 
@@ -234,7 +257,7 @@ class _StorySlideState extends State<_StorySlide> {
         setState(() {});
         controller.setLooping(true);
         if (widget.active) controller.play();
-      }).catchError((_) {});
+      }).catchError((_) { if (mounted) setState(() => _videoFailed = true); });
     }
   }
 
@@ -328,11 +351,13 @@ class _StorySlideState extends State<_StorySlide> {
                 onTap: () => setState(() => video.value.isPlaying ? video.pause() : video.play()),
                 child: AspectRatio(aspectRatio: video.value.aspectRatio > 0 ? video.value.aspectRatio : 9 / 16, child: VideoPlayer(video)),
               )
-            : const CircularProgressIndicator(color: Colors.white))
+            : _videoFailed
+                ? const Icon(Icons.error_outline_rounded, color: Colors.white70, size: 42)
+                : const CircularProgressIndicator(color: Colors.white))
         else
           Center(child: InteractiveViewer(
             minScale: .8, maxScale: 4,
-            child: Image.network(widget.story['media_url']?.toString() ?? '', fit: BoxFit.contain, errorBuilder: (_, __, ___) => const Icon(Icons.broken_image_outlined, color: Colors.white, size: 46)),
+            child: Image.network(widget.story['media_url']?.toString() ?? '', cacheWidth: 1080, fit: BoxFit.contain, errorBuilder: (_, __, ___) => const Icon(Icons.broken_image_outlined, color: Colors.white, size: 46)),
           )),
         const IgnorePointer(child: DecoratedBox(decoration: BoxDecoration(gradient: LinearGradient(begin: Alignment.topCenter, end: Alignment.center, colors: [Color(0xCC000000), Colors.transparent])))),
         const IgnorePointer(child: Align(alignment: Alignment.bottomCenter, child: SizedBox(height: 260, child: DecoratedBox(decoration: BoxDecoration(gradient: LinearGradient(begin: Alignment.bottomCenter, end: Alignment.topCenter, colors: [Color(0xE6000000), Colors.transparent])))))),
@@ -414,8 +439,8 @@ class _LiveHomeState extends State<LiveHome> with WidgetsBindingObserver {
   bool showingSaved = false;
   Future<List<dynamic>>? exploreResults;
   final Set<String> _postActionsInFlight = <String>{};
-  late Future<List<Map<String, dynamic>>> _notificationsFuture;
-  late Future<List<Map<String, dynamic>>> _conversationsFuture;
+  late Future<List<Map<String, dynamic>>> _notificationsFuture = Future.value(const <Map<String, dynamic>>[]);
+  late Future<List<Map<String, dynamic>>> _conversationsFuture = Future.value(const <Map<String, dynamic>>[]);
   final ScrollController _feedScrollController = ScrollController();
   final GlobalKey _feedViewportKey = GlobalKey();
   final Map<int, GlobalKey> _postVisibilityKeys = <int, GlobalKey>{};
@@ -424,7 +449,7 @@ class _LiveHomeState extends State<LiveHome> with WidgetsBindingObserver {
   Timer? _analyticsTimer;
   bool _analyticsScheduled = false;
 
-  @override void initState() { super.initState(); WidgetsBinding.instance.addObserver(this); _notificationsFuture = widget.api.notifications(); _conversationsFuture = widget.api.conversations(); _feedScrollController.addListener(_scheduleAnalyticsTrack); _analyticsTimer = Timer.periodic(const Duration(seconds: 2), (_) => _scheduleAnalyticsTrack()); refresh(); loadProfile(); loadSavedPosts(); loadStories(); }
+  @override void initState() { super.initState(); WidgetsBinding.instance.addObserver(this); _feedScrollController.addListener(_scheduleAnalyticsTrack); _analyticsTimer = Timer.periodic(const Duration(seconds: 2), (_) => _scheduleAnalyticsTrack()); refresh(); loadProfile(); loadSavedPosts(); loadStories(); }
   Future<void> loadStories() async {
     try {
       final result = await widget.api.stories();
@@ -1017,6 +1042,7 @@ class _LiveHomeState extends State<LiveHome> with WidgetsBindingObserver {
     }
   }
   String value(Map<String, dynamic> m, String k, [String fallback = '']) => m[k]?.toString() ?? fallback;
+  bool _asBool(dynamic raw) => raw == true || raw == 1 || const {'1', 'true', 'yes'}.contains(raw?.toString().trim().toLowerCase());
   String fmt(dynamic raw) { final n = int.tryParse(raw.toString()) ?? 0; if (n >= 1000) return (n / 1000).toStringAsFixed(1) + 'K'; return n.toString(); }
   Widget avatar(String n, [Map<String, dynamic>? user, double radius = 22]) {
     final url = user?['avatar_url']?.toString() ?? '';
@@ -1040,6 +1066,7 @@ class _LiveHomeState extends State<LiveHome> with WidgetsBindingObserver {
   Future<void> showReplies(Map<String, dynamic> post) async {
     final id = int.tryParse(value(post, 'id'));
     if (id == null) return;
+    final commentsFuture = widget.api.comments(id);
     await showModalBottomSheet<void>(
       context: context,
       isScrollControlled: true,
@@ -1066,7 +1093,7 @@ class _LiveHomeState extends State<LiveHome> with WidgetsBindingObserver {
           ),
           Expanded(
             child: FutureBuilder<List<Map<String, dynamic>>>(
-              future: widget.api.comments(id),
+              future: commentsFuture,
               builder: (context, snap) {
                 if (snap.connectionState == ConnectionState.waiting) return const Center(child: CircularProgressIndicator(color: cBlue));
                 if (snap.hasError) return Center(child: Padding(padding: const EdgeInsets.all(20), child: Text(snap.error.toString(), textAlign: TextAlign.center)));
@@ -1111,7 +1138,7 @@ class _LiveHomeState extends State<LiveHome> with WidgetsBindingObserver {
   Widget card(Map<String, dynamic> p) {
     final name = value(p, 'display_name', value(p, 'username', 'کاربر'));
     final body = value(p, 'body');
-    final liked = p['liked'] == true, reposted = p['reposted'] == true;
+    final liked = _asBool(p['liked']), reposted = _asBool(p['reposted']);
     final postCard = Container(padding: const EdgeInsets.fromLTRB(15, 15, 15, 11), margin: const EdgeInsets.symmetric(horizontal: 12, vertical: 6), decoration: BoxDecoration(color: Theme.of(context).brightness == Brightness.dark ? const Color(0xCC101827) : const Color(0xF7FFFFFF), borderRadius: BorderRadius.circular(22), border: Border.all(color: Theme.of(context).brightness == Brightness.dark ? const Color(0x4439C5FF) : const Color(0x223D6592)), boxShadow: [BoxShadow(color: Theme.of(context).brightness == Brightness.dark ? const Color(0x16000000) : const Color(0x0D27476A), blurRadius: 22, offset: const Offset(0, 7))]), child: Row(crossAxisAlignment: CrossAxisAlignment.start, children: [
       GestureDetector(onTap: () => openUserProfile(value(p, 'username')), child: avatar(name, p, 21)), const SizedBox(width: 10), Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
         Row(children: [
@@ -1144,7 +1171,7 @@ class _LiveHomeState extends State<LiveHome> with WidgetsBindingObserver {
               constraints: const BoxConstraints(maxHeight: 300, maxWidth: 520),
               child: (value(p, 'mime_type').startsWith('video/') || RegExp(r'\.(mp4|webm)(\?|$)', caseSensitive: false).hasMatch(value(p, 'media_url')))
                 ? Container(width: double.infinity, height: 190, color: Colors.black, child: const Center(child: Icon(Icons.play_circle_fill_rounded, color: Colors.white, size: 52)))
-                : Image.network(value(p, 'media_url'), width: double.infinity, fit: BoxFit.contain, cacheWidth: 1200, filterQuality: FilterQuality.low, errorBuilder: (_, __, ___) => const SizedBox.shrink()),
+                : Image.network(value(p, 'media_url'), width: double.infinity, fit: BoxFit.contain, cacheWidth: 720, filterQuality: FilterQuality.low, errorBuilder: (_, __, ___) => const SizedBox.shrink()),
             )),
           )),
         const SizedBox(height: 10),
@@ -1157,24 +1184,92 @@ class _LiveHomeState extends State<LiveHome> with WidgetsBindingObserver {
         ]),
       ])),
     ]));
-    return RepaintBoundary(child: BinerPreferences.instance.fastMode ? postCard : postCard.animate().fadeIn(duration: 220.ms).slideY(begin: .02, duration: 220.ms, curve: Curves.easeOutCubic));
+    return RepaintBoundary(child: postCard);
   }
   Widget home() => Column(
     children: [
-      Padding(padding: const EdgeInsets.fromLTRB(16, 12, 16, 8), child: Row(children: [
-        const Brand(), const Spacer(),
-        IconButton(tooltip: 'BinerAI', onPressed: openBinerAI, icon: const Icon(Icons.auto_awesome_rounded, color: Color(0xFF9B8CFF))),
-        IconButton(tooltip: 'Biner Insights', onPressed: openInsights, icon: const Icon(Icons.insights_rounded, color: cBlue)),
-        Container(decoration: BoxDecoration(color: Theme.of(context).brightness == Brightness.dark ? cGlass : const Color(0xEFFFFFFF), borderRadius: BorderRadius.circular(18), border: Border.all(color: cLine)), child: IconButton(onPressed: searchUser, icon: const Icon(Icons.search_rounded, color: cBlue), tooltip: 'جست‌وجوی کاربر')),
-        const SizedBox(width: 4),
-        IconButton(
-          tooltip: widget.isDark ? 'حالت روشن' : 'حالت تیره',
-          onPressed: widget.onToggleTheme,
-          icon: Icon(widget.isDark ? Icons.light_mode_rounded : Icons.dark_mode_rounded, color: cBlue),
-        ),
-        const SizedBox(width: 4),
-        Hero(tag: 'biner-profile-avatar', child: Container(padding: const EdgeInsets.all(2), decoration: BoxDecoration(shape: BoxShape.circle, gradient: const LinearGradient(colors: [cBlue, Color(0xFF725BFF)])), child: CircleAvatar(radius: 17, backgroundColor: Theme.of(context).colorScheme.surface, backgroundImage: (me?['avatar_url']?.toString().startsWith('https://') ?? false) ? NetworkImage(me!['avatar_url'].toString()) : null, child: (me?['avatar_url']?.toString().startsWith('https://') ?? false) ? null : const Icon(Icons.person, size: 18)))),
-      ])),
+      Padding(
+        padding: const EdgeInsets.fromLTRB(16, 10, 16, 8),
+        child: Row(children: [
+          const Brand(),
+          const Spacer(),
+          IconButton(
+            tooltip: 'جست‌وجوی کاربر',
+            onPressed: searchUser,
+            icon: const Icon(Icons.search_rounded),
+          ),
+          PopupMenuButton<String>(
+            tooltip: 'ابزارها و تنظیمات',
+            onSelected: (action) {
+              switch (action) {
+                case 'ai':
+                  openBinerAI();
+                  break;
+                case 'insights':
+                  openInsights();
+                  break;
+                case 'theme':
+                  widget.onToggleTheme();
+                  break;
+              }
+            },
+            itemBuilder: (_) => [
+              const PopupMenuItem(
+                value: 'ai',
+                child: ListTile(
+                  dense: true,
+                  contentPadding: EdgeInsets.zero,
+                  leading: Icon(Icons.auto_awesome_rounded, color: Color(0xFF9B8CFF)),
+                  title: Text('BinerAI'),
+                ),
+              ),
+              const PopupMenuItem(
+                value: 'insights',
+                child: ListTile(
+                  dense: true,
+                  contentPadding: EdgeInsets.zero,
+                  leading: Icon(Icons.insights_rounded, color: cBlue),
+                  title: Text('آمار حساب'),
+                ),
+              ),
+              PopupMenuItem(
+                value: 'theme',
+                child: ListTile(
+                  dense: true,
+                  contentPadding: EdgeInsets.zero,
+                  leading: Icon(widget.isDark ? Icons.light_mode_rounded : Icons.dark_mode_rounded),
+                  title: Text(widget.isDark ? 'حالت روشن' : 'حالت تیره'),
+                ),
+              ),
+            ],
+            child: const Padding(
+              padding: EdgeInsets.all(10),
+              child: Icon(Icons.more_horiz_rounded),
+            ),
+          ),
+          const SizedBox(width: 3),
+          Hero(
+            tag: 'biner-profile-avatar',
+            child: Container(
+              padding: const EdgeInsets.all(2),
+              decoration: const BoxDecoration(
+                shape: BoxShape.circle,
+                gradient: LinearGradient(colors: [cBlue, Color(0xFF725BFF)]),
+              ),
+              child: CircleAvatar(
+                radius: 17,
+                backgroundColor: Theme.of(context).colorScheme.surface,
+                backgroundImage: (me?['avatar_url']?.toString().startsWith('https://') ?? false)
+                    ? ResizeImage.resizeIfNeeded(96, 96, NetworkImage(me!['avatar_url'].toString()))
+                    : null,
+                child: (me?['avatar_url']?.toString().startsWith('https://') ?? false)
+                    ? null
+                    : const Icon(Icons.person, size: 18),
+              ),
+            ),
+          ),
+        ]),
+      ),
       Row(children: [
         Expanded(child: InkWell(
           onTap: () { if (followingFeed) { setState(() => followingFeed = false); refresh(); } },
@@ -1956,7 +2051,7 @@ class _ChatPageState extends State<ChatPage> {
       builder: (ctx) => ClipRRect(
         borderRadius: const BorderRadius.vertical(top: Radius.circular(28)),
         child: BackdropFilter(
-          filter: ImageFilter.blur(sigmaX: 24, sigmaY: 24),
+          filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
           child: Container(
             padding: const EdgeInsets.fromLTRB(18, 14, 18, 24),
             decoration: BoxDecoration(color: const Color(0xEE0B1422), border: Border.all(color: cLine), borderRadius: const BorderRadius.vertical(top: Radius.circular(28))),
@@ -2001,7 +2096,7 @@ class _ChatPageState extends State<ChatPage> {
           builder: (ctx) => ClipRRect(
             borderRadius: const BorderRadius.vertical(top: Radius.circular(28)),
             child: BackdropFilter(
-              filter: ImageFilter.blur(sigmaX: 16, sigmaY: 16),
+              filter: ImageFilter.blur(sigmaX: 8, sigmaY: 8),
               child: Container(
                 decoration: BoxDecoration(color: const Color(0xF20B0B10), borderRadius: const BorderRadius.vertical(top: Radius.circular(28)), border: Border.all(color: cLine)),
                 padding: const EdgeInsets.fromLTRB(12, 14, 12, 22),

@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_animate/flutter_animate.dart';
 import 'api_client.dart';
 import 'ui_kit.dart';
 import 'app_preferences.dart';
@@ -60,7 +59,10 @@ class _UserProfilePageState extends State<UserProfilePage> {
   String textOf(String key, [String fallback = '']) => user?[key]?.toString() ?? fallback;
   int countOf(String key) => int.tryParse(user?[key]?.toString() ?? '') ?? 0;
   bool get isSelf => myId != null && myId.toString() == textOf('id');
-  bool get isFollowing => user?['is_following'] == true || user?['is_following'] == 1;
+  bool get isFollowing {
+    final value = user?['is_following'];
+    return value == true || value == 1 || const {'1', 'true', 'yes'}.contains(value?.toString().trim().toLowerCase());
+  }
 
   Future<void> toggleFollow() async {
     final id = int.tryParse(textOf('id'));
@@ -97,7 +99,7 @@ class _UserProfilePageState extends State<UserProfilePage> {
       child: CircleAvatar(
         radius: radius,
         backgroundColor: dark ? const Color(0xFF13243B) : const Color(0xFFE6EFFB),
-        backgroundImage: url.startsWith('https://') ? NetworkImage(url) : null,
+        backgroundImage: url.startsWith('https://') ? ResizeImage.resizeIfNeeded(96, 96, NetworkImage(url)) : null,
         child: url.startsWith('https://')
             ? null
             : Icon(Icons.person_rounded, size: radius, color: dark ? binerBlue : const Color(0xFF4776A7)),
@@ -192,44 +194,76 @@ class _UserProfilePageState extends State<UserProfilePage> {
   Widget postCard(Map<String, dynamic> post) {
     final body = post['body']?.toString() ?? '';
     final display = post['display_name']?.toString() ?? post['username']?.toString() ?? 'کاربر';
-    final likes = post['likes_count']?.toString() ?? '0';
-    final reposts = post['reposts_count']?.toString() ?? '0';
-    return BinerLiquidGlass(margin: const EdgeInsets.fromLTRB(16, 6, 16, 8), padding: const EdgeInsets.all(16), borderRadius: BorderRadius.circular(24), child: Container(
-      padding: EdgeInsets.zero,
-      decoration: BoxDecoration(
-        color: surface,
-        borderRadius: BorderRadius.circular(22),
-        border: Border.all(color: binerBlue.withValues(alpha: dark ? .18 : .12)),
-        boxShadow: [BoxShadow(color: binerViolet.withValues(alpha: dark ? .06 : .035), blurRadius: 24, offset: const Offset(0, 8))],
+    final mediaUrl = post['media_url']?.toString() ?? '';
+    final mime = post['mime_type']?.toString() ?? '';
+    final isVideo = mime.startsWith('video/') ||
+        RegExp(r'\.(mp4|webm)(\?|$)', caseSensitive: false).hasMatch(mediaUrl);
+
+    return BinerSurfaceCard(
+      margin: const EdgeInsets.fromLTRB(16, 5, 16, 7),
+      padding: const EdgeInsets.all(15),
+      radius: 20,
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(children: [
+            const Icon(Icons.bolt_rounded, color: binerBlue, size: 18),
+            const SizedBox(width: 7),
+            Expanded(
+              child: Text(display, maxLines: 1, overflow: TextOverflow.ellipsis,
+                  style: const TextStyle(fontWeight: FontWeight.w800)),
+            ),
+            Text(post['created_at']?.toString() ?? '',
+                style: TextStyle(color: muted, fontSize: 10)),
+          ]),
+          if (body.isNotEmpty)
+            Padding(
+              padding: const EdgeInsets.only(top: 10),
+              child: Text(body, style: const TextStyle(fontSize: 14, height: 1.55)),
+            ),
+          if (mediaUrl.startsWith('https://'))
+            Padding(
+              padding: const EdgeInsets.only(top: 12),
+              child: GestureDetector(
+                onTap: () => BinerMediaViewer.open(
+                  context, url: mediaUrl, mimeType: mime, title: 'پست $display',
+                ),
+                child: ClipRRect(
+                  borderRadius: BorderRadius.circular(14),
+                  child: isVideo
+                      ? Container(
+                          height: 170, color: Colors.black,
+                          child: const Center(child: Icon(Icons.play_circle_fill_rounded,
+                              color: Colors.white, size: 46)),
+                        )
+                      : Image.network(
+                          mediaUrl,
+                          fit: BoxFit.contain,
+                          cacheWidth: 720,
+                          filterQuality: FilterQuality.low,
+                          errorBuilder: (_, __, ___) => const SizedBox(
+                            height: 90,
+                            child: Center(child: Icon(Icons.broken_image_outlined)),
+                          ),
+                        ),
+                ),
+              ),
+            ),
+          const SizedBox(height: 12),
+          Row(children: [
+            Icon(Icons.favorite_border_rounded, size: 17, color: muted),
+            const SizedBox(width: 5),
+            Text(post['likes_count']?.toString() ?? '0',
+                style: TextStyle(color: muted, fontSize: 12)),
+            const SizedBox(width: 18),
+            Icon(Icons.repeat_rounded, size: 17, color: muted),
+            const SizedBox(width: 5),
+            Text(post['reposts_count']?.toString() ?? '0',
+                style: TextStyle(color: muted, fontSize: 12)),
+          ]),
+        ],
       ),
-      child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-        Row(children: [
-          Icon(Icons.bolt_rounded, color: binerBlue, size: 18),
-          const SizedBox(width: 7),
-          Expanded(child: Text(display, style: const TextStyle(fontWeight: FontWeight.w800))),
-          Text(post['created_at']?.toString() ?? '', style: TextStyle(color: muted, fontSize: 10)),
-        ]),
-        if (body.isNotEmpty) Padding(padding: const EdgeInsets.only(top: 10), child: Text(body, style: const TextStyle(fontSize: 15, height: 1.5))),
-        if ((post['media_url']?.toString() ?? '').startsWith('https://'))
-          Padding(padding: const EdgeInsets.only(top: 12), child: GestureDetector(
-            onTap: () => BinerMediaViewer.open(context, url: post['media_url'].toString(), mimeType: post['mime_type']?.toString(), title: 'پست $display'),
-            child: ClipRRect(borderRadius: BorderRadius.circular(16), child: (post['mime_type']?.toString().startsWith('video/') ?? false)
-              ? Container(height: 170, color: Colors.black, child: const Center(child: Icon(Icons.play_circle_fill_rounded, color: Colors.white, size: 48)))
-              : Image.network(post['media_url'].toString(), fit: BoxFit.contain, cacheWidth: 1000, filterQuality: FilterQuality.low)),
-          )),
-        const SizedBox(height: 12),
-        Row(children: [
-          Icon(Icons.favorite_border_rounded, size: 17, color: muted),
-          const SizedBox(width: 5),
-          Text(likes, style: TextStyle(color: muted, fontSize: 12)),
-          const SizedBox(width: 18),
-          Icon(Icons.repeat_rounded, size: 17, color: muted),
-          const SizedBox(width: 5),
-          Text(reposts, style: TextStyle(color: muted, fontSize: 12)),
-        ]),
-      ]),
-      ),
-    ).animate().fadeIn(duration: 260.ms).slideY(begin: .025, duration: 260.ms, curve: Curves.easeOutCubic);
+    );
   }
 
   @override

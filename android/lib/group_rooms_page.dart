@@ -194,6 +194,11 @@ class _GroupChatPageState extends State<GroupChatPage> {
         setState(() => _loading = false);
         ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(e.message)));
       }
+    } catch (_) {
+      if (mounted) {
+        setState(() => _loading = false);
+        ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('بارگذاری پیام‌های گروه انجام نشد.')));
+      }
     }
   }
 
@@ -209,12 +214,23 @@ class _GroupChatPageState extends State<GroupChatPage> {
         if (!mounted) return;
         if (mediaId == null) throw const ApiException('شناسه رسانه دریافت نشد.');
       }
-      await widget.api.sendGroupMessage(widget.groupId, text, mediaId: mediaId);
+      final sent = await widget.api.sendGroupMessage(widget.groupId, text, mediaId: mediaId);
       if (!mounted) return;
       _controller.clear();
-      await _load();
+      setState(() => _items.add(Map<String, dynamic>.from(sent)));
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (_scroll.hasClients) {
+          _scroll.animateTo(
+            _scroll.position.maxScrollExtent,
+            duration: const Duration(milliseconds: 180),
+            curve: Curves.easeOut,
+          );
+        }
+      });
     } on ApiException catch (e) {
       if (mounted) ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(e.message)));
+    } catch (_) {
+      if (mounted) ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('ارسال پیام انجام نشد. دوباره تلاش کن.')));
     } finally {
       if (mounted) setState(() => _sending = false);
     }
