@@ -207,7 +207,7 @@ class _StoryViewerState extends State<_StoryViewer> {
   @override void dispose() { _page.dispose(); super.dispose(); }
 
   @override
-  Widget build(BuildContext context) => Scaffold(backgroundColor: Theme.of(context).colorScheme.surface,
+  Widget build(BuildContext context) => Scaffold(
     backgroundColor: const Color(0xFF05070B),
     body: PageView.builder(
       controller: _page,
