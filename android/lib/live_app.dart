@@ -134,7 +134,7 @@ class _LiveAuthState extends State<LiveAuth> with TickerProviderStateMixin {
   @override Widget build(BuildContext context) {
     final dark=Theme.of(context).brightness==Brightness.dark;
     final prefs=BinerPreferences.instance;
-    return Scaffold(backgroundColor: Theme.of(context).colorScheme.surface,
+    return Scaffold(backgroundColor: defaultTargetPlatform == TargetPlatform.iOS ? Colors.transparent : Theme.of(context).colorScheme.surface,
       body: Stack(children:[
         Positioned.fill(child: AnimatedBuilder(animation:ambient,builder:(context,_)=>CustomPaint(painter:_AuthGlowPainter(ambient.value,dark)))),
         SafeArea(child: Center(child: SingleChildScrollView(padding:const EdgeInsets.fromLTRB(22,26,22,30),child:ConstrainedBox(
@@ -168,7 +168,7 @@ class _LiveAuthState extends State<LiveAuth> with TickerProviderStateMixin {
             ]))),
             const SizedBox(height:18),
             Center(child:Wrap(alignment:WrapAlignment.center,spacing:8,children:[
-              for(final item in const [('fa',binerText('فارسی')),('en','English'),('ar',binerText('العربية')),('tr','Türkçe')])
+              for(final item in const [('fa','فارسی'),('en','English'),('ar','العربية'),('tr','Türkçe')])
                 ChoiceChip(label:Text(item.$2,style:const TextStyle(fontSize:11)),selected:prefs.locale.languageCode==item.$1,onSelected:busy?null:(_)=>prefs.setLanguage(item.$1),visualDensity:VisualDensity.compact),
             ])),
             const SizedBox(height:10),
@@ -2287,7 +2287,7 @@ class _ChatPageState extends State<ChatPage> {
     builder: (context, _) => _buildChat(),
   );
 
-  Widget _buildChat() => Scaffold(backgroundColor: Theme.of(context).colorScheme.surface,
+  Widget _buildChat() => Scaffold(backgroundColor: defaultTargetPlatform == TargetPlatform.iOS ? Colors.transparent : Theme.of(context).colorScheme.surface,
     appBar: AppBar(
       backgroundColor: Colors.transparent,
       foregroundColor: Theme.of(context).colorScheme.onSurface,
