@@ -1,4 +1,51 @@
-/* BinerMention Web Push worker. Push delivery is activated after VAPID/server setup. */
+const CACHE_NAME = 'binerm-shell-v1';
+const APP_ROOT = '/mention/';
+
+self.addEventListener('install', (event) => {
+  event.waitUntil((async () => {
+    const cache = await caches.open(CACHE_NAME);
+    try { await cache.add(new Request(APP_ROOT, { cache: 'reload' })); } catch (_) {}
+    await self.skipWaiting();
+  })());
+});
+
+self.addEventListener('activate', (event) => {
+  event.waitUntil((async () => {
+    const keys = await caches.keys();
+    await Promise.all(keys.filter((key) => key.startsWith('binerm-shell-') && key !== CACHE_NAME).map((key) => caches.delete(key)));
+    await self.clients.claim();
+  })());
+});
+
+self.addEventListener('fetch', (event) => {
+  const request = event.request;
+  if (request.method !== 'GET') return;
+  const url = new URL(request.url);
+  if (url.origin !== self.location.origin || !url.pathname.startsWith(APP_ROOT)) return;
+  event.respondWith((async () => {
+    const cache = await caches.open(CACHE_NAME);
+    if (request.mode === 'navigate') {
+      try {
+        const response = await fetch(request);
+        if (response && response.ok) await cache.put(APP_ROOT, response.clone());
+        return response;
+      } catch (_) {
+        return (await cache.match(request)) || (await cache.match(APP_ROOT)) || Response.error();
+      }
+    }
+    const cached = await cache.match(request);
+    if (cached) return cached;
+    try {
+      const response = await fetch(request);
+      if (response && response.ok && response.type === 'basic') await cache.put(request, response.clone());
+      return response;
+    } catch (_) {
+      return cached || Response.error();
+    }
+  })());
+});
+
+/* Push delivery is intentionally dormant until a non-Firebase push sender is configured. */
 self.addEventListener('push', (event) => {
   let payload = {};
   try { payload = event.data ? event.data.json() : {}; }
@@ -14,6 +61,7 @@ self.addEventListener('push', (event) => {
   };
   event.waitUntil(self.registration.showNotification(title, options));
 });
+
 self.addEventListener('notificationclick', (event) => {
   event.notification.close();
   const target = new URL(event.notification.data?.url || '/mention/', self.location.origin).href;
