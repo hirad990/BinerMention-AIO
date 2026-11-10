@@ -193,7 +193,6 @@ class BinerLiquidGlass extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final dark = Theme.of(context).brightness == Brightness.dark;
-    final accent = BinerPreferences.instance.accent;
     final reduceEffects = BinerPreferences.instance.fastMode;
     final surface = DecoratedBox(
       decoration: BoxDecoration(
