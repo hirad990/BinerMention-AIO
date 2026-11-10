@@ -114,7 +114,7 @@ class _BinerLiveAppState extends State<BinerLiveApp> {
         ),
       ),
       child: !ready
-          ? Scaffold(backgroundColor: Theme.of(context).colorScheme.surface,key: const ValueKey('boot'), body: Center(child: CircularProgressIndicator(color: cBlue)))
+          ? Scaffold(backgroundColor: binerScaffoldBackground(context),key: const ValueKey('boot'), body: Center(child: CircularProgressIndicator(color: cBlue)))
           : loggedIn
               ? LiveHome(key: const ValueKey('home'), api: api, logout: logout, onToggleTheme: toggleTheme, isDark: themeMode == ThemeMode.dark)
               : LiveAuth(key: const ValueKey('auth'), api: api, onDone: signedIn),
@@ -148,7 +148,7 @@ class _LiveAuthState extends State<LiveAuth> with TickerProviderStateMixin {
   @override Widget build(BuildContext context) {
     final dark=Theme.of(context).brightness==Brightness.dark;
     final prefs=BinerPreferences.instance;
-    return Scaffold(backgroundColor: Theme.of(context).colorScheme.surface,
+    return Scaffold(backgroundColor: binerScaffoldBackground(context),
       body: Stack(children:[
         Positioned.fill(child: AnimatedBuilder(animation:ambient,builder:(context,_)=>CustomPaint(painter:_AuthGlowPainter(ambient.value,dark)))),
         SafeArea(child: Center(child: SingleChildScrollView(padding:const EdgeInsets.fromLTRB(22,26,22,30),child:ConstrainedBox(
@@ -1831,7 +1831,7 @@ class _LiveHomeState extends State<LiveHome> with WidgetsBindingObserver {
           final destinations = List.generate(5, (i) => NavigationDestination(
             icon: icons[i], selectedIcon: selectedIcons[i], label: labels[i],
           ));
-          return Scaffold(backgroundColor: Theme.of(context).colorScheme.surface,
+          return Scaffold(backgroundColor: binerScaffoldBackground(context),
             body: desktop
                 ? Row(children: [
                     Padding(
@@ -1881,7 +1881,7 @@ class _LiveHomeState extends State<LiveHome> with WidgetsBindingObserver {
                       },
                       child: KeyedSubtree(
                         key: ValueKey<int>(tab),
-                        child: pages[tab],
+                        child: SizedBox.expand(child: pages[tab]),
                       ),
                     ),
                   ),
@@ -2301,7 +2301,7 @@ class _ChatPageState extends State<ChatPage> {
     builder: (context, _) => _buildChat(),
   );
 
-  Widget _buildChat() => Scaffold(backgroundColor: Theme.of(context).colorScheme.surface,
+  Widget _buildChat() => Scaffold(backgroundColor: binerScaffoldBackground(context),
     appBar: AppBar(
       backgroundColor: Colors.transparent,
       foregroundColor: Theme.of(context).colorScheme.onSurface,
@@ -2408,14 +2408,14 @@ class _BinerFloatingNavBar extends StatelessWidget {
           child: ClipRRect(
             borderRadius: BorderRadius.circular(38),
             child: BackdropFilter(
-              filter: ImageFilter.blur(sigmaX: 26, sigmaY: 26),
+              filter: ImageFilter.blur(sigmaX: 32, sigmaY: 32),
               child: Container(
                 height: 70,
                 padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 6),
                 decoration: BoxDecoration(
                   color: dark
-                      ? const Color(0xD91B1B20)
-                      : const Color(0xEAF7F8FC),
+                      ? const Color(0x991B1B20)
+                      : const Color(0xAAF7F8FC),
                   borderRadius: BorderRadius.circular(38),
                   border: Border.all(
                     color: dark
