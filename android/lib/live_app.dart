@@ -2372,7 +2372,7 @@ class Brand extends StatelessWidget {
   @override Widget build(BuildContext context) => ShaderMask(
     shaderCallback: (bounds) => const LinearGradient(colors: [Color(0xFFF7FBFF), cBlue, Color(0xFF9B8CFF)]).createShader(bounds),
     child: const BinerLocalizedText('BinerMention', style: TextStyle(fontSize: 21, fontWeight: FontWeight.w900, letterSpacing: -.45, color: Colors.white)),
-  ).animate().fadeIn(duration: 350.ms).slideX(begin: -.04, duration: 350.ms);
+  );
 }
 
 
