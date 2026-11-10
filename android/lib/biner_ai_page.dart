@@ -32,6 +32,8 @@ class _BinerAIPageState extends State<BinerAIPage> {
       setState(() => _history.add({'role': 'ai', 'data': result}));
     } on ApiException catch (e) {
       if (mounted) setState(() => _history.add({'role': 'error', 'text': e.message}));
+    } catch (_) {
+      if (mounted) setState(() => _history.add({'role': 'error', 'text': 'یک خطای غیرمنتظره رخ داد. دوباره تلاش کن.'}));
     } finally {
       if (mounted) {
         setState(() => _busy = false);

@@ -4,7 +4,6 @@ import 'package:flutter/foundation.dart';
 
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_animate/flutter_animate.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:shimmer/shimmer.dart';
 import 'app_preferences.dart';
@@ -43,9 +42,9 @@ ThemeData buildBinerTheme(Brightness brightness, {Color seedColor = binerBlue}) 
       textStyle: TextStyle(color: dark ? const Color(0xFFF5F5F7) : const Color(0xFF142033)),
     ),
     snackBarTheme: SnackBarThemeData(behavior: SnackBarBehavior.floating, backgroundColor: const Color(0xF21A1A20), elevation: 0, shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(18), side: BorderSide(color: seedColor.withValues(alpha: .38))), insetPadding: const EdgeInsets.fromLTRB(16, 0, 16, 12), contentTextStyle: TextStyle(color: dark ? const Color(0xFFF5F5F7) : const Color(0xFF142033), fontWeight: FontWeight.w600)),
-    splashFactory: InkSparkle.splashFactory,
+    splashFactory: InkRipple.splashFactory,
     pageTransitionsTheme: const PageTransitionsTheme(builders: {
-      TargetPlatform.android: CupertinoPageTransitionsBuilder(),
+      TargetPlatform.android: FadeUpwardsPageTransitionsBuilder(),
       TargetPlatform.iOS: CupertinoPageTransitionsBuilder(),
       TargetPlatform.macOS: CupertinoPageTransitionsBuilder(),
       TargetPlatform.windows: FadeForwardsPageTransitionsBuilder(),
@@ -172,7 +171,11 @@ class _AmbientGlowPainter extends CustomPainter {
   bool shouldRepaint(covariant _AmbientGlowPainter oldDelegate) => oldDelegate.dark != dark || oldDelegate.accent != accent;
 }
 
-/// Liquid-glass surface: clipped blur, translucent gradient, hairline border and soft depth.
+/// Restrained blur surface for navigation and floating chrome.
+///
+/// Blur is intentionally limited to a small number of high-level surfaces.
+/// Content cards remain opaque to avoid stacking expensive BackdropFilters
+/// throughout scrolling lists.
 class BinerLiquidGlass extends StatelessWidget {
   const BinerLiquidGlass({
     super.key,
@@ -190,40 +193,32 @@ class BinerLiquidGlass extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final dark = Theme.of(context).brightness == Brightness.dark;
-    final accent = BinerPreferences.instance.accent;
+    final reduceEffects = BinerPreferences.instance.fastMode;
+    final surface = DecoratedBox(
+      decoration: BoxDecoration(
+        color: dark
+            ? const Color(0xD9101722)
+            : const Color(0xEAF8FBFF),
+        borderRadius: borderRadius,
+        border: Border.all(
+          color: (dark ? Colors.white : const Color(0xFF31506E))
+              .withValues(alpha: .10),
+        ),
+      ),
+      child: Padding(padding: padding, child: child),
+    );
+
     return Padding(
       padding: margin,
       child: ClipRRect(
         borderRadius: borderRadius,
-        child: BackdropFilter(
-          filter: ImageFilter.blur(sigmaX: BinerPreferences.instance.fastMode ? 0 : 12, sigmaY: BinerPreferences.instance.fastMode ? 0 : 12),
-          child: AnimatedContainer(
-            duration: const Duration(milliseconds: 260),
-            curve: Curves.easeOutCubic,
-            padding: padding,
-            decoration: BoxDecoration(
-              borderRadius: borderRadius,
-              gradient: LinearGradient(
-                begin: Alignment.topLeft,
-                end: Alignment.bottomRight,
-                colors: dark
-                    ? [const Color(0xE60D0D12), const Color(0xD908080B)]
-                    : [const Color(0xDDFEFFFF), const Color(0xBFEAF2FC)],
-              ),
-              border: Border.all(
-                color: accent.withValues(alpha: .34),
-                width: 1,
-              ),
-              boxShadow: [
-                BoxShadow(
-                  color: (dark ? accent : const Color(0xFF4777AA)).withValues(alpha: .10),
-                  blurRadius: BinerPreferences.instance.fastMode ? 0 : 28,
-                  offset: const Offset(0, 10),
+        child: RepaintBoundary(
+          child: reduceEffects
+              ? surface
+              : BackdropFilter(
+                  filter: ImageFilter.blur(sigmaX: 9, sigmaY: 9),
+                  child: surface,
                 ),
-              ],
-            ),
-            child: child,
-          ),
         ),
       ),
     );
@@ -420,7 +415,7 @@ class BinerAdaptiveBackButton extends StatelessWidget {
           ? CupertinoIcons.back
           : Icons.arrow_back_rounded,
     ),
-  ).animate().fadeIn(duration: 180.ms).scale(begin: const Offset(.92, .92));
+  );
 }
 
 /// Decorative custom clipper available for hero/banner surfaces.
