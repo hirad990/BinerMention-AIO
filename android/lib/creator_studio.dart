@@ -1,6 +1,7 @@
 import 'localized_text.dart';
 import 'dart:math' as math;
 import 'package:flutter/material.dart';
+import 'app_preferences.dart';
 import 'package:flutter/services.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -81,7 +82,7 @@ class _CreatorStudioPageState extends State<CreatorStudioPage> {
               maxLines: 8,
               maxLength: maxLength,
               decoration: InputDecoration(
-                hintText: 'اینجا بنویس…',
+                hintText: binerText('اینجا بنویس…'),
                 filled: true,
                 fillColor: Colors.white.withValues(alpha: .045),
                 border: OutlineInputBorder(borderRadius: BorderRadius.circular(16), borderSide: BorderSide.none),
@@ -150,7 +151,7 @@ class _CreatorStudioPageState extends State<CreatorStudioPage> {
       'آزمایشگاه هشتگ',
       'موضوع یا چند کلمه وارد کن؛ هشتگ‌های پیشنهادی به‌صورت محلی ساخته می‌شوند.',
       Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
-        TextField(controller: controller, onChanged: (_) => refresh(() {}), decoration: const InputDecoration(hintText: 'مثلاً برنامه‌نویسی، تکنولوژی، هنر')),
+        TextField(controller: controller, onChanged: (_) => refresh(() {}), decoration: InputDecoration(hintText: binerText('مثلاً برنامه‌نویسی، تکنولوژی، هنر'))),
         const SizedBox(height: 12),
         if (result.isNotEmpty) SelectableText(result, style: const TextStyle(color: _blue, height: 1.8, fontWeight: FontWeight.w700)),
         _primary('ساخت هشتگ', () {
@@ -171,7 +172,7 @@ class _CreatorStudioPageState extends State<CreatorStudioPage> {
       'کارگاه ویرایش متن',
       'متن را مرتب کن و نسخهٔ تمیزشده را کپی کن.',
       Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
-        TextField(controller: controller, minLines: 3, maxLines: 6, decoration: const InputDecoration(hintText: 'متن خودت را وارد کن…')),
+        TextField(controller: controller, minLines: 3, maxLines: 6, decoration: InputDecoration(hintText: binerText('متن خودت را وارد کن…'))),
         const SizedBox(height: 10),
         Wrap(spacing: 8, runSpacing: 8, children: [
           _chip('پاک‌سازی فاصله‌ها', () => output = controller.text.replaceAll(RegExp(r'[ \t]+'), ' ').replaceAll(RegExp(r'\n{3,}'), '\n\n').trim(), () => refresh(() {})),
@@ -215,7 +216,7 @@ class _CreatorStudioPageState extends State<CreatorStudioPage> {
       'فیلتر واژه‌های دلخواه',
       'واژه‌هایی که نمی‌خواهی در فید ببینی ذخیره کن. این فهرست آمادهٔ اتصال به فیلتر فید است.',
       Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
-        TextField(controller: controller, decoration: const InputDecoration(hintText: 'یک واژه یا عبارت')),
+        TextField(controller: controller, decoration: InputDecoration(hintText: binerText('یک واژه یا عبارت'))),
         const SizedBox(height: 8),
         _primary('افزودن واژه', () { final word = controller.text.trim(); if (word.isNotEmpty && !mutedWords.contains(word)) { setState(() => mutedWords.add(word)); _persist('creator_muted_words_v1', mutedWords); controller.clear(); refresh(() {}); } }),
         const SizedBox(height: 8),
@@ -231,7 +232,7 @@ class _CreatorStudioPageState extends State<CreatorStudioPage> {
       'حالت مطالعهٔ متمرکز',
       'متن یک پست را اینجا قرار بده تا بدون شلوغی و با خوانایی بیشتر نمایش داده شود.',
       Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
-        TextField(controller: controller, minLines: 3, maxLines: 6, decoration: const InputDecoration(hintText: 'متن پست…')),
+        TextField(controller: controller, minLines: 3, maxLines: 6, decoration: InputDecoration(hintText: binerText('متن پست…'))),
         _primary('شروع مطالعه', () => Navigator.pop(ctx, controller.text.trim())),
       ]),
     ));
@@ -256,7 +257,7 @@ class _CreatorStudioPageState extends State<CreatorStudioPage> {
       'استودیوی بیوگرافی',
       'بیوی کوتاه پروفایلت را بنویس، پیش‌نمایش بگیر و کپی کن.',
       Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
-        TextField(controller: controller, maxLength: 160, minLines: 2, maxLines: 4, onChanged: (_) => refresh(() {}), decoration: const InputDecoration(hintText: 'علاقه‌مندی‌ها، تخصص‌ها و لینک‌ها…')),
+        TextField(controller: controller, maxLength: 160, minLines: 2, maxLines: 4, onChanged: (_) => refresh(() {}), decoration: InputDecoration(hintText: binerText('علاقه‌مندی‌ها، تخصص‌ها و لینک‌ها…'))),
         Container(padding: const EdgeInsets.all(14), decoration: BoxDecoration(color: Colors.white.withValues(alpha: .05), borderRadius: BorderRadius.circular(16)), child: Row(crossAxisAlignment: CrossAxisAlignment.start, children: [
           const CircleAvatar(backgroundColor: Color(0xFF18314B), child: Icon(Icons.person_rounded, color: _blue)),
           const SizedBox(width: 12),
@@ -300,7 +301,7 @@ class _CreatorStudioPageState extends State<CreatorStudioPage> {
       'برنامه‌ریز رشته‌پست',
       'یک متن بلند را به بخش‌های حداکثر ۲۸۰ نویسه‌ای تقسیم کن.',
       Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
-        TextField(controller: controller, minLines: 3, maxLines: 6, maxLength: 10000, decoration: const InputDecoration(hintText: 'متن کامل رشته‌پست…')),
+        TextField(controller: controller, minLines: 3, maxLines: 6, maxLength: 10000, decoration: InputDecoration(hintText: binerText('متن کامل رشته‌پست…'))),
         _primary('تقسیم متن', () {
           final words = controller.text.trim().split(RegExp(r'\s+')).where((e) => e.isNotEmpty);
           parts = [];
@@ -360,7 +361,7 @@ class _CreatorStudioPageState extends State<CreatorStudioPage> {
       final hashtags = RegExp(r'#[\p{L}\p{N}_]+', unicode: true).allMatches(text).length;
       final mentions = RegExp(r'@[A-Za-z0-9_]+').allMatches(text).length;
       return _toolDialog('تحلیل‌گر متن', 'آمار زندهٔ نوشته؛ همه‌چیز روی خود دستگاه محاسبه می‌شود.', Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
-        TextField(controller: controller, minLines: 3, maxLines: 6, onChanged: (_) => refresh(() {}), decoration: const InputDecoration(hintText: 'متنت را وارد کن…')),
+        TextField(controller: controller, minLines: 3, maxLines: 6, onChanged: (_) => refresh(() {}), decoration: InputDecoration(hintText: binerText('متنت را وارد کن…'))),
         const SizedBox(height: 12),
         Wrap(spacing: 8, runSpacing: 8, children: [
           _metric('نویسه', '${text.length}'), _metric('واژه', '${words.length}'), _metric('هشتگ', '$hashtags'), _metric('منشن', '$mentions'), _metric('مطالعه', '${(words.length / 180).ceil()} دقیقه'),
