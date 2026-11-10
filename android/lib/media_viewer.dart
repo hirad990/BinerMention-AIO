@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:video_player/video_player.dart';
+import 'app_preferences.dart';
 
 class BinerMediaViewer {
   const BinerMediaViewer._();
@@ -20,7 +21,7 @@ class BinerMediaViewer {
         reverseTransitionDuration: const Duration(milliseconds: 180),
         pageBuilder: (_, animation, __) => FadeTransition(
           opacity: animation,
-          child: _BinerMediaViewerPage(url: url, isVideo: video, title: title ?? 'رسانه'),
+          child: _BinerMediaViewerPage(url: url, isVideo: video, title: title ?? binerText('رسانه')),
         ),
       ),
     );
@@ -89,7 +90,7 @@ class _BinerMediaViewerPageState extends State<_BinerMediaViewerPage> {
         actions: [
           if (widget.isVideo && _ready)
             PopupMenuButton<double>(
-              tooltip: 'سرعت پخش',
+              tooltip: binerText('سرعت پخش'),
               initialValue: _speed,
               onSelected: _setSpeed,
               itemBuilder: (_) => const [
@@ -109,7 +110,7 @@ class _BinerMediaViewerPageState extends State<_BinerMediaViewerPage> {
                     ? const Column(mainAxisSize: MainAxisSize.min, children: [
                         Icon(Icons.error_outline_rounded, color: Colors.white70, size: 42),
                         SizedBox(height: 10),
-                        Text('پخش ویدیو ممکن نشد.', style: TextStyle(color: Colors.white70)),
+                        Text(binerText('پخش ویدیو ممکن نشد.'), style: TextStyle(color: Colors.white70)),
                       ])
                     : const CircularProgressIndicator(color: Color(0xFF54C8FF)))
                 : AspectRatio(
