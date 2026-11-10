@@ -5,7 +5,7 @@ class BinerPreferences extends ChangeNotifier {
   BinerPreferences._();
   static final BinerPreferences instance = BinerPreferences._();
   Locale locale = const Locale('fa');
-  Color accent = const Color(0xFF54C8FF);
+  Color accent = const Color(0xFF1D9BF0);
   bool fastMode = false;
   String fontFamily = 'noto';
   bool ready = false;
@@ -13,7 +13,7 @@ class BinerPreferences extends ChangeNotifier {
     final p = await SharedPreferences.getInstance();
     final language = p.getString('biner_language') ?? 'fa';
     locale = Locale(['fa','en','ar','tr'].contains(language) ? language : 'fa');
-    accent = Color(p.getInt('biner_accent') ?? 0xFF54C8FF);
+    accent = Color(p.getInt('biner_accent') ?? 0xFF1D9BF0);
     fastMode = p.getBool('biner_fast_mode') ?? false;
     fontFamily = ['system','vazir','noto'].contains(p.getString('biner_font_family')) ? p.getString('biner_font_family')! : 'noto';
     ready = true; notifyListeners();
