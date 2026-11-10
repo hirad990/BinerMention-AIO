@@ -1231,7 +1231,7 @@ class _LiveHomeState extends State<LiveHome> with WidgetsBindingObserver {
                   title: Text('BinerAI'),
                 ),
               ),
-              const PopupMenuItem(
+              PopupMenuItem(
                 value: 'insights',
                 child: ListTile(
                   dense: true,
@@ -1240,7 +1240,7 @@ class _LiveHomeState extends State<LiveHome> with WidgetsBindingObserver {
                   title: Text(binerText('آمار حساب')),
                 ),
               ),
-              const PopupMenuItem(
+              PopupMenuItem(
                 value: 'studio',
                 child: ListTile(
                   dense: true,
