@@ -1179,10 +1179,13 @@ class _LiveHomeState extends State<LiveHome> with WidgetsBindingObserver {
               switch (action) {
                 case 'ai':
                   openBinerAI();
+                  break;
                 case 'insights':
                   openInsights();
+                  break;
                 case 'theme':
                   widget.onToggleTheme();
+                  break;
               }
             },
             itemBuilder: (_) => [
