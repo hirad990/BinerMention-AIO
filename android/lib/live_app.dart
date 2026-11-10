@@ -1867,7 +1867,7 @@ class _LiveHomeState extends State<LiveHome> with WidgetsBindingObserver {
                       },
                       child: KeyedSubtree(
                         key: ValueKey<int>(tab),
-                        child: pages[tab],
+                        child: SizedBox.expand(child: pages[tab]),
                       ),
                     ),
                   ),
