@@ -28,7 +28,7 @@ ThemeData buildBinerTheme(Brightness brightness, {Color seedColor = binerBlue}) 
   return base.copyWith(
     platform: defaultTargetPlatform,
     brightness: brightness,
-    scaffoldBackgroundColor: pageSurface,
+    scaffoldBackgroundColor: defaultTargetPlatform == TargetPlatform.iOS ? Colors.transparent : pageSurface,
     colorScheme: ColorScheme.fromSeed(
       seedColor: seedColor,
       brightness: brightness,
@@ -480,7 +480,7 @@ class BinerAdaptiveBackButton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) => IconButton(
-    tooltip: 'بازگشت',
+    tooltip: binerText('بازگشت'),
     onPressed: onPressed ?? () => Navigator.maybePop(context),
     icon: Icon(
       Theme.of(context).platform == TargetPlatform.iOS
