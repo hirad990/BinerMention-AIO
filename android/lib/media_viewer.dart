@@ -40,6 +40,7 @@ class _BinerMediaViewerPage extends StatefulWidget {
 class _BinerMediaViewerPageState extends State<_BinerMediaViewerPage> {
   VideoPlayerController? _video;
   bool _ready = false;
+  bool _failed = false;
   double _speed = 1;
 
   @override
@@ -52,7 +53,7 @@ class _BinerMediaViewerPageState extends State<_BinerMediaViewerPage> {
         if (!mounted) return;
         setState(() => _ready = true);
       }).catchError((_) {
-        if (mounted) setState(() => _ready = false);
+        if (mounted) setState(() { _ready = false; _failed = true; });
       });
     }
   }
@@ -104,7 +105,13 @@ class _BinerMediaViewerPageState extends State<_BinerMediaViewerPage> {
       body: Center(
         child: widget.isVideo
             ? (controller == null || !_ready || !controller.value.isInitialized
-                ? const CircularProgressIndicator(color: Color(0xFF54C8FF))
+                ? (_failed
+                    ? const Column(mainAxisSize: MainAxisSize.min, children: [
+                        Icon(Icons.error_outline_rounded, color: Colors.white70, size: 42),
+                        SizedBox(height: 10),
+                        Text('پخش ویدیو ممکن نشد.', style: TextStyle(color: Colors.white70)),
+                      ])
+                    : const CircularProgressIndicator(color: Color(0xFF54C8FF)))
                 : AspectRatio(
                     aspectRatio: controller.value.aspectRatio > 0 ? controller.value.aspectRatio : 16 / 9,
                     child: Stack(alignment: Alignment.center, children: [
