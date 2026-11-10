@@ -190,7 +190,6 @@ class BinerBackdrop extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final dark = Theme.of(context).brightness == Brightness.dark;
-    final accent = BinerPreferences.instance.accent;
     return Stack(
       fit: StackFit.expand,
       children: [
@@ -200,7 +199,7 @@ class BinerBackdrop extends StatelessWidget {
               begin: Alignment.topLeft,
               end: Alignment.bottomRight,
               colors: dark
-                  ? const [Color(0xFF000000), Color(0xFF050509), Color(0xFF000000)]
+                  ? const [Color(0xFF000000), Color(0xFF000000), Color(0xFF000000)]
                   : const [Color(0xFFFFFFFF), Color(0xFFFFFFFF), Color(0xFFFFFFFF)],
             ),
           ),
@@ -209,36 +208,6 @@ class BinerBackdrop extends StatelessWidget {
       ],
     );
   }
-}
-
-class _AmbientGlowPainter extends CustomPainter {
-  const _AmbientGlowPainter({required this.dark, required this.accent});
-  final bool dark;
-  final Color accent;
-
-  @override
-  void paint(Canvas canvas, Size size) {
-    final blue = Paint()
-      ..shader = RadialGradient(
-        colors: [
-          accent.withValues(alpha: dark ? .15 : .13),
-          accent.withValues(alpha: 0),
-        ],
-      ).createShader(Rect.fromCircle(center: Offset(size.width * .92, size.height * .08), radius: size.width * .72));
-    canvas.drawCircle(Offset(size.width * .92, size.height * .08), size.width * .72, blue);
-
-    final violet = Paint()
-      ..shader = RadialGradient(
-        colors: [
-          binerViolet.withValues(alpha: dark ? .13 : .10),
-          binerViolet.withValues(alpha: 0),
-        ],
-      ).createShader(Rect.fromCircle(center: Offset(size.width * .04, size.height * .72), radius: size.width * .62));
-    canvas.drawCircle(Offset(size.width * .04, size.height * .72), size.width * .62, violet);
-  }
-
-  @override
-  bool shouldRepaint(covariant _AmbientGlowPainter oldDelegate) => oldDelegate.dark != dark || oldDelegate.accent != accent;
 }
 
 /// Restrained blur surface for navigation and floating chrome.
