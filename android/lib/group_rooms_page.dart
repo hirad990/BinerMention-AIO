@@ -69,7 +69,7 @@ class _GroupRoomsPageState extends State<GroupRoomsPage> {
   }
 
   @override
-  Widget build(BuildContext context) => Scaffold(backgroundColor: Theme.of(context).colorScheme.surface,
+  Widget build(BuildContext context) => Scaffold(backgroundColor: binerScaffoldBackground(context),
     appBar: AppBar(
       title: const BinerLocalizedText('اتاق‌های گفتگو'),
       actions: [
@@ -333,7 +333,7 @@ class _GroupChatPageState extends State<GroupChatPage> {
   }
 
   @override
-  Widget build(BuildContext context) => Scaffold(backgroundColor: Theme.of(context).colorScheme.surface,
+  Widget build(BuildContext context) => Scaffold(backgroundColor: binerScaffoldBackground(context),
     appBar: AppBar(
       title: Row(children: [
         Container(width: 38, height: 38, decoration: BoxDecoration(gradient: const LinearGradient(colors: [Color(0xFF54C8FF), Color(0xFF7868E8)]), borderRadius: BorderRadius.circular(13)), child: Icon(Icons.groups_rounded, color: Theme.of(context).colorScheme.onPrimary)),
