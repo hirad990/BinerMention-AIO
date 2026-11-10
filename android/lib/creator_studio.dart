@@ -374,8 +374,8 @@ class _CreatorStudioPageState extends State<CreatorStudioPage> {
   @override
   Widget build(BuildContext context) {
     final dark = Theme.of(context).brightness == Brightness.dark;
-    return Scaffold(backgroundColor: Theme.of(context).colorScheme.surface,
-      backgroundColor: Colors.transparent,
+    return Scaffold(
+      backgroundColor: Theme.of(context).colorScheme.surface,
       appBar: AppBar(title: const Text('Creator Studio'), leading: IconButton(onPressed: () => Navigator.maybePop(context), icon: const Icon(Icons.arrow_back_rounded))),
       body: !loaded ? const Center(child: CircularProgressIndicator(color: _blue)) : CustomScrollView(
         physics: const BouncingScrollPhysics(),
