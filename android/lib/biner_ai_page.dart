@@ -4,8 +4,8 @@ import 'package:flutter/material.dart';
 import 'api_client.dart';
 import 'ui_kit.dart';
 
-const _blue = Color(0xFF54C8FF);
-const _violet = Color(0xFF9B8CFF);
+const _blue = Color(0xFF1D9BF0);
+const _violet = Color(0xFF7856FF);
 
 class BinerAIPage extends StatefulWidget {
   const BinerAIPage({super.key, required this.api});
