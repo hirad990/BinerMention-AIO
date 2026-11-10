@@ -213,6 +213,8 @@ const Map<String, Map<String, String>> _binerTranslations = {
 };
 String binerText(String fa, {String? en, String? ar, String? tr}) {
   final language = BinerPreferences.instance.locale.languageCode;
+  final dynamicTranslation = _translateDynamicBinerText(fa, language);
+  if (dynamicTranslation != null) return dynamicTranslation;
   final translations = _binerTranslations[fa];
   switch (language) {
     case 'en': return en ?? translations?['en'] ?? fa;
@@ -220,4 +222,39 @@ String binerText(String fa, {String? en, String? ar, String? tr}) {
     case 'tr': return tr ?? translations?['tr'] ?? en ?? translations?['en'] ?? fa;
     default: return fa;
   }
+}
+
+String? _translateDynamicBinerText(String value, String language) {
+  final minute = RegExp(r'^(\\d+) دقیقه$').firstMatch(value);
+  if (minute != null) {
+    final n = minute.group(1)!;
+    return switch (language) { 'en' => '$n min', 'ar' => '$n دقيقة', 'tr' => '$n dk', _ => null };
+  }
+  final hour = RegExp(r'^(\\d+) ساعت$').firstMatch(value);
+  if (hour != null) {
+    final n = hour.group(1)!;
+    return switch (language) { 'en' => '$n hr', 'ar' => '$n ساعة', 'tr' => '$n sa', _ => null };
+  }
+  final chars = RegExp(r'^(\\d+) نویسه$').firstMatch(value);
+  if (chars != null) {
+    final n = chars.group(1)!;
+    return switch (language) { 'en' => '$n characters', 'ar' => '$n حرفاً', 'tr' => '$n karakter', _ => null };
+  }
+  final recent = RegExp(r'^(\\d+) پیام اخیر$').firstMatch(value);
+  if (recent != null) {
+    final n = recent.group(1)!;
+    return switch (language) { 'en' => '$n recent messages', 'ar' => '$n رسالة حديثة', 'tr' => '$n son mesaj', _ => null };
+  }
+  final members = RegExp(r'^(\\d+) عضو  ·  (.*)$').firstMatch(value);
+  if (members != null) {
+    final n = members.group(1)!;
+    final last = members.group(2)!;
+    return switch (language) {
+      'en' => '$n members · $last',
+      'ar' => '$n أعضاء · $last',
+      'tr' => '$n üye · $last',
+      _ => null,
+    };
+  }
+  return null;
 }
