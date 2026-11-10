@@ -1,5 +1,6 @@
 import 'localized_text.dart';
 import 'package:flutter/material.dart';
+import 'app_preferences.dart';
 import 'package:flutter/services.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:intl/intl.dart';
@@ -35,7 +36,7 @@ class _GroupRoomsPageState extends State<GroupRoomsPage> {
       context: context,
       builder: (ctx) => AlertDialog(
         title: const BinerLocalizedText('ساخت اتاق گفتگو'),
-        content: TextField(controller: controller, autofocus: true, maxLength: 80, decoration: const InputDecoration(labelText: 'نام گروه')),
+        content: TextField(controller: controller, autofocus: true, maxLength: 80, decoration: InputDecoration(labelText: binerText('نام گروه'))),
         actions: [
           TextButton(onPressed: () => Navigator.pop(ctx), child: const BinerLocalizedText('انصراف')),
           FilledButton(onPressed: () => Navigator.pop(ctx, controller.text.trim()), child: const BinerLocalizedText('ساخت گروه')),
@@ -72,8 +73,8 @@ class _GroupRoomsPageState extends State<GroupRoomsPage> {
     appBar: AppBar(
       title: const BinerLocalizedText('اتاق‌های گفتگو'),
       actions: [
-        IconButton(tooltip: 'ورود با لینک', onPressed: _join, icon: const Icon(Icons.link_rounded)),
-        IconButton(tooltip: 'ساخت گروه', onPressed: _create, icon: const Icon(Icons.add_circle_outline_rounded)),
+        IconButton(tooltip: binerText('ورود با لینک'), onPressed: _join, icon: const Icon(Icons.link_rounded)),
+        IconButton(tooltip: binerText('ساخت گروه'), onPressed: _create, icon: const Icon(Icons.add_circle_outline_rounded)),
       ],
     ),
     body: FutureBuilder<List<Map<String, dynamic>>>(
@@ -140,7 +141,7 @@ class _GroupRoomsPageState extends State<GroupRoomsPage> {
                     BinerLocalizedText('${group['members_count'] ?? 0} عضو  ·  ${group['last_message'] ?? 'گفت‌وگوی تازه'}', maxLines: 1, overflow: TextOverflow.ellipsis, style: TextStyle(fontSize: 11, color: Theme.of(context).colorScheme.onSurfaceVariant)),
                   ])),
                   IconButton(
-                    tooltip: 'کپی لینک گروه',
+                    tooltip: binerText('کپی لینک گروه'),
                     onPressed: invite.isEmpty ? null : () async {
                       await Clipboard.setData(ClipboardData(text: invite));
                       if (context.mounted) _message('لینک گروه کپی شد.');
@@ -344,7 +345,7 @@ class _GroupChatPageState extends State<GroupChatPage> {
       ]),
       actions: [
         IconButton(tooltip: 'BinerAI', onPressed: () => Navigator.of(context).push(MaterialPageRoute<void>(builder: (_) => BinerAIPage(api: widget.api))), icon: const Icon(Icons.auto_awesome_rounded, color: Color(0xFF9B8CFF))),
-        IconButton(tooltip: 'به‌روزرسانی', onPressed: () => _load(showLoading: true), icon: const Icon(Icons.refresh_rounded)),
+        IconButton(tooltip: binerText('به‌روزرسانی'), onPressed: () => _load(showLoading: true), icon: const Icon(Icons.refresh_rounded)),
       ],
     ),
     body: Column(children: [
@@ -391,7 +392,7 @@ class _GroupChatPageState extends State<GroupChatPage> {
             radius: 24,
             child: Row(crossAxisAlignment: CrossAxisAlignment.end, children: [
               IconButton(
-                tooltip: 'ارسال عکس یا ویدیو',
+                tooltip: binerText('ارسال عکس یا ویدیو'),
                 onPressed: _sending ? null : () async {
                   final file = await BinerMediaEditor.pickMedia();
                   if (file != null && mounted) await _send(attachment: file);
@@ -402,7 +403,7 @@ class _GroupChatPageState extends State<GroupChatPage> {
                 controller: _controller,
                 minLines: 1, maxLines: 5,
                 onSubmitted: (_) => _send(),
-                decoration: const InputDecoration(hintText: 'پیام گروه…', filled: false, border: InputBorder.none, contentPadding: EdgeInsets.symmetric(horizontal: 8, vertical: 12)),
+                decoration: InputDecoration(hintText: binerText('پیام گروه…'), filled: false, border: InputBorder.none, contentPadding: EdgeInsets.symmetric(horizontal: 8, vertical: 12)),
               )),
               const SizedBox(width: 5),
               IconButton.filled(
