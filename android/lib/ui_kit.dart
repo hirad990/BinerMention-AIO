@@ -5,6 +5,7 @@ import 'package:flutter/foundation.dart';
 
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:shimmer/shimmer.dart';
 import 'app_preferences.dart';
@@ -356,6 +357,7 @@ class BinerSurfaceCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final dark = Theme.of(context).brightness == Brightness.dark;
+    final ios = defaultTargetPlatform == TargetPlatform.iOS;
     final content = Container(
       padding: padding,
       decoration: BoxDecoration(
@@ -376,15 +378,27 @@ class BinerSurfaceCard extends StatelessWidget {
       padding: margin,
       child: onTap == null
           ? RepaintBoundary(child: content)
-          : Material(
-              color: Colors.transparent,
-              borderRadius: BorderRadius.circular(radius),
-              child: InkWell(
-                borderRadius: BorderRadius.circular(radius),
-                onTap: onTap,
-                child: RepaintBoundary(child: content),
-              ),
-            ),
+          : ios
+              ? Semantics(
+                  button: true,
+                  child: GestureDetector(
+                    behavior: HitTestBehavior.opaque,
+                    onTap: () {
+                      HapticFeedback.selectionClick();
+                      onTap?.call();
+                    },
+                    child: RepaintBoundary(child: content),
+                  ),
+                )
+              : Material(
+                  color: Colors.transparent,
+                  borderRadius: BorderRadius.circular(radius),
+                  child: InkWell(
+                    borderRadius: BorderRadius.circular(radius),
+                    onTap: onTap,
+                    child: RepaintBoundary(child: content),
+                  ),
+                ),
     );
   }
 }
