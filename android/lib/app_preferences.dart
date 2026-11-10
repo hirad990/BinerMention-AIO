@@ -358,7 +358,7 @@ String? _translateDynamicUiText(String value, String language) {
     RegExp(r'^([0-9]+) ساعت و ([0-9]+) دقیقه'): ['%1 hr %2 min', '%1 ساعة و%2 دقيقة', '%1 sa %2 dk'],
     RegExp(r'^([0-9]+) ساعت'): ['%1 hr', '%1 ساعة', '%1 sa'],
     RegExp(r'^([0-9]+) نویسه'): ['%1 characters', '%1 حرفاً', '%1 karakter'],
-    RegExp(r'^پاسخ سرور معتبر نیست \\(HTTP ([0-9]+)\\)\\.'): ['Invalid server response (HTTP %1).', 'استجابة الخادم غير صالحة (HTTP %1).', 'Sunucu yanıtı geçersiz (HTTP %1).'],
+    RegExp(r'^پاسخ سرور معتبر نیست .HTTP ([0-9]+)..'): ['Invalid server response (HTTP %1).', 'استجابة الخادم غير صالحة (HTTP %1).', 'Sunucu yanıtı geçersiz (HTTP %1).'],
     RegExp(r'^([0-9]+) بخش آماده شد'): ['%1 sections ready', 'تم تجهيز %1 أجزاء', '%1 bölüm hazır'],
     RegExp(r'^بخش ([0-9]+) · ([0-9]+)/280'): ['Part %1 · %2/280', 'الجزء %1 · %2/280', 'Bölüm %1 · %2/280'],
     RegExp(r'^([0-9]+) پیام اخیر'): ['%1 recent messages', '%1 رسالة حديثة', '%1 son mesaj'],
