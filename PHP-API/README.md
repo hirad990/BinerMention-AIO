@@ -88,7 +88,7 @@ Use a lightweight chat model supported by your provider. The endpoint and model 
 
 ### BinerAI scope and verification
 
-This first BinerAI API iteration retrieves and summarizes records already available inside BinerMention. It does **not** browse the public web or independently verify a real-world political identity. A platform BlueTick is only the platform's own verification state; it must never be presented as proof of a person's real-world identity or public office. A future external research/LLM provider must be configured server-side with a secret key, source citations, rate limits and clear provenance before BinerAI can make web-wide claims.
+BinerAI now retrieves context from records available inside BinerMention and uses the configured external LLM to synthesize an answer. It does **not** browse the public web or independently verify a real-world political identity. A platform BlueTick is only the platform's own verification state; it must never be presented as proof of a person's real-world identity or public office. Public profile/post context and the signed-in user's joined-group metadata may be sent to the configured provider for inference; private group messages and private conversations are excluded. The API enforces a per-user AI request limit and returns source metadata for transparency.
 
 ## Register example
 
