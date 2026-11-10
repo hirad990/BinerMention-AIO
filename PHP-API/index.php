@@ -193,7 +193,7 @@ try {
  }
  if($path==='/v1/ai/status'&&$method==='GET'){
   auth($db);
-  $ready=trim((string)($config['ai_api_url']??''))!==''&&trim((string)($config['ai_api_key']??''))!==''&&trim((string)($config['ai_model']??''))!=='';
+  $ready=trim((string)($config['ai_api_url']??''))!==''&&trim((string)($config['ai_api_key']??''))!==''&&trim((string)($config['ai_model']??''))!==''&&function_exists('curl_init');
   out(['ok'=>true,'configured'=>$ready,'provider'=>'openai_compatible','model'=>$ready?(string)$config['ai_model']:null,'capabilities'=>['public_posts','public_profiles','joined_group_metadata'],'private_group_messages'=>false]);
  }
  if($path==='/v1/ai/ask'&&$method==='POST'){
