@@ -15,6 +15,7 @@ const binerViolet = Color(0xFF9B8CFF);
 /// Shared Material 3 theme with a Persian-friendly typeface and adaptive surfaces.
 ThemeData buildBinerTheme(Brightness brightness, {Color seedColor = binerBlue}) {
   final dark = brightness == Brightness.dark;
+  final ios = defaultTargetPlatform == TargetPlatform.iOS;
   final base = dark ? ThemeData.dark(useMaterial3: true) : ThemeData.light(useMaterial3: true);
   final textColor = dark ? const Color(0xFFF4F7FF) : const Color(0xFF142033);
   final pageSurface = dark ? const Color(0xFF0B111B) : const Color(0xFFF5F8FC);
@@ -65,9 +66,9 @@ ThemeData buildBinerTheme(Brightness brightness, {Color seedColor = binerBlue}) 
       surfaceTintColor: Colors.transparent,
       elevation: 0,
       scrolledUnderElevation: 0,
-      centerTitle: false,
-      toolbarHeight: 62,
-      titleTextStyle: TextStyle(color: textColor, fontSize: 19, fontWeight: FontWeight.w800, letterSpacing: -.2),
+      centerTitle: ios,
+      toolbarHeight: ios ? 52 : 62,
+      titleTextStyle: TextStyle(color: textColor, fontSize: ios ? 17 : 19, fontWeight: FontWeight.w800, letterSpacing: ios ? -.35 : -.2),
       iconTheme: IconThemeData(color: textColor),
     ),
     dividerTheme: DividerThemeData(color: (dark ? Colors.white : const Color(0xFF253B56)).withValues(alpha: .10), thickness: 1, space: 1),
@@ -138,8 +139,8 @@ ThemeData buildBinerTheme(Brightness brightness, {Color seedColor = binerBlue}) 
       style: FilledButton.styleFrom(
         minimumSize: const Size(0, 48),
         padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 12),
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-        textStyle: const TextStyle(fontWeight: FontWeight.w800),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(ios ? 22 : 16)),
+        textStyle: TextStyle(fontWeight: ios ? FontWeight.w700 : FontWeight.w800),
       ),
     ),
     textButtonTheme: TextButtonThemeData(
