@@ -329,161 +329,55 @@ String binerText(String fa, {String? en, String? ar, String? tr}) {
 }
 
 String? _translateDynamicBinerText(String value, String language) {
-  final httpError = RegExp(r'^پاسخ سرور معتبر نیست \(HTTP (\d+)\)\.
-  if (minute != null) {
-    final n = minute.group(1)!;
-    return switch (language) { 'en' => '$n min', 'ar' => '$n دقيقة', 'tr' => '$n dk', _ => null };
-  }
-  final hour = RegExp(r'^(\d+) ساعت$').firstMatch(value);
-  if (hour != null) {
-    final n = hour.group(1)!;
-    return switch (language) { 'en' => '$n hr', 'ar' => '$n ساعة', 'tr' => '$n sa', _ => null };
-  }
-  final chars = RegExp(r'^(\d+) نویسه$').firstMatch(value);
-  if (chars != null) {
-    final n = chars.group(1)!;
-    return switch (language) { 'en' => '$n characters', 'ar' => '$n حرفاً', 'tr' => '$n karakter', _ => null };
-  }
-  final recent = RegExp(r'^(\d+) پیام اخیر$').firstMatch(value);
-  if (recent != null) {
-    final n = recent.group(1)!;
-    return switch (language) { 'en' => '$n recent messages', 'ar' => '$n رسالة حديثة', 'tr' => '$n son mesaj', _ => null };
-  }
-  final reading = RegExp(r'^(\d+) واژه · حدود (\d+) دقیقه مطالعه$').firstMatch(value);
-  if (reading != null) {
-    final words = reading.group(1)!;
-    final minutes = reading.group(2)!;
-    return switch (language) {
-      'en' => '$words words · about $minutes min read',
-      'ar' => '$words كلمة · نحو $minutes دقيقة قراءة',
-      'tr' => '$words kelime · yaklaşık $minutes dk okuma',
-      _ => null,
-    };
-  }
-  final sections = RegExp(r'^(\d+) بخش آماده شد$').firstMatch(value);
-  if (sections != null) {
-    final n = sections.group(1)!;
-    return switch (language) { 'en' => '$n sections ready', 'ar' => 'تم تجهيز $n أقسام', 'tr' => '$n bölüm hazır', _ => null };
-  }
-  final section = RegExp(r'^بخش (\d+) · (\d+)/280$').firstMatch(value);
-  if (section != null) {
-    final n = section.group(1)!;
-    final chars = section.group(2)!;
-    return switch (language) { 'en' => 'Part $n · $chars/280', 'ar' => 'الجزء $n · $chars/280', 'tr' => 'Bölüm $n · $chars/280', _ => null };
-  }
-  final hoursMinutes = RegExp(r'^(\d+) ساعت و (\d+) دقیقه
-  if (members != null) {
-    final n = members.group(1)!;
-    final last = members.group(2)!;
-    return switch (language) {
-      'en' => '$n members · $last',
-      'ar' => '$n أعضاء · $last',
-      'tr' => '$n üye · $last',
-      _ => null,
-    };
-  }
-  return null;
-}
-).firstMatch(value);
-  if (hoursMinutes != null) {
-    final hours = hoursMinutes.group(1)!;
-    final minutes = hoursMinutes.group(2)!;
-    return switch (language) {
-      'en' => '$hours hr $minutes min',
-      'ar' => '$hours ساعة و $minutes دقيقة',
-      'tr' => '$hours sa $minutes dk',
-      _ => null,
-    };
-  }
-  final reply = RegExp(r'^پاسخ به پست #(\d+)
-  if (members != null) {
-    final n = members.group(1)!;
-    final last = members.group(2)!;
-    return switch (language) {
-      'en' => '$n members · $last',
-      'ar' => '$n أعضاء · $last',
-      'tr' => '$n üye · $last',
-      _ => null,
-    };
-  }
-  return null;
-}
-).firstMatch(value);
-  if (reply != null) {
-    final id = reply.group(1)!;
-    return switch (language) { 'en' => 'Reply to post #$id', 'ar' => 'الرد على المنشور #$id', 'tr' => '#$id gönderisine yanıt', _ => null };
-  }
-  final postReply = RegExp(r'^پاسخ به پست #(\d+)$').firstMatch(value);
-  if (postReply != null) {
-    final id = postReply.group(1)!;
-    return switch (language) { 'en' => 'Reply to post #$id', 'ar' => 'الرد على المنشور #$id', 'tr' => '#$id gönderisine yanıt', _ => null };
-  }
-  final postCount = RegExp(r'^پست (\d+)$').firstMatch(value);
-  if (postCount != null) {
-    final n = postCount.group(1)!;
-    return switch (language) { 'en' => 'Post by $n', 'ar' => 'منشور بواسطة $n', 'tr' => '$n tarafından gönderi', _ => null };
-  }
-  final profilePosts = RegExp(r'^پست (.+)$').firstMatch(value);
-  if (profilePosts != null) {
-    final n = profilePosts.group(1)!;
-    return switch (language) { 'en' => '$n posts', 'ar' => '$n منشورات', 'tr' => '$n gönderi', _ => null };
-  }
-  final processing = RegExp(r'^پردازش متن انجام نشد: (.*)$').firstMatch(value);
-  if (processing != null) {
-    final error = processing.group(1)!;
-    return switch (language) { 'en' => 'Text processing failed: $error', 'ar' => 'تعذرت معالجة النص: $error', 'tr' => 'Metin işlenemedi: $error', _ => null };
-  }
-  final members = RegExp(r'^(\d+) عضو  ·  (.*)
-  if (members != null) {
-    final n = members.group(1)!;
-    final last = members.group(2)!;
-    return switch (language) {
-      'en' => '$n members · $last',
-      'ar' => '$n أعضاء · $last',
-      'tr' => '$n üye · $last',
-      _ => null,
-    };
-  }
-  return null;
-}
-).firstMatch(value);
-  if (members != null) {
-    final n = members.group(1)!;
-    final last = members.group(2)!;
-    return switch (language) {
-      'en' => '$n members · $last',
-      'ar' => '$n أعضاء · $last',
-      'tr' => '$n üye · $last',
-      _ => null,
-    };
-  }
-  return null;
-}
-).firstMatch(value);
+  if (language == 'fa') return null;
+
+  final httpError = RegExp(r'^پاسخ سرور معتبر نیست \(HTTP (\d+)\)\.$').firstMatch(value);
   if (httpError != null) {
     final status = httpError.group(1)!;
-    return switch (language) { 'en' => 'Invalid server response (HTTP $status).', 'ar' => 'استجابة الخادم غير صالحة (HTTP $status).', 'tr' => 'Sunucu yanıtı geçersiz (HTTP $status).', _ => null };
+    return switch (language) {
+      'en' => 'Invalid server response (HTTP $status).',
+      'ar' => 'استجابة الخادم غير صالحة (HTTP $status).',
+      'tr' => 'Sunucu yanıtı geçersiz (HTTP $status).',
+      _ => null,
+    };
   }
-  final minute = RegExp(r'^(\d+) دقیقه
+
+  final minute = RegExp(r'^(\d+) دقیقه$').firstMatch(value);
   if (minute != null) {
     final n = minute.group(1)!;
     return switch (language) { 'en' => '$n min', 'ar' => '$n دقيقة', 'tr' => '$n dk', _ => null };
   }
+
   final hour = RegExp(r'^(\d+) ساعت$').firstMatch(value);
   if (hour != null) {
     final n = hour.group(1)!;
     return switch (language) { 'en' => '$n hr', 'ar' => '$n ساعة', 'tr' => '$n sa', _ => null };
   }
+
+  final hoursMinutes = RegExp(r'^(\d+) ساعت و (\d+) دقیقه$').firstMatch(value);
+  if (hoursMinutes != null) {
+    final hours = hoursMinutes.group(1)!;
+    final minutes = hoursMinutes.group(2)!;
+    return switch (language) {
+      'en' => '$hours hr $minutes min',
+      'ar' => '$hours ساعة و $minutes دقيقة',
+      'tr' => '$hours sa $minutes dk',
+      _ => null,
+    };
+  }
+
   final chars = RegExp(r'^(\d+) نویسه$').firstMatch(value);
   if (chars != null) {
     final n = chars.group(1)!;
     return switch (language) { 'en' => '$n characters', 'ar' => '$n حرفاً', 'tr' => '$n karakter', _ => null };
   }
+
   final recent = RegExp(r'^(\d+) پیام اخیر$').firstMatch(value);
   if (recent != null) {
     final n = recent.group(1)!;
     return switch (language) { 'en' => '$n recent messages', 'ar' => '$n رسالة حديثة', 'tr' => '$n son mesaj', _ => null };
   }
+
   final reading = RegExp(r'^(\d+) واژه · حدود (\d+) دقیقه مطالعه$').firstMatch(value);
   if (reading != null) {
     final words = reading.group(1)!;
@@ -495,18 +389,21 @@ String? _translateDynamicBinerText(String value, String language) {
       _ => null,
     };
   }
+
   final sections = RegExp(r'^(\d+) بخش آماده شد$').firstMatch(value);
   if (sections != null) {
     final n = sections.group(1)!;
     return switch (language) { 'en' => '$n sections ready', 'ar' => 'تم تجهيز $n أقسام', 'tr' => '$n bölüm hazır', _ => null };
   }
+
   final section = RegExp(r'^بخش (\d+) · (\d+)/280$').firstMatch(value);
   if (section != null) {
     final n = section.group(1)!;
     final chars = section.group(2)!;
     return switch (language) { 'en' => 'Part $n · $chars/280', 'ar' => 'الجزء $n · $chars/280', 'tr' => 'Bölüm $n · $chars/280', _ => null };
   }
-  final hoursMinutes = RegExp(r'^(\d+) ساعت و (\d+) دقیقه
+
+  final members = RegExp(r'^(\d+) عضو  ·  (.*)$').firstMatch(value);
   if (members != null) {
     final n = members.group(1)!;
     final last = members.group(2)!;
@@ -517,210 +414,30 @@ String? _translateDynamicBinerText(String value, String language) {
       _ => null,
     };
   }
-  return null;
-}
-).firstMatch(value);
-  if (hoursMinutes != null) {
-    final hours = hoursMinutes.group(1)!;
-    final minutes = hoursMinutes.group(2)!;
-    return switch (language) {
-      'en' => '$hours hr $minutes min',
-      'ar' => '$hours ساعة و $minutes دقيقة',
-      'tr' => '$hours sa $minutes dk',
-      _ => null,
-    };
-  }
-  final reply = RegExp(r'^پاسخ به پست #(\d+)
-  if (members != null) {
-    final n = members.group(1)!;
-    final last = members.group(2)!;
-    return switch (language) {
-      'en' => '$n members · $last',
-      'ar' => '$n أعضاء · $last',
-      'tr' => '$n üye · $last',
-      _ => null,
-    };
-  }
-  return null;
-}
-).firstMatch(value);
+
+  final reply = RegExp(r'^پاسخ به پست #(\d+)$').firstMatch(value);
   if (reply != null) {
     final id = reply.group(1)!;
     return switch (language) { 'en' => 'Reply to post #$id', 'ar' => 'الرد على المنشور #$id', 'tr' => '#$id gönderisine yanıt', _ => null };
   }
-  final postReply = RegExp(r'^پاسخ به پست #(\d+)$').firstMatch(value);
-  if (postReply != null) {
-    final id = postReply.group(1)!;
-    return switch (language) { 'en' => 'Reply to post #$id', 'ar' => 'الرد على المنشور #$id', 'tr' => '#$id gönderisine yanıt', _ => null };
-  }
+
   final postCount = RegExp(r'^پست (\d+)$').firstMatch(value);
   if (postCount != null) {
     final n = postCount.group(1)!;
     return switch (language) { 'en' => '$n posts', 'ar' => '$n منشورات', 'tr' => '$n gönderi', _ => null };
   }
+
   final profilePosts = RegExp(r'^پست (.+)$').firstMatch(value);
   if (profilePosts != null) {
-    final n = profilePosts.group(1)!;
-    return switch (language) { 'en' => '$n posts', 'ar' => '$n منشورات', 'tr' => '$n gönderi', _ => null };
+    final name = profilePosts.group(1)!;
+    return switch (language) { 'en' => 'Post by $name', 'ar' => 'منشور بواسطة $name', 'tr' => '$name tarafından gönderi', _ => null };
   }
+
   final processing = RegExp(r'^پردازش متن انجام نشد: (.*)$').firstMatch(value);
   if (processing != null) {
     final error = processing.group(1)!;
     return switch (language) { 'en' => 'Text processing failed: $error', 'ar' => 'تعذرت معالجة النص: $error', 'tr' => 'Metin işlenemedi: $error', _ => null };
   }
-  final members = RegExp(r'^(\d+) عضو  ·  (.*)
-  if (members != null) {
-    final n = members.group(1)!;
-    final last = members.group(2)!;
-    return switch (language) {
-      'en' => '$n members · $last',
-      'ar' => '$n أعضاء · $last',
-      'tr' => '$n üye · $last',
-      _ => null,
-    };
-  }
-  return null;
-}
-).firstMatch(value);
-  if (members != null) {
-    final n = members.group(1)!;
-    final last = members.group(2)!;
-    return switch (language) {
-      'en' => '$n members · $last',
-      'ar' => '$n أعضاء · $last',
-      'tr' => '$n üye · $last',
-      _ => null,
-    };
-  }
-  return null;
-}
-).firstMatch(value);
-  if (minute != null) {
-    final n = minute.group(1)!;
-    return switch (language) { 'en' => '$n min', 'ar' => '$n دقيقة', 'tr' => '$n dk', _ => null };
-  }
-  final hour = RegExp(r'^(\d+) ساعت$').firstMatch(value);
-  if (hour != null) {
-    final n = hour.group(1)!;
-    return switch (language) { 'en' => '$n hr', 'ar' => '$n ساعة', 'tr' => '$n sa', _ => null };
-  }
-  final chars = RegExp(r'^(\d+) نویسه$').firstMatch(value);
-  if (chars != null) {
-    final n = chars.group(1)!;
-    return switch (language) { 'en' => '$n characters', 'ar' => '$n حرفاً', 'tr' => '$n karakter', _ => null };
-  }
-  final recent = RegExp(r'^(\d+) پیام اخیر$').firstMatch(value);
-  if (recent != null) {
-    final n = recent.group(1)!;
-    return switch (language) { 'en' => '$n recent messages', 'ar' => '$n رسالة حديثة', 'tr' => '$n son mesaj', _ => null };
-  }
-  final reading = RegExp(r'^(\d+) واژه · حدود (\d+) دقیقه مطالعه$').firstMatch(value);
-  if (reading != null) {
-    final words = reading.group(1)!;
-    final minutes = reading.group(2)!;
-    return switch (language) {
-      'en' => '$words words · about $minutes min read',
-      'ar' => '$words كلمة · نحو $minutes دقيقة قراءة',
-      'tr' => '$words kelime · yaklaşık $minutes dk okuma',
-      _ => null,
-    };
-  }
-  final sections = RegExp(r'^(\d+) بخش آماده شد$').firstMatch(value);
-  if (sections != null) {
-    final n = sections.group(1)!;
-    return switch (language) { 'en' => '$n sections ready', 'ar' => 'تم تجهيز $n أقسام', 'tr' => '$n bölüm hazır', _ => null };
-  }
-  final section = RegExp(r'^بخش (\d+) · (\d+)/280$').firstMatch(value);
-  if (section != null) {
-    final n = section.group(1)!;
-    final chars = section.group(2)!;
-    return switch (language) { 'en' => 'Part $n · $chars/280', 'ar' => 'الجزء $n · $chars/280', 'tr' => 'Bölüm $n · $chars/280', _ => null };
-  }
-  final hoursMinutes = RegExp(r'^(\d+) ساعت و (\d+) دقیقه
-  if (members != null) {
-    final n = members.group(1)!;
-    final last = members.group(2)!;
-    return switch (language) {
-      'en' => '$n members · $last',
-      'ar' => '$n أعضاء · $last',
-      'tr' => '$n üye · $last',
-      _ => null,
-    };
-  }
-  return null;
-}
-).firstMatch(value);
-  if (hoursMinutes != null) {
-    final hours = hoursMinutes.group(1)!;
-    final minutes = hoursMinutes.group(2)!;
-    return switch (language) {
-      'en' => '$hours hr $minutes min',
-      'ar' => '$hours ساعة و $minutes دقيقة',
-      'tr' => '$hours sa $minutes dk',
-      _ => null,
-    };
-  }
-  final reply = RegExp(r'^پاسخ به پست #(\d+)
-  if (members != null) {
-    final n = members.group(1)!;
-    final last = members.group(2)!;
-    return switch (language) {
-      'en' => '$n members · $last',
-      'ar' => '$n أعضاء · $last',
-      'tr' => '$n üye · $last',
-      _ => null,
-    };
-  }
-  return null;
-}
-).firstMatch(value);
-  if (reply != null) {
-    final id = reply.group(1)!;
-    return switch (language) { 'en' => 'Reply to post #$id', 'ar' => 'الرد على المنشور #$id', 'tr' => '#$id gönderisine yanıt', _ => null };
-  }
-  final postReply = RegExp(r'^پاسخ به پست #(\d+)$').firstMatch(value);
-  if (postReply != null) {
-    final id = postReply.group(1)!;
-    return switch (language) { 'en' => 'Reply to post #$id', 'ar' => 'الرد على المنشور #$id', 'tr' => '#$id gönderisine yanıt', _ => null };
-  }
-  final postCount = RegExp(r'^پست (\d+)$').firstMatch(value);
-  if (postCount != null) {
-    final n = postCount.group(1)!;
-    return switch (language) { 'en' => '$n posts', 'ar' => '$n منشورات', 'tr' => '$n gönderi', _ => null };
-  }
-  final profilePosts = RegExp(r'^پست (.+)$').firstMatch(value);
-  if (profilePosts != null) {
-    final n = profilePosts.group(1)!;
-    return switch (language) { 'en' => '$n posts', 'ar' => '$n منشورات', 'tr' => '$n gönderi', _ => null };
-  }
-  final processing = RegExp(r'^پردازش متن انجام نشد: (.*)$').firstMatch(value);
-  if (processing != null) {
-    final error = processing.group(1)!;
-    return switch (language) { 'en' => 'Text processing failed: $error', 'ar' => 'تعذرت معالجة النص: $error', 'tr' => 'Metin işlenemedi: $error', _ => null };
-  }
-  final members = RegExp(r'^(\d+) عضو  ·  (.*)
-  if (members != null) {
-    final n = members.group(1)!;
-    final last = members.group(2)!;
-    return switch (language) {
-      'en' => '$n members · $last',
-      'ar' => '$n أعضاء · $last',
-      'tr' => '$n üye · $last',
-      _ => null,
-    };
-  }
-  return null;
-}
-).firstMatch(value);
-  if (members != null) {
-    final n = members.group(1)!;
-    final last = members.group(2)!;
-    return switch (language) {
-      'en' => '$n members · $last',
-      'ar' => '$n أعضاء · $last',
-      'tr' => '$n üye · $last',
-      _ => null,
-    };
-  }
+
   return null;
 }
