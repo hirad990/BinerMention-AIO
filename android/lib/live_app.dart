@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'package:flutter/foundation.dart';
 import 'dart:math' as math;
 import 'dart:typed_data';
 import 'dart:ui';
@@ -1698,7 +1699,7 @@ class _LiveHomeState extends State<LiveHome> with WidgetsBindingObserver {
       });
       return LayoutBuilder(
         builder: (context, constraints) {
-          final desktop = constraints.maxWidth >= 900;
+          final desktop = defaultTargetPlatform == TargetPlatform.windows || defaultTargetPlatform == TargetPlatform.macOS || defaultTargetPlatform == TargetPlatform.linux;
           final destinations = List.generate(5, (i) => NavigationDestination(
             icon: icons[i], selectedIcon: selectedIcons[i], label: labels[i],
           ));
