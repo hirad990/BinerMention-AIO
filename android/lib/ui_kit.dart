@@ -46,7 +46,9 @@ ThemeData buildBinerTheme(Brightness brightness, {Color seedColor = binerBlue}) 
       surfaceContainerHigh: subtleSurface,
       outline: outline,
       outlineVariant: outline.withValues(alpha: .7),
-      secondary: binerViolet,
+      primary: seedColor,
+      secondary: seedColor,
+      tertiary: seedColor,
     ),
     textTheme: selectedTextTheme.apply(
       bodyColor: textColor,
