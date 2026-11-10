@@ -1,3 +1,4 @@
+import 'localized_text.dart';
 import 'package:flutter/material.dart';
 import 'api_client.dart';
 import 'ui_kit.dart';
@@ -81,7 +82,7 @@ class _UserProfilePageState extends State<UserProfilePage> {
           user!['is_following'] = before;
           user!['followers_count'] = countOf('followers_count') + (before ? 1 : -1);
         });
-        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(e.message)));
+        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: BinerLocalizedText(e.message)));
       }
     } finally {
       if (mounted) setState(() => followingBusy = false);
@@ -115,9 +116,9 @@ class _UserProfilePageState extends State<UserProfilePage> {
         child: Padding(
           padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 6),
           child: Column(children: [
-            Text(countOf(key).toString(), style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w900)),
+            BinerLocalizedText(countOf(key).toString(), style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w900)),
             const SizedBox(height: 3),
-            Text(label, style: TextStyle(color: muted, fontSize: 12)),
+            BinerLocalizedText(label, style: TextStyle(color: muted, fontSize: 12)),
           ]),
         ),
       ),
@@ -145,7 +146,7 @@ class _UserProfilePageState extends State<UserProfilePage> {
             child: Row(children: [
               Icon(followers ? Icons.people_alt_rounded : Icons.person_add_alt_1_rounded, color: binerBlue),
               const SizedBox(width: 10),
-              Text(followers ? binerText('دنبال‌کنندگان',en:'Followers',ar:'المتابعون',tr:'Takipçiler') : binerText('دنبال‌شوندگان',en:'Following',ar:'المتابَعون',tr:'Takip edilenler'), style: const TextStyle(fontSize: 20, fontWeight: FontWeight.w800)),
+              BinerLocalizedText(followers ? binerText('دنبال‌کنندگان',en:'Followers',ar:'المتابعون',tr:'Takipçiler') : binerText('دنبال‌شوندگان',en:'Following',ar:'المتابَعون',tr:'Takip edilenler'), style: const TextStyle(fontSize: 20, fontWeight: FontWeight.w800)),
             ]),
           ),
           Expanded(
@@ -153,9 +154,9 @@ class _UserProfilePageState extends State<UserProfilePage> {
               future: widget.api.userConnections(id, followers: followers),
               builder: (context, snapshot) {
                 if (snapshot.connectionState == ConnectionState.waiting) return const Center(child: CircularProgressIndicator());
-                if (snapshot.hasError) return Center(child: Text(snapshot.error.toString(), textAlign: TextAlign.center));
+                if (snapshot.hasError) return Center(child: BinerLocalizedText(snapshot.error.toString(), textAlign: TextAlign.center));
                 final users = snapshot.data ?? const <Map<String, dynamic>>[];
-                if (users.isEmpty) return Center(child: Text(binerText('هنوز کسی اینجا نیست.',en:'Nothing here yet.',ar:'لا يوجد شيء هنا بعد.',tr:'Henüz burada kimse yok.')));
+                if (users.isEmpty) return Center(child: BinerLocalizedText(binerText('هنوز کسی اینجا نیست.',en:'Nothing here yet.',ar:'لا يوجد شيء هنا بعد.',tr:'Henüz burada kimse yok.')));
                 return ListView.separated(
                   itemCount: users.length,
                   separatorBuilder: (_, __) => Divider(height: 1, color: binerBlue.withValues(alpha: .12)),
@@ -170,8 +171,8 @@ class _UserProfilePageState extends State<UserProfilePage> {
                         backgroundImage: url.startsWith('https://') ? NetworkImage(url) : null,
                         child: url.startsWith('https://') ? null : const Icon(Icons.person_outline),
                       ),
-                      title: Text(name),
-                      subtitle: Text("@${person['username'] ?? ''}", style: TextStyle(color: muted)),
+                      title: BinerLocalizedText(name),
+                      subtitle: BinerLocalizedText("@${person['username'] ?? ''}", style: TextStyle(color: muted)),
                       onTap: () {
                         final username = person['username']?.toString() ?? '';
                         if (username.isNotEmpty) {
@@ -210,16 +211,16 @@ class _UserProfilePageState extends State<UserProfilePage> {
             const Icon(Icons.bolt_rounded, color: binerBlue, size: 18),
             const SizedBox(width: 7),
             Expanded(
-              child: Text(display, maxLines: 1, overflow: TextOverflow.ellipsis,
+              child: BinerLocalizedText(display, maxLines: 1, overflow: TextOverflow.ellipsis,
                   style: const TextStyle(fontWeight: FontWeight.w800)),
             ),
-            Text(post['created_at']?.toString() ?? '',
+            BinerLocalizedText(post['created_at']?.toString() ?? '',
                 style: TextStyle(color: muted, fontSize: 10)),
           ]),
           if (body.isNotEmpty)
             Padding(
               padding: const EdgeInsets.only(top: 10),
-              child: Text(body, style: const TextStyle(fontSize: 14, height: 1.55)),
+              child: BinerLocalizedText(body, style: const TextStyle(fontSize: 14, height: 1.55)),
             ),
           if (mediaUrl.startsWith('https://'))
             Padding(
@@ -253,12 +254,12 @@ class _UserProfilePageState extends State<UserProfilePage> {
           Row(children: [
             Icon(Icons.favorite_border_rounded, size: 17, color: muted),
             const SizedBox(width: 5),
-            Text(post['likes_count']?.toString() ?? '0',
+            BinerLocalizedText(post['likes_count']?.toString() ?? '0',
                 style: TextStyle(color: muted, fontSize: 12)),
             const SizedBox(width: 18),
             Icon(Icons.repeat_rounded, size: 17, color: muted),
             const SizedBox(width: 5),
-            Text(post['reposts_count']?.toString() ?? '0',
+            BinerLocalizedText(post['reposts_count']?.toString() ?? '0',
                 style: TextStyle(color: muted, fontSize: 12)),
           ]),
         ],
@@ -280,9 +281,9 @@ class _UserProfilePageState extends State<UserProfilePage> {
             ? const Center(child: BinerSkeleton(lines: 3))
             : error != null && user == null
                 ? Center(child: Padding(padding: const EdgeInsets.all(24), child: Column(mainAxisSize: MainAxisSize.min, children: [
-                    Text(error!, textAlign: TextAlign.center),
+                    BinerLocalizedText(error!, textAlign: TextAlign.center),
                     const SizedBox(height: 12),
-                    FilledButton.icon(onPressed: load, icon: const Icon(Icons.refresh_rounded), label: Text(binerText('تلاش دوباره',en:'Try again',ar:'حاول مرة أخرى',tr:'Tekrar dene'))),
+                    FilledButton.icon(onPressed: load, icon: const Icon(Icons.refresh_rounded), label: BinerLocalizedText(binerText('تلاش دوباره',en:'Try again',ar:'حاول مرة أخرى',tr:'Tekrar dene'))),
                   ])))
                 : RefreshIndicator(
                     onRefresh: load,
@@ -307,9 +308,9 @@ class _UserProfilePageState extends State<UserProfilePage> {
                               avatar(radius: 43),
                               const SizedBox(width: 14),
                               Expanded(child: Padding(padding: const EdgeInsets.only(bottom: 6), child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-                                Text(displayName, maxLines: 2, overflow: TextOverflow.ellipsis, style: const TextStyle(fontSize: 22, fontWeight: FontWeight.w900)),
+                                BinerLocalizedText(displayName, maxLines: 2, overflow: TextOverflow.ellipsis, style: const TextStyle(fontSize: 22, fontWeight: FontWeight.w900)),
                                 Row(children: [
-                                  Flexible(child: Text("@${textOf('username')}", style: TextStyle(color: muted))),
+                                  Flexible(child: BinerLocalizedText("@${textOf('username')}", style: TextStyle(color: muted))),
                                   if (user?['BlueTick'] == true || user?['BlueTick'] == 1) const Padding(padding: EdgeInsets.only(left: 4), child: Icon(Icons.verified_rounded, color: Color(0xFF1D9BF0), size: 17)),
                                 ]),
                               ]))),
@@ -321,11 +322,11 @@ class _UserProfilePageState extends State<UserProfilePage> {
                         child: Padding(
                           padding: const EdgeInsets.fromLTRB(18, 12, 18, 4),
                           child: Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
-                            if (textOf('bio').isNotEmpty) Text(textOf('bio'), style: const TextStyle(fontSize: 14, height: 1.5)),
+                            if (textOf('bio').isNotEmpty) BinerLocalizedText(textOf('bio'), style: const TextStyle(fontSize: 14, height: 1.5)),
                             if (textOf('website').isNotEmpty) Padding(padding: const EdgeInsets.only(top: 8), child: Row(children: [
                               const Icon(Icons.link_rounded, size: 17, color: binerBlue),
                               const SizedBox(width: 6),
-                              Expanded(child: Text(textOf('website'), style: const TextStyle(color: binerBlue))),
+                              Expanded(child: BinerLocalizedText(textOf('website'), style: const TextStyle(color: binerBlue))),
                             ])),
                             const SizedBox(height: 10),
                             Row(children: [
@@ -338,7 +339,7 @@ class _UserProfilePageState extends State<UserProfilePage> {
                               child: FilledButton.icon(
                                 onPressed: followingBusy ? null : toggleFollow,
                                 icon: Icon(isFollowing ? Icons.person_remove_alt_1_rounded : Icons.person_add_alt_1_rounded),
-                                label: Text(followingBusy ? binerText('کمی صبر کن…',en:'Please wait…',ar:'يرجى الانتظار…',tr:'Lütfen bekle…') : isFollowing ? binerText('دنبال می‌کنی',en:'Following',ar:'تتابعه',tr:'Takip ediliyor') : binerText('دنبال‌کردن',en:'Follow',ar:'متابعة',tr:'Takip et')),
+                                label: BinerLocalizedText(followingBusy ? binerText('کمی صبر کن…',en:'Please wait…',ar:'يرجى الانتظار…',tr:'Lütfen bekle…') : isFollowing ? binerText('دنبال می‌کنی',en:'Following',ar:'تتابعه',tr:'Takip ediliyor') : binerText('دنبال‌کردن',en:'Follow',ar:'متابعة',tr:'Takip et')),
                                 style: FilledButton.styleFrom(
                                   backgroundColor: isFollowing ? Theme.of(context).colorScheme.surfaceContainerHigh : Theme.of(context).colorScheme.primary,
                                   foregroundColor: isFollowing ? Theme.of(context).colorScheme.onSurface : const Color(0xFF06111D),
@@ -355,14 +356,14 @@ class _UserProfilePageState extends State<UserProfilePage> {
                           child: Row(children: [
                             const Icon(Icons.grid_view_rounded, color: binerBlue),
                             const SizedBox(width: 8),
-                            Text(binerText('پست‌ها',en:'Posts',ar:'المنشورات',tr:'Gönderiler'), style: const TextStyle(fontSize: 20, fontWeight: FontWeight.w900)),
+                            BinerLocalizedText(binerText('پست‌ها',en:'Posts',ar:'المنشورات',tr:'Gönderiler'), style: const TextStyle(fontSize: 20, fontWeight: FontWeight.w900)),
                             const Spacer(),
-                            Text('${posts.length}', style: TextStyle(color: muted, fontWeight: FontWeight.w700)),
+                            BinerLocalizedText('${posts.length}', style: TextStyle(color: muted, fontWeight: FontWeight.w700)),
                           ]),
                         ),
                       ),
                       if (posts.isEmpty)
-                        SliverToBoxAdapter(child: Padding(padding: const EdgeInsets.all(34), child: Center(child: Text('هنوز پستی منتشر نشده.', style: TextStyle(color: muted)))))
+                        SliverToBoxAdapter(child: Padding(padding: const EdgeInsets.all(34), child: Center(child: BinerLocalizedText('هنوز پستی منتشر نشده.', style: TextStyle(color: muted)))))
                       else
                         SliverList(delegate: SliverChildBuilderDelegate((context, index) => postCard(posts[index]), childCount: posts.length)),
                       const SliverToBoxAdapter(child: SizedBox(height: 28)),
