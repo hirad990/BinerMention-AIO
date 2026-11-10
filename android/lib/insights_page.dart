@@ -80,7 +80,7 @@ class _InsightsPageState extends State<InsightsPage> {
     ]),
   );
 
-  @override Widget build(BuildContext context) => Scaffold(backgroundColor: Theme.of(context).colorScheme.surface,
+  @override Widget build(BuildContext context) => Scaffold(backgroundColor: binerScaffoldBackground(context),
     appBar: AppBar(title: Text('Biner Insights'), actions: [IconButton(tooltip: binerText('به‌روزرسانی آمار'), onPressed: _reload, icon: Icon(Icons.refresh_rounded))]),
     body: FutureBuilder<Map<String, dynamic>>(
       future: _future,
