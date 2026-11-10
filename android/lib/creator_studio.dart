@@ -184,7 +184,7 @@ class _CreatorStudioPageState extends State<CreatorStudioPage> {
   }
 
   Future<void> _snippetLibrary() async {
-    final value = await showModalBottomSheet<String>(context: context, backgroundColor: const Color(0xFF0D1625), shape: const RoundedRectangleBorder(borderRadius: BorderRadius.vertical(top: Radius.circular(28))), builder: (ctx) => SafeArea(child: Padding(
+    final value = await showModalBottomSheet<String>(context: context, backgroundColor: Theme.of(context).colorScheme.surfaceContainer, shape: const RoundedRectangleBorder(borderRadius: BorderRadius.vertical(top: Radius.circular(28))), builder: (ctx) => SafeArea(child: Padding(
       padding: const EdgeInsets.all(18),
       child: Column(mainAxisSize: MainAxisSize.min, children: [
         _handle(), const SizedBox(height: 12),
@@ -283,7 +283,7 @@ class _CreatorStudioPageState extends State<CreatorStudioPage> {
       'مولد ایدهٔ پست',
       'برای شروع نوشتن، یک جرقهٔ تازه بگیر.',
       Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
-        Container(padding: const EdgeInsets.all(18), decoration: BoxDecoration(gradient: const LinearGradient(colors: [Color(0xFF142E4A), Color(0xFF30234D)]), borderRadius: BorderRadius.circular(18)), child: Text(_idea, style: const TextStyle(fontSize: 17, height: 1.6, fontWeight: FontWeight.w700))),
+        Container(padding: const EdgeInsets.all(18), decoration: BoxDecoration(color: Theme.of(context).colorScheme.surfaceContainerHigh, borderRadius: BorderRadius.circular(18), border: Border.all(color: Theme.of(context).colorScheme.outlineVariant)), child: Text(_idea, style: const TextStyle(fontSize: 17, height: 1.6, fontWeight: FontWeight.w700))),
         const SizedBox(height: 12),
         _primary('ایدهٔ بعدی', () { setState(() => _idea = ideas[random.nextInt(ideas.length)]); refresh(() {}); }),
         _secondary('کپی ایده', () => _copy(_idea)),
@@ -328,7 +328,7 @@ class _CreatorStudioPageState extends State<CreatorStudioPage> {
   Widget _secondary(String label, VoidCallback onTap) => Padding(padding: const EdgeInsets.only(top: 8), child: OutlinedButton(onPressed: onTap, style: OutlinedButton.styleFrom(foregroundColor: _blue, side: BorderSide(color: _blue.withValues(alpha: .35)), shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14))), child: Text(label)));
   Widget _chip(String label, VoidCallback onTap, VoidCallback refresh) => ActionChip(label: Text(label, style: const TextStyle(fontSize: 11)), onPressed: () { onTap(); refresh(); }, backgroundColor: _blue.withValues(alpha: .10), side: BorderSide(color: _blue.withValues(alpha: .2)));
   Widget _toolDialog(String title, String subtitle, Widget child) => Dialog(
-    backgroundColor: const Color(0xFF101A2A),
+    backgroundColor: Theme.of(context).colorScheme.surfaceContainer,
     shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24), side: BorderSide(color: _blue.withValues(alpha: .24))),
     child: Padding(padding: const EdgeInsets.all(20), child: SingleChildScrollView(child: Column(mainAxisSize: MainAxisSize.min, crossAxisAlignment: CrossAxisAlignment.stretch, children: [
       Text(title, style: const TextStyle(fontSize: 20, fontWeight: FontWeight.w900)),
@@ -382,7 +382,7 @@ class _CreatorStudioPageState extends State<CreatorStudioPage> {
         slivers: [
           SliverToBoxAdapter(child: Padding(padding: const EdgeInsets.fromLTRB(18, 8, 18, 18), child: Container(
             padding: const EdgeInsets.all(20),
-            decoration: BoxDecoration(gradient: const LinearGradient(begin: Alignment.topLeft, end: Alignment.bottomRight, colors: [Color(0xFF102E4D), Color(0xFF25204A), Color(0xFF111827)]), borderRadius: BorderRadius.circular(26), border: Border.all(color: _blue.withValues(alpha: .24))),
+            decoration: BoxDecoration(color: Theme.of(context).colorScheme.surfaceContainer, borderRadius: BorderRadius.circular(26), border: Border.all(color: Theme.of(context).colorScheme.outlineVariant)),
             child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
               const Row(children: [Icon(Icons.bolt_rounded, color: _blue), SizedBox(width: 8), Text('BINER / CREATOR TOOLS', style: TextStyle(fontSize: 10, letterSpacing: 1.8, color: Colors.white70, fontWeight: FontWeight.w900))]),
               const SizedBox(height: 12),
