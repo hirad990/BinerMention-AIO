@@ -1,5 +1,4 @@
 import 'dart:async';
-import 'dart:io';
 import 'dart:math' as math;
 import 'dart:ui';
 import 'dart:convert';
@@ -1624,8 +1623,10 @@ class _LiveHomeState extends State<LiveHome> with WidgetsBindingObserver {
               decoration: const BoxDecoration(shape: BoxShape.circle, gradient: LinearGradient(colors: [cBlue, Color(0xFF855DFF)])),
               child: CircleAvatar(
                 radius: 38, backgroundColor: Theme.of(context).scaffoldBackgroundColor,
-                backgroundImage: avatarFile != null ? FileImage(File(avatarFile!.path)) : (value(user, 'avatar_url').startsWith('https://') ? NetworkImage(value(user, 'avatar_url')) : null) as ImageProvider?,
-                child: avatarFile == null && !value(user, 'avatar_url').startsWith('https://') ? const Icon(Icons.person, size: 34, color: cBlue) : null,
+                backgroundImage: avatarFile == null && value(user, 'avatar_url').startsWith('https://') ? NetworkImage(value(user, 'avatar_url')) : null,
+                child: avatarFile != null
+                    ? FutureBuilder<List<int>>(future: avatarFile!.readAsBytes(), builder: (context, snapshot) => snapshot.hasData ? ClipOval(child: Image.memory(snapshot.data!, width: 76, height: 76, fit: BoxFit.cover)) : const Icon(Icons.person, size: 34, color: cBlue))
+                    : !value(user, 'avatar_url').startsWith('https://') ? const Icon(Icons.person, size: 34, color: cBlue) : null,
               ),
             ),
             const SizedBox(height: 8),
