@@ -68,9 +68,16 @@ jobs:
         working-directory: ${{ runner.temp }}/binerm_mention
         run: flutter pub get
 
-      - name: Generate app icons
+      - name: Generate iOS app icons
         working-directory: ${{ runner.temp }}/binerm_mention
-        run: dart run flutter_launcher_icons
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+          path = Path('pubspec.yaml')
+          source = path.read_text().replace('  android: true', '  android: false')
+          path.write_text(source)
+          PY
+          dart run flutter_launcher_icons
 
       - name: Analyze Dart code
         working-directory: ${{ runner.temp }}/binerm_mention
