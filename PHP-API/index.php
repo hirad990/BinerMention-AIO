@@ -170,14 +170,20 @@ try {
   $likes=$count('SELECT COUNT(*) FROM likes l JOIN posts p ON p.id=l.post_id WHERE p.user_id=? AND p.is_deleted=0');
   $reposts=$count('SELECT COUNT(*) FROM reposts r JOIN posts p ON p.id=r.post_id WHERE p.user_id=? AND p.is_deleted=0');
   $comments=$count('SELECT COUNT(*) FROM posts p JOIN posts c ON c.reply_to_id=p.id WHERE p.user_id=? AND p.is_deleted=0 AND c.is_deleted=0');
-  $views=0;$dwell=0;$top=[];$trend=[];
-  try{
-   $q=$db->prepare("SELECT COALESCE(SUM(CASE WHEN event_type='post_view' THEN 1 ELSE 0 END),0) views,COALESCE(SUM(dwell_ms),0) dwell_ms FROM analytics_events WHERE owner_user_id=?");$q->execute([$uid]);$a=$q->fetch()?:[];$views=(int)($a['views']??0);$dwell=(int)($a['dwell_ms']??0);
-   $daily=[];$q=$db->prepare("SELECT DATE_FORMAT(created_at,'%Y-%m-%d') day, SUM(CASE WHEN event_type='post_view' THEN 1 ELSE 0 END) views, SUM(dwell_ms) dwell_ms FROM analytics_events WHERE owner_user_id=? AND created_at>=DATE_SUB(UTC_DATE(),INTERVAL 6 DAY) GROUP BY DATE_FORMAT(created_at,'%Y-%m-%d') ORDER BY day ASC");$q->execute([$uid]);foreach($q->fetchAll() as $row)$daily[$row['day']]=['views'=>(int)$row['views'],'dwell_ms'=>(int)$row['dwell_ms']];
-   for($i=6;$i>=0;$i--){$day=gmdate('Y-m-d',strtotime('-'.$i.' days'));$trend[]=['date'=>$day,'views'=>$daily[$day]['views']??0,'dwell_ms'=>$daily[$day]['dwell_ms']??0];}
-  }catch(Throwable $ignored){for($i=6;$i>=0;$i--){$trend[]=['date'=>gmdate('Y-m-d',strtotime('-'.$i.' days')),'views'=>0,'dwell_ms'=>0];}}
+  $views=0;$dwell=0;$top=[];$daily=[];
+  for($i=6;$i>=0;$i--){$day=gmdate('Y-m-d',strtotime('-'.$i.' days'));$daily[$day]=['date'=>$day,'views'=>0,'likes'=>0,'reposts'=>0,'comments'=>0,'followers'=>0,'posts'=>0,'dwell_ms'=>0];}
+  try{$q=$db->prepare("SELECT COALESCE(SUM(CASE WHEN event_type='post_view' THEN 1 ELSE 0 END),0) views,COALESCE(SUM(dwell_ms),0) dwell_ms FROM analytics_events WHERE owner_user_id=?");$q->execute([$uid]);$a=$q->fetch()?:[];$views=(int)($a['views']??0);$dwell=(int)($a['dwell_ms']??0);}catch(Throwable $ignored){}
+  $seriesQueries=[
+   'views'=>"SELECT DATE_FORMAT(created_at,'%Y-%m-%d') day,COUNT(*) total FROM analytics_events WHERE owner_user_id=? AND event_type='post_view' AND created_at>=DATE_SUB(UTC_DATE(),INTERVAL 6 DAY) GROUP BY DATE(created_at)",
+   'likes'=>"SELECT DATE_FORMAT(l.created_at,'%Y-%m-%d') day,COUNT(*) total FROM likes l JOIN posts p ON p.id=l.post_id WHERE p.user_id=? AND p.is_deleted=0 AND l.created_at>=DATE_SUB(UTC_DATE(),INTERVAL 6 DAY) GROUP BY DATE(l.created_at)",
+   'reposts'=>"SELECT DATE_FORMAT(r.created_at,'%Y-%m-%d') day,COUNT(*) total FROM reposts r JOIN posts p ON p.id=r.post_id WHERE p.user_id=? AND p.is_deleted=0 AND r.created_at>=DATE_SUB(UTC_DATE(),INTERVAL 6 DAY) GROUP BY DATE(r.created_at)",
+   'comments'=>"SELECT DATE_FORMAT(c.created_at,'%Y-%m-%d') day,COUNT(*) total FROM posts c JOIN posts p ON p.id=c.reply_to_id WHERE p.user_id=? AND p.is_deleted=0 AND c.is_deleted=0 AND c.created_at>=DATE_SUB(UTC_DATE(),INTERVAL 6 DAY) GROUP BY DATE(c.created_at)",
+   'followers'=>"SELECT DATE_FORMAT(created_at,'%Y-%m-%d') day,COUNT(*) total FROM follows WHERE following_id=? AND created_at>=DATE_SUB(UTC_DATE(),INTERVAL 6 DAY) GROUP BY DATE(created_at)",
+   'posts'=>"SELECT DATE_FORMAT(created_at,'%Y-%m-%d') day,COUNT(*) total FROM posts WHERE user_id=? AND is_deleted=0 AND reply_to_id IS NULL AND created_at>=DATE_SUB(UTC_DATE(),INTERVAL 6 DAY) GROUP BY DATE(created_at)"
+  ];
+  foreach($seriesQueries as $key=>$sql){try{$q=$db->prepare($sql);$q->execute([$uid]);foreach($q->fetchAll() as $row){$day=$row['day'];if(isset($daily[$day]))$daily[$day][$key]=(int)$row['total'];}}catch(Throwable $ignored){}}
   $q=$db->prepare('SELECT p.id FROM posts p WHERE p.user_id=? AND p.is_deleted=0 AND p.reply_to_id IS NULL ORDER BY ((SELECT COUNT(*) FROM likes l WHERE l.post_id=p.id)+(SELECT COUNT(*) FROM reposts r WHERE r.post_id=p.id)*2+(SELECT COUNT(*) FROM posts c WHERE c.reply_to_id=p.id AND c.is_deleted=0)*2) DESC,p.id DESC LIMIT 5');$q->execute([$uid]);foreach($q->fetchAll(PDO::FETCH_COLUMN) as $pid){$item=post($db,(int)$pid,$uid);if($item)$top[]=$item;}
-  out(['ok'=>true,'period'=>'all_time','stats'=>['posts'=>$postsCount,'followers'=>$followers,'following'=>$following,'likes_received'=>$likes,'reposts_received'=>$reposts,'comments_received'=>$comments,'views'=>$views,'reading_time_ms'=>$dwell,'engagement_actions'=>$likes+$reposts+$comments],'trend'=>$trend,'top_posts'=>$top,'transparency_note'=>'آمار فقط از داده‌های ذخیره‌شده در BinerMention محاسبه می‌شود. نمودار ۷ روزهٔ بازدید از رویدادهای ثبت‌شده ساخته می‌شود؛ داده‌های تاریخی پیش از فعال‌شدن ثبت رویدادها وجود ندارند.']);
+  out(['ok'=>true,'period'=>'all_time','stats'=>['posts'=>$postsCount,'followers'=>$followers,'following'=>$following,'likes_received'=>$likes,'reposts_received'=>$reposts,'comments_received'=>$comments,'views'=>$views,'reading_time_ms'=>$dwell,'engagement_actions'=>$likes+$reposts+$comments],'trend'=>array_values($daily),'top_posts'=>$top,'transparency_note'=>'آمار فقط از داده‌های ذخیره‌شده در BinerMention محاسبه می‌شود. نمودارها بر اساس رویدادهای ثبت‌شده در هفت روز اخیر ساخته می‌شوند؛ داده‌های تاریخی پیش از فعال‌شدن ثبت رویدادها وجود ندارند.']);
  }
  if($path==='/v1/analytics/events'&&$method==='POST'){
   $u=auth($db);$type=txt($b['event_type']??'',32);$allowed=['post_view','post_dwell'];if(!in_array($type,$allowed,true))err('Unsupported analytics event.',422,'validation_error');
