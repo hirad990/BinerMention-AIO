@@ -109,7 +109,7 @@ class _BinerAIPageState extends State<BinerAIPage> {
   );
 
   @override
-  Widget build(BuildContext context) => Scaffold(backgroundColor: Theme.of(context).colorScheme.surface,
+  Widget build(BuildContext context) => Scaffold(backgroundColor: binerScaffoldBackground(context),
     appBar: AppBar(title: Row(children: [Icon(Icons.auto_awesome_rounded, color: _violet), SizedBox(width: 9), Text('BinerAI', style: TextStyle(fontWeight: FontWeight.w900))]), actions: [IconButton(tooltip: binerText('گفت‌وگوی تازه'), onPressed: _busy ? null : () => setState(_history.clear), icon: Icon(Icons.add_comment_outlined))]),
     body: Column(children: [
       Expanded(child: _history.isEmpty ? ListView(physics: const AlwaysScrollableScrollPhysics(parent: BouncingScrollPhysics()), padding: const EdgeInsets.all(20), children: [
