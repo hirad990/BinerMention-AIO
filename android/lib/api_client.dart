@@ -233,9 +233,14 @@ class BinerApi {
     await _request(active ? 'POST' : 'DELETE', 'v1/posts/$postId/bookmark');
   }
 
-  Future<void> togglePostAction(int postId, String action, bool active) async {
+  Future<bool> togglePostAction(int postId, String action, bool active) async {
     if (action != 'like' && action != 'repost') throw const ApiException('Unsupported post action.');
-    await _request(active ? 'POST' : 'DELETE', 'v1/posts/$postId/$action');
+    final result = await _request(active ? 'POST' : 'DELETE', 'v1/posts/$postId/$action');
+    final confirmed = result['active'];
+    if (confirmed is! bool || confirmed != active) {
+      throw const ApiException('وضعیت بازنشر از سرور تأیید نشد؛ دوباره تلاش کن.');
+    }
+    return confirmed;
   }
 
   Future<List<Map<String, dynamic>>> notifications() async {
