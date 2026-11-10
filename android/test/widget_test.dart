@@ -9,13 +9,13 @@ void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
   GoogleFonts.config.allowRuntimeFetching = false;
 
-  late BinerApi api;
+  BinerApi? api;
 
   Future<void> pumpAuth(WidgetTester tester) async {
     api = BinerApi();
     await tester.pumpWidget(
       MaterialApp(
-        home: LiveAuth(api: api, onDone: () {}),
+        home: LiveAuth(api: api!, onDone: () {}),
       ),
     );
     // The auth screen has ambient animations; pump a fixed duration rather
@@ -24,7 +24,8 @@ void main() {
   }
 
   tearDown(() {
-    api.dispose();
+    api?.dispose();
+    api = null;
   });
 
   testWidgets('shows the current sign-in screen', (tester) async {
