@@ -404,6 +404,16 @@ String? _translateDynamicBinerText(String value, String language) {
     final id = reply.group(1)!;
     return switch (language) { 'en' => 'Reply to post #$id', 'ar' => 'الرد على المنشور #$id', 'tr' => '#$id gönderisine yanıt', _ => null };
   }
+  final postReply = RegExp(r'^پاسخ به پست #(\d+)$').firstMatch(value);
+  if (postReply != null) {
+    final id = postReply.group(1)!;
+    return switch (language) { 'en' => 'Reply to post #$id', 'ar' => 'الرد على المنشور #$id', 'tr' => '#$id gönderisine yanıt', _ => null };
+  }
+  final postCount = RegExp(r'^پست (\d+)$').firstMatch(value);
+  if (postCount != null) {
+    final n = postCount.group(1)!;
+    return switch (language) { 'en' => '$n posts', 'ar' => '$n منشورات', 'tr' => '$n gönderi', _ => null };
+  }
   final members = RegExp(r'^(\d+) عضو  ·  (.*)
   if (members != null) {
     final n = members.group(1)!;
