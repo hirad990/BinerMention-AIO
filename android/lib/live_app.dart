@@ -1817,7 +1817,7 @@ class _LiveHomeState extends State<LiveHome> with WidgetsBindingObserver {
           final destinations = List.generate(5, (i) => NavigationDestination(
             icon: icons[i], selectedIcon: selectedIcons[i], label: labels[i],
           ));
-          return Scaffold(backgroundColor: Theme.of(context).colorScheme.surface,
+          return Scaffold(backgroundColor: defaultTargetPlatform == TargetPlatform.iOS ? Colors.transparent : Theme.of(context).colorScheme.surface,
             body: desktop
                 ? Row(children: [
                     Padding(
@@ -2394,14 +2394,14 @@ class _BinerFloatingNavBar extends StatelessWidget {
           child: ClipRRect(
             borderRadius: BorderRadius.circular(38),
             child: BackdropFilter(
-              filter: ImageFilter.blur(sigmaX: 26, sigmaY: 26),
+              filter: ImageFilter.blur(sigmaX: 32, sigmaY: 32),
               child: Container(
                 height: 62,
                 padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 7),
                 decoration: BoxDecoration(
                   color: dark
-                      ? const Color(0xD91B1B20)
-                      : const Color(0xEAF7F8FC),
+                      ? const Color(0x991B1B20)
+                      : const Color(0xAAF7F8FC),
                   borderRadius: BorderRadius.circular(38),
                   border: Border.all(
                     color: dark
