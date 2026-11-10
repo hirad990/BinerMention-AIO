@@ -4,6 +4,7 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:binerm_mention/api_client.dart';
 import 'package:binerm_mention/live_app.dart';
 import 'package:binerm_mention/ui_kit.dart';
+import 'package:binerm_mention/app_preferences.dart';
 
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
