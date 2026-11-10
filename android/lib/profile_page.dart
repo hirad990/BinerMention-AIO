@@ -52,7 +52,7 @@ class _UserProfilePageState extends State<UserProfilePage> {
     } on ApiException catch (e) {
       if (mounted) setState(() { error = e.message; loading = false; });
     } catch (_) {
-      if (mounted) setState(() { error = 'بارگذاری پروفایل انجام نشد.'; loading = false; });
+      if (mounted) setState(() { error = binerText('بارگذاری پروفایل انجام نشد.'); loading = false; });
     }
   }
 
@@ -163,7 +163,7 @@ class _UserProfilePageState extends State<UserProfilePage> {
                     final person = users[i];
                     final name = person['display_name']?.toString().trim().isNotEmpty == true
                         ? person['display_name'].toString()
-                        : person['username']?.toString() ?? 'کاربر';
+                        : person['username']?.toString() ?? binerText('کاربر');
                     final url = person['avatar_url']?.toString() ?? '';
                     return ListTile(
                       leading: CircleAvatar(
@@ -193,7 +193,7 @@ class _UserProfilePageState extends State<UserProfilePage> {
 
   Widget postCard(Map<String, dynamic> post) {
     final body = post['body']?.toString() ?? '';
-    final display = post['display_name']?.toString() ?? post['username']?.toString() ?? 'کاربر';
+    final display = post['display_name']?.toString() ?? post['username']?.toString() ?? binerText('کاربر');
     final mediaUrl = post['media_url']?.toString() ?? '';
     final mime = post['mime_type']?.toString() ?? '';
     final isVideo = mime.startsWith('video/') ||
@@ -226,7 +226,7 @@ class _UserProfilePageState extends State<UserProfilePage> {
               padding: const EdgeInsets.only(top: 12),
               child: GestureDetector(
                 onTap: () => BinerMediaViewer.open(
-                  context, url: mediaUrl, mimeType: mime, title: 'پست $display',
+                  context, url: mediaUrl, mimeType: mime, title: binerText('پست $display'),
                 ),
                 child: ClipRRect(
                   borderRadius: BorderRadius.circular(14),
@@ -273,7 +273,7 @@ class _UserProfilePageState extends State<UserProfilePage> {
   );
 
   Widget _buildProfile() {
-    final displayName = textOf('display_name', textOf('username', 'کاربر'));
+    final displayName = textOf('display_name', textOf('username', binerText('کاربر')));
     return Scaffold(backgroundColor: Theme.of(context).colorScheme.surface,
       body: SafeArea(
         child: loading && user == null
@@ -362,7 +362,7 @@ class _UserProfilePageState extends State<UserProfilePage> {
                         ),
                       ),
                       if (posts.isEmpty)
-                        SliverToBoxAdapter(child: Padding(padding: const EdgeInsets.all(34), child: Center(child: Text('هنوز پستی منتشر نشده.', style: TextStyle(color: muted)))))
+                        SliverToBoxAdapter(child: Padding(padding: const EdgeInsets.all(34), child: Center(child: Text(binerText('هنوز پستی منتشر نشده.'), style: TextStyle(color: muted)))))
                       else
                         SliverList(delegate: SliverChildBuilderDelegate((context, index) => postCard(posts[index]), childCount: posts.length)),
                       const SliverToBoxAdapter(child: SizedBox(height: 28)),
