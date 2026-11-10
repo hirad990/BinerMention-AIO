@@ -128,9 +128,9 @@ class _GroupRoomsPageState extends State<GroupRoomsPage> {
                     width: 48, height: 48,
                     decoration: BoxDecoration(
                       borderRadius: BorderRadius.circular(16),
-                      gradient: const LinearGradient(begin: Alignment.topLeft, end: Alignment.bottomRight, colors: [Color(0xFF54C8FF), Color(0xFF7868E8)]),
+                      gradient: LinearGradient(begin: Alignment.topLeft, end: Alignment.bottomRight, colors: [Theme.of(context).colorScheme.primary, Theme.of(context).colorScheme.secondary]),
                     ),
-                    child: const Icon(Icons.groups_rounded, color: Color(0xFF071426), size: 25),
+                    child: Icon(Icons.groups_rounded, color: Theme.of(context).colorScheme.onPrimary, size: 25),
                   ),
                   const SizedBox(width: 12),
                   Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
@@ -300,10 +300,8 @@ class _GroupChatPageState extends State<GroupChatPage> {
         margin: const EdgeInsets.symmetric(vertical: 4),
         padding: const EdgeInsets.all(11),
         decoration: BoxDecoration(
-          gradient: mine
-              ? const LinearGradient(begin: Alignment.topLeft, end: Alignment.bottomRight, colors: [Color(0xDD174A70), Color(0xCC252B57)])
-              : (Theme.of(context).brightness == Brightness.dark ? const LinearGradient(colors: [Color(0xE6101A29), Color(0xDD111827)]) : null),
-          color: mine ? null : Theme.of(context).colorScheme.surface,
+          gradient: mine ? LinearGradient(begin: Alignment.topLeft, end: Alignment.bottomRight, colors: [Theme.of(context).colorScheme.primaryContainer, Theme.of(context).colorScheme.secondaryContainer]) : null,
+          color: mine ? null : Theme.of(context).colorScheme.surfaceContainer,
           borderRadius: BorderRadius.only(
             topLeft: const Radius.circular(18), topRight: const Radius.circular(18),
             bottomLeft: Radius.circular(mine ? 18 : 5), bottomRight: Radius.circular(mine ? 5 : 18),
@@ -336,7 +334,7 @@ class _GroupChatPageState extends State<GroupChatPage> {
   Widget build(BuildContext context) => Scaffold(backgroundColor: Theme.of(context).colorScheme.surface,
     appBar: AppBar(
       title: Row(children: [
-        Container(width: 38, height: 38, decoration: BoxDecoration(gradient: const LinearGradient(colors: [Color(0xFF54C8FF), Color(0xFF7868E8)]), borderRadius: BorderRadius.circular(13)), child: const Icon(Icons.groups_rounded, color: Color(0xFF071426))),
+        Container(width: 38, height: 38, decoration: BoxDecoration(gradient: const LinearGradient(colors: [Color(0xFF54C8FF), Color(0xFF7868E8)]), borderRadius: BorderRadius.circular(13)), child: Icon(Icons.groups_rounded, color: Theme.of(context).colorScheme.onPrimary)),
         const SizedBox(width: 10),
         Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
           Text(widget.title, maxLines: 1, overflow: TextOverflow.ellipsis, style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w900)),
@@ -408,7 +406,7 @@ class _GroupChatPageState extends State<GroupChatPage> {
               const SizedBox(width: 5),
               IconButton.filled(
                 onPressed: _sending ? null : _send,
-                style: IconButton.styleFrom(backgroundColor: const Color(0xFF54C8FF), foregroundColor: const Color(0xFF071426)),
+                style: IconButton.styleFrom(backgroundColor: Theme.of(context).colorScheme.primary, foregroundColor: Theme.of(context).colorScheme.onPrimary),
                 icon: _sending ? const SizedBox(width: 17, height: 17, child: CircularProgressIndicator(strokeWidth: 2)) : const Icon(Icons.arrow_upward_rounded),
               ),
             ]),
