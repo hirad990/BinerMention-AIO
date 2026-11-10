@@ -233,9 +233,14 @@ class BinerApi {
     await _request(active ? 'POST' : 'DELETE', 'v1/posts/$postId/bookmark');
   }
 
-  Future<void> togglePostAction(int postId, String action, bool active) async {
+  Future<bool> togglePostAction(int postId, String action, bool active) async {
     if (action != 'like' && action != 'repost') throw const ApiException('Unsupported post action.');
-    await _request(active ? 'POST' : 'DELETE', 'v1/posts/$postId/$action');
+    final result = await _request(active ? 'POST' : 'DELETE', 'v1/posts/$postId/$action');
+    final confirmed = result['active'];
+    if (confirmed is! bool || confirmed != active) {
+      throw const ApiException('وضعیت بازنشر از سرور تأیید نشد؛ دوباره تلاش کن.');
+    }
+    return confirmed;
   }
 
   Future<List<Map<String, dynamic>>> notifications() async {
@@ -373,6 +378,9 @@ class BinerApi {
 
   Future<Map<String, dynamic>> insights() async =>
       await _request('GET', 'v1/insights');
+
+  Future<Map<String, dynamic>> aiStatus() async =>
+      await _request('GET', 'v1/ai/status');
 
   Future<Map<String, dynamic>> askBinerAI(String question, {String? username}) async {
     final payload = <String, dynamic>{'question': question};

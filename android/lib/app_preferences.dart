@@ -5,7 +5,7 @@ class BinerPreferences extends ChangeNotifier {
   BinerPreferences._();
   static final BinerPreferences instance = BinerPreferences._();
   Locale locale = const Locale('fa');
-  Color accent = const Color(0xFF54C8FF);
+  Color accent = const Color(0xFF1D9BF0);
   bool fastMode = false;
   String fontFamily = 'noto';
   bool ready = false;
@@ -13,7 +13,7 @@ class BinerPreferences extends ChangeNotifier {
     final p = await SharedPreferences.getInstance();
     final language = p.getString('biner_language') ?? 'fa';
     locale = Locale(['fa','en','ar','tr'].contains(language) ? language : 'fa');
-    accent = Color(p.getInt('biner_accent') ?? 0xFF54C8FF);
+    accent = Color(p.getInt('biner_accent') ?? 0xFF1D9BF0);
     fastMode = p.getBool('biner_fast_mode') ?? false;
     fontFamily = ['system','vazir','noto'].contains(p.getString('biner_font_family')) ? p.getString('biner_font_family')! : 'noto';
     ready = true; notifyListeners();
@@ -354,6 +354,20 @@ const Map<String, List<String>> _uiTranslations = {
   'شناسه فایل از سرور دریافت نشد.': ['The server did not return the file ID.', 'لم يُرجع الخادم معرّف الملف.', 'Sunucu dosya kimliğini döndürmedi.'],
   'Creator Studio · ۱۰ ابزار': ['Creator Studio · 10 tools', 'استوديو المنشئ · 10 أدوات', 'İçerik stüdyosu · 10 araç'],
   'آمار از رویدادهای ثبت‌شده در BinerMention محاسبه می‌شود؛ هر شاخص باید قابل ردیابی و توضیح باشد.': ['Statistics are calculated from recorded BinerMention events; every metric should be traceable and explainable.', 'تُحسب الإحصاءات من أحداث BinerMention المسجلة؛ ويجب أن يكون كل مؤشر قابلاً للتتبع والتفسير.', 'İstatistikler kaydedilen BinerMention olaylarından hesaplanır; her ölçüm izlenebilir ve açıklanabilir olmalıdır.'],
+  'منابع استفاده‌شده': ['Sources used', 'المصادر المستخدمة', 'Kullanılan kaynaklar'],
+  'مدل زبانی متصل است': ['Language model connected', 'النموذج اللغوي متصل', 'Dil modeli bağlı'],
+  'مدل زبانی پیکربندی شده': ['Language model configured', 'تم إعداد النموذج اللغوي', 'Dil modeli yapılandırıldı'],
+  'BinerAI با مدل زبانی واقعی و اطلاعات پست‌ها، پروفایل‌های عمومی و فرادادهٔ گروه‌هایی که عضو آن‌ها هستی پاسخ می‌دهد. پیام‌های خصوصی به مدل فرستاده نمی‌شوند.': ['BinerAI answers with a real language model using posts, public profiles and metadata from groups you belong to. Private messages are not sent to the model.', 'يجيب BinerAI بنموذج لغوي حقيقي باستخدام المنشورات والملفات العامة وبيانات المجموعات التي تنتمي إليها. لا تُرسل الرسائل الخاصة إلى النموذج.', 'BinerAI; gönderileri, herkese açık profilleri ve üyesi olduğun grupların üst verilerini kullanan gerçek bir dil modeliyle yanıt verir. Özel mesajlar modele gönderilmez.'],
+  'مدل زبانی هنوز روی سرور تنظیم نشده است.': ['The language model is not configured on the server yet.', 'لم يتم إعداد النموذج اللغوي على الخادم بعد.', 'Dil modeli henüz sunucuda yapılandırılmadı.'],
+  'بررسی دوباره': ['Check again', 'تحقق مرة أخرى', 'Yeniden kontrol et'],
+  'بازدیدهای ۷ روز اخیر': ['Views in the last 7 days', 'المشاهدات خلال آخر ٧ أيام', 'Son 7 gündeki görüntülemeler'],
+  'بر اساس رویدادهای واقعی ثبت‌شده': ['Based on recorded events', 'استناداً إلى الأحداث المسجلة', 'Kaydedilen olaylara göre'],
+  'هنوز داده‌ای برای نمودار وجود ندارد.': ['There is no chart data yet.', 'لا توجد بيانات للرسم البياني بعد.', 'Henüz grafik verisi yok.'],
+  'روند بازدید': ['Views trend', 'اتجاه المشاهدات', 'Görüntüleme eğilimi'],
+  'تعاملات ۷ روز اخیر': ['Engagement in the last 7 days', 'التفاعلات خلال آخر ٧ أيام', 'Son 7 gündeki etkileşimler'],
+  'بازدید': ['Views', 'المشاهدات', 'Görüntüleme'],
+  'تعامل': ['Engagement', 'التفاعل', 'Etkileşim'],
+
   'انتخاب مقصد': ['Choose destination', 'اختر الوجهة', 'Hedef seç'],
 };
 

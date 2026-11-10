@@ -1,6 +1,7 @@
 <?php
 declare(strict_types=1);
 $config = require __DIR__ . '/config.php';
+require_once __DIR__ . '/ai_provider.php';
 $origin = $_SERVER['HTTP_ORIGIN'] ?? '';
 if ($origin && in_array($origin, $config['allowed_origins'] ?? [], true)) { header("Access-Control-Allow-Origin: $origin"); header('Vary: Origin'); }
 header('Access-Control-Allow-Headers: Authorization, Content-Type'); header('Access-Control-Allow-Methods: GET, POST, PATCH, DELETE, OPTIONS');
@@ -169,10 +170,20 @@ try {
   $likes=$count('SELECT COUNT(*) FROM likes l JOIN posts p ON p.id=l.post_id WHERE p.user_id=? AND p.is_deleted=0');
   $reposts=$count('SELECT COUNT(*) FROM reposts r JOIN posts p ON p.id=r.post_id WHERE p.user_id=? AND p.is_deleted=0');
   $comments=$count('SELECT COUNT(*) FROM posts p JOIN posts c ON c.reply_to_id=p.id WHERE p.user_id=? AND p.is_deleted=0 AND c.is_deleted=0');
-  $views=0;$dwell=0;$top=[];
+  $views=0;$dwell=0;$top=[];$daily=[];
+  for($i=6;$i>=0;$i--){$day=gmdate('Y-m-d',strtotime('-'.$i.' days'));$daily[$day]=['date'=>$day,'views'=>0,'likes'=>0,'reposts'=>0,'comments'=>0,'followers'=>0,'posts'=>0,'dwell_ms'=>0];}
   try{$q=$db->prepare("SELECT COALESCE(SUM(CASE WHEN event_type='post_view' THEN 1 ELSE 0 END),0) views,COALESCE(SUM(dwell_ms),0) dwell_ms FROM analytics_events WHERE owner_user_id=?");$q->execute([$uid]);$a=$q->fetch()?:[];$views=(int)($a['views']??0);$dwell=(int)($a['dwell_ms']??0);}catch(Throwable $ignored){}
+  $seriesQueries=[
+   'views'=>"SELECT DATE_FORMAT(created_at,'%Y-%m-%d') day,COUNT(*) total FROM analytics_events WHERE owner_user_id=? AND event_type='post_view' AND created_at>=DATE_SUB(UTC_DATE(),INTERVAL 6 DAY) GROUP BY DATE(created_at)",
+   'likes'=>"SELECT DATE_FORMAT(l.created_at,'%Y-%m-%d') day,COUNT(*) total FROM likes l JOIN posts p ON p.id=l.post_id WHERE p.user_id=? AND p.is_deleted=0 AND l.created_at>=DATE_SUB(UTC_DATE(),INTERVAL 6 DAY) GROUP BY DATE(l.created_at)",
+   'reposts'=>"SELECT DATE_FORMAT(r.created_at,'%Y-%m-%d') day,COUNT(*) total FROM reposts r JOIN posts p ON p.id=r.post_id WHERE p.user_id=? AND p.is_deleted=0 AND r.created_at>=DATE_SUB(UTC_DATE(),INTERVAL 6 DAY) GROUP BY DATE(r.created_at)",
+   'comments'=>"SELECT DATE_FORMAT(c.created_at,'%Y-%m-%d') day,COUNT(*) total FROM posts c JOIN posts p ON p.id=c.reply_to_id WHERE p.user_id=? AND p.is_deleted=0 AND c.is_deleted=0 AND c.created_at>=DATE_SUB(UTC_DATE(),INTERVAL 6 DAY) GROUP BY DATE(c.created_at)",
+   'followers'=>"SELECT DATE_FORMAT(created_at,'%Y-%m-%d') day,COUNT(*) total FROM follows WHERE following_id=? AND created_at>=DATE_SUB(UTC_DATE(),INTERVAL 6 DAY) GROUP BY DATE(created_at)",
+   'posts'=>"SELECT DATE_FORMAT(created_at,'%Y-%m-%d') day,COUNT(*) total FROM posts WHERE user_id=? AND is_deleted=0 AND reply_to_id IS NULL AND created_at>=DATE_SUB(UTC_DATE(),INTERVAL 6 DAY) GROUP BY DATE(created_at)"
+  ];
+  foreach($seriesQueries as $key=>$sql){try{$q=$db->prepare($sql);$q->execute([$uid]);foreach($q->fetchAll() as $row){$day=$row['day'];if(isset($daily[$day]))$daily[$day][$key]=(int)$row['total'];}}catch(Throwable $ignored){}}
   $q=$db->prepare('SELECT p.id FROM posts p WHERE p.user_id=? AND p.is_deleted=0 AND p.reply_to_id IS NULL ORDER BY ((SELECT COUNT(*) FROM likes l WHERE l.post_id=p.id)+(SELECT COUNT(*) FROM reposts r WHERE r.post_id=p.id)*2+(SELECT COUNT(*) FROM posts c WHERE c.reply_to_id=p.id AND c.is_deleted=0)*2) DESC,p.id DESC LIMIT 5');$q->execute([$uid]);foreach($q->fetchAll(PDO::FETCH_COLUMN) as $pid){$item=post($db,(int)$pid,$uid);if($item)$top[]=$item;}
-  out(['ok'=>true,'period'=>'all_time','stats'=>['posts'=>$postsCount,'followers'=>$followers,'following'=>$following,'likes_received'=>$likes,'reposts_received'=>$reposts,'comments_received'=>$comments,'views'=>$views,'reading_time_ms'=>$dwell,'engagement_actions'=>$likes+$reposts+$comments],'top_posts'=>$top,'transparency_note'=>'آمار از داده‌های ثبت‌شده در BinerMention محاسبه شده‌اند؛ بازدید و زمان مطالعه فقط از زمان فعال‌شدن ثبت تعاملات قابل اتکا هستند.']);
+  out(['ok'=>true,'period'=>'all_time','stats'=>['posts'=>$postsCount,'followers'=>$followers,'following'=>$following,'likes_received'=>$likes,'reposts_received'=>$reposts,'comments_received'=>$comments,'views'=>$views,'reading_time_ms'=>$dwell,'engagement_actions'=>$likes+$reposts+$comments],'trend'=>array_values($daily),'top_posts'=>$top,'transparency_note'=>'آمار فقط از داده‌های ذخیره‌شده در BinerMention محاسبه می‌شود. نمودارها بر اساس رویدادهای ثبت‌شده در هفت روز اخیر ساخته می‌شوند؛ داده‌های تاریخی پیش از فعال‌شدن ثبت رویدادها وجود ندارند.']);
  }
  if($path==='/v1/analytics/events'&&$method==='POST'){
   $u=auth($db);$type=txt($b['event_type']??'',32);$allowed=['post_view','post_dwell'];if(!in_array($type,$allowed,true))err('Unsupported analytics event.',422,'validation_error');
@@ -180,18 +191,45 @@ try {
   $q=$db->prepare('SELECT user_id FROM posts WHERE id=? AND is_deleted=0 AND reply_to_id IS NULL');$q->execute([(int)$postId]);$owner=$q->fetchColumn();if(!$owner)err('Post not found.',404,'not_found');if((int)$owner===(int)$u['id'])out(['ok'=>true,'ignored'=>true]);
   $dwell=max(0,min(120000,(int)($b['dwell_ms']??0)));$q=$db->prepare('INSERT INTO analytics_events(actor_user_id,owner_user_id,post_id,event_type,dwell_ms,created_at) VALUES(?,?,?,?,?,UTC_TIMESTAMP())');$q->execute([$u['id'],(int)$owner,(int)$postId,$type,$dwell]);out(['ok'=>true],201);
  }
+ if($path==='/v1/ai/status'&&$method==='GET'){
+  auth($db);
+  $ready=trim((string)($config['ai_api_url']??''))!==''&&trim((string)($config['ai_api_key']??''))!==''&&trim((string)($config['ai_model']??''))!==''&&function_exists('curl_init');
+  out(['ok'=>true,'configured'=>$ready,'provider'=>'openai_compatible','model'=>$ready?(string)$config['ai_model']:null,'capabilities'=>['public_posts','public_profiles','joined_group_metadata'],'private_group_messages'=>false]);
+ }
  if($path==='/v1/ai/ask'&&$method==='POST'){
   $u=auth($db);$question=txt($b['question']??'',500);if($question==='')err('Question is required.',422,'validation_error');
+  $aiBucket=hash('sha256','biner-ai-user|'.(int)$u['id']);$q=$db->prepare('INSERT INTO api_rate_limits(bucket_hash,window_started_at,request_count) VALUES(?,UTC_TIMESTAMP(),1) ON DUPLICATE KEY UPDATE request_count=IF(window_started_at<DATE_SUB(UTC_TIMESTAMP(),INTERVAL 60 SECOND),1,request_count+1),window_started_at=IF(window_started_at<DATE_SUB(UTC_TIMESTAMP(),INTERVAL 60 SECOND),UTC_TIMESTAMP(),window_started_at)');$q->execute([$aiBucket]);$q=$db->prepare('SELECT request_count FROM api_rate_limits WHERE bucket_hash=?');$q->execute([$aiBucket]);if((int)$q->fetchColumn()>12)err('برای حفظ منابع، حداکثر ۱۲ درخواست BinerAI در هر دقیقه مجاز است.',429,'ai_rate_limited');
   $handle=txt($b['username']??'',24);if($handle===''&&preg_match('/@([A-Za-z0-9_]{3,24})/',$question,$match))$handle=$match[1];
+  $profile=null;$recent=[];$sources=[];$context=['platform'=>'BinerMention','retrieved_at'=>gmdate('c'),'public_profile'=>null,'public_posts'=>[],'my_joined_groups'=>[]];
   if($handle!==''){
-   $q=$db->prepare('SELECT id,username,display_name,bio,website,BlueTick,created_at FROM users WHERE username=? AND is_active=1');$q->execute([strtolower(ltrim($handle,'@'))]);$person=$q->fetch();
-   if(!$person)out(['ok'=>true,'mode'=>'database_research','answer'=>'این شناسه در کاربران قابل‌دسترسی BinerMention پیدا نشد. این نتیجه به‌معنای جعلی‌بودن هویت در دنیای واقعی نیست.','profile'=>null,'evidence'=>[],'limitations'=>['فقط داده‌های داخل BinerMention بررسی شده‌اند.','برای احراز هویت واقعی باید منابع رسمی و مستقل بررسی شوند.']]);
-   $pid=(int)$person['id'];$q=$db->prepare('SELECT COUNT(*) FROM follows WHERE following_id=?');$q->execute([$pid]);$person['followers_count']=(int)$q->fetchColumn();$q=$db->prepare('SELECT COUNT(*) FROM posts WHERE user_id=? AND is_deleted=0 AND reply_to_id IS NULL');$q->execute([$pid]);$person['posts_count']=(int)$q->fetchColumn();$person['BlueTick']=(bool)$person['BlueTick'];
-   $q=$db->prepare('SELECT id FROM posts WHERE user_id=? AND is_deleted=0 AND reply_to_id IS NULL ORDER BY id DESC LIMIT 5');$q->execute([$pid]);$recent=[];foreach($q->fetchAll(PDO::FETCH_COLUMN) as $postId){$p=post($db,(int)$postId,(int)$u['id']);if($p)$recent[]=$p;}
-   out(['ok'=>true,'mode'=>'database_research','answer'=>'این گزارش از اطلاعات عمومی ثبت‌شده در BinerMention ساخته شده است؛ تیک آبی فقط وضعیت نشان داخل همین سامانه را نشان می‌دهد و به‌تنهایی اثبات هویت واقعی یا سمت سیاسی نیست.','profile'=>$person,'recent_posts'=>$recent,'evidence'=>['profile_record','platform_blue_tick','follower_count','recent_public_posts'],'limitations'=>['اطلاعات خارج از BinerMention در این نسخه جست‌وجو نمی‌شوند.','تعداد دنبال‌کنندگان و پست‌ها ممکن است با گذر زمان تغییر کند.']]);
+   $q=$db->prepare('SELECT id,username,display_name,bio,website,BlueTick,created_at FROM users WHERE username=? AND is_active=1');
+   $q->execute([strtolower(ltrim($handle,'@'))]);$profile=$q->fetch()?:null;
+   if($profile){
+    $pid=(int)$profile['id'];$q=$db->prepare('SELECT COUNT(*) FROM follows WHERE following_id=?');$q->execute([$pid]);$profile['followers_count']=(int)$q->fetchColumn();
+    $q=$db->prepare('SELECT COUNT(*) FROM posts WHERE user_id=? AND is_deleted=0 AND reply_to_id IS NULL');$q->execute([$pid]);$profile['posts_count']=(int)$q->fetchColumn();
+    $profile['BlueTick']=(bool)$profile['BlueTick'];
+    $q=$db->prepare('SELECT id FROM posts WHERE user_id=? AND is_deleted=0 AND reply_to_id IS NULL ORDER BY id DESC LIMIT 6');$q->execute([$pid]);
+    foreach($q->fetchAll(PDO::FETCH_COLUMN) as $postId){$p=post($db,(int)$postId,(int)$u['id']);if($p){$recent[]=$p;$sources[]=['type'=>'public_post','id'=>$p['id'],'username'=>$p['username'],'created_at'=>$p['created_at']];}}
+    $context['public_profile']=$profile;
+   }
   }
-  $term=trim(preg_replace('/[^\\p{L}\\p{N}#@_ ]/u',' ',$question));$q=$db->prepare('SELECT id FROM posts WHERE is_deleted=0 AND reply_to_id IS NULL AND body LIKE ? ORDER BY id DESC LIMIT 10');$q->execute(['%'.mb_substr($term,0,80).'%']);$found=[];foreach($q->fetchAll(PDO::FETCH_COLUMN) as $postId){$p=post($db,(int)$postId,(int)$u['id']);if($p)$found[]=$p;}
-  out(['ok'=>true,'mode'=>'database_research','answer'=>$found?'این موارد از جست‌وجوی متن پست‌های عمومی BinerMention پیدا شدند.':'در داده‌های عمومی BinerMention نتیجه‌ای برای این پرسش پیدا نشد.','results'=>$found,'limitations'=>['این نسخه دستیار، جست‌وجوی داده‌های داخلی انجام می‌دهد و به وب یا منابع بیرونی متصل نیست.']]);
+  $words=preg_split('/[^\\p{L}\\p{N}_]+/u',mb_strtolower($question))?:[];$words=array_values(array_unique(array_filter($words,fn($w)=>mb_strlen($w)>=3&&!in_array($w,['درباره','برای','چه','کدام','چطور','چگونه','این','اون','the','and','what','about','from','with','that','this','how','are','you','your'],true))));$words=array_slice($words,0,5);
+  $where=[];$params=[];foreach($words as $word){$where[]='body LIKE ?';$params[]='%'.$word.'%';}
+  $sql='SELECT id FROM posts WHERE is_deleted=0 AND reply_to_id IS NULL'.($where?' AND ('.implode(' OR ',$where).')':'').' ORDER BY id DESC LIMIT 8';
+  $q=$db->prepare($sql);$q->execute($params);$seen=array_fill_keys(array_map(fn($p)=>(int)$p['id'],$recent),true);
+  foreach($q->fetchAll(PDO::FETCH_COLUMN) as $postId){if(isset($seen[(int)$postId]))continue;$p=post($db,(int)$postId,(int)$u['id']);if($p){$recent[]=$p;$sources[]=['type'=>'public_post','id'=>$p['id'],'username'=>$p['username'],'created_at'=>$p['created_at']];}}
+  $recent=array_slice($recent,0,10);$context['public_posts']=array_map(fn($p)=>['id'=>$p['id'],'username'=>$p['username'],'body'=>$p['body'],'created_at'=>$p['created_at'],'likes_count'=>$p['likes_count'],'reposts_count'=>$p['reposts_count'],'replies_count'=>$p['replies_count']],$recent);
+  // Only metadata of groups the signed-in user belongs to is retrieved; private messages are never sent to the model.
+  try{$q=$db->prepare('SELECT g.id,g.title,g.description,(SELECT COUNT(*) FROM group_members gm2 WHERE gm2.group_id=g.id) members_count FROM bm_groups g JOIN group_members mine ON mine.group_id=g.id AND mine.user_id=? ORDER BY g.updated_at DESC LIMIT 20');$q->execute([$u['id']]);$groups=$q->fetchAll();$context['my_joined_groups']=$groups;foreach($groups as $g)$sources[]=['type'=>'joined_group_metadata','id'=>(int)$g['id'],'title'=>$g['title']];}catch(Throwable $ignored){$context['my_joined_groups']=[];}
+  $completion=biner_ai_completion($config,$question,$context);
+  if(!$completion['ok']){
+   $code=$completion['code']??'ai_provider_unavailable';
+   if($code==='ai_not_configured')err('مدل زبانی BinerAI هنوز روی سرور پیکربندی نشده است. کلید API و نام مدل باید فقط در config.local.php تنظیم شوند.',503,'ai_not_configured');
+   if($code==='curl_unavailable')err('افزونه cURL روی هاست فعال نیست؛ برای اتصال مدل زبانی باید آن را در PHP Selector فعال کنی.',503,'ai_provider_unavailable');
+   err('اتصال به مدل زبانی BinerAI برقرار نشد. تنظیمات ارائه‌دهنده و لاگ سرور را بررسی کن.',502,'ai_provider_unavailable');
+  }
+  $limitations=['پاسخ با مدل زبانی واقعی و بر اساس داده‌های بازیابی‌شده ساخته شده است.','منابع داخلی فقط شامل پست‌ها و پروفایل‌های عمومی و فرادادهٔ گروه‌هایی است که خودت عضو آن‌ها هستی.','پیام‌های خصوصی گروه‌ها و گفت‌وگوها به مدل ارسال نمی‌شوند.','نشان آبی فقط وضعیت داخل BinerMention است و هویت واقعی را اثبات نمی‌کند.'];
+  out(['ok'=>true,'mode'=>'llm_rag','answer'=>$completion['answer'],'model'=>$completion['model'],'profile'=>$profile,'recent_posts'=>$recent,'results'=>$recent,'sources'=>$sources,'limitations'=>$limitations]);
  }
  if($path==='/v1/groups'&&$method==='GET'){
   $u=auth($db);$q=$db->prepare('SELECT g.id,g.title,g.description,g.invite_code,g.created_at,(SELECT COUNT(*) FROM group_members gm WHERE gm.group_id=g.id) members_count,(SELECT body FROM group_messages WHERE group_id=g.id ORDER BY id DESC LIMIT 1) last_message FROM bm_groups g JOIN group_members mine ON mine.group_id=g.id AND mine.user_id=? ORDER BY g.updated_at DESC');$q->execute([$u['id']]);$groups=$q->fetchAll();foreach($groups as &$g){$g['id']=(int)$g['id'];$g['members_count']=(int)$g['members_count'];$g['invite_link']='bm:'.$g['invite_code'];}unset($g);out(['ok'=>true,'groups'=>$groups]);

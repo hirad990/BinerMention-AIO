@@ -103,7 +103,7 @@ class _UserProfilePageState extends State<UserProfilePage> {
         backgroundImage: url.startsWith('https://') ? ResizeImage.resizeIfNeeded(96, 96, NetworkImage(url)) : null,
         child: url.startsWith('https://')
             ? null
-            : Icon(Icons.person_rounded, size: radius, color: dark ? binerBlue : const Color(0xFF4776A7)),
+            : Icon(Icons.person_rounded, size: radius, color: dark ? binerBlue : Color(0xFF4776A7)),
       ),
     );
   }
@@ -208,7 +208,7 @@ class _UserProfilePageState extends State<UserProfilePage> {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Row(children: [
-            const Icon(Icons.bolt_rounded, color: binerBlue, size: 18),
+            Icon(Icons.bolt_rounded, color: binerBlue, size: 18),
             const SizedBox(width: 7),
             Expanded(
               child: BinerLocalizedText(display, maxLines: 1, overflow: TextOverflow.ellipsis,
@@ -324,9 +324,9 @@ class _UserProfilePageState extends State<UserProfilePage> {
                           child: Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
                             if (textOf('bio').isNotEmpty) BinerLocalizedText(textOf('bio'), style: const TextStyle(fontSize: 14, height: 1.5)),
                             if (textOf('website').isNotEmpty) Padding(padding: const EdgeInsets.only(top: 8), child: Row(children: [
-                              const Icon(Icons.link_rounded, size: 17, color: binerBlue),
+                              Icon(Icons.link_rounded, size: 17, color: binerBlue),
                               const SizedBox(width: 6),
-                              Expanded(child: BinerLocalizedText(textOf('website'), style: const TextStyle(color: binerBlue))),
+                              Expanded(child: BinerLocalizedText(textOf('website'), style: TextStyle(color: binerBlue))),
                             ])),
                             const SizedBox(height: 10),
                             Row(children: [
@@ -354,7 +354,7 @@ class _UserProfilePageState extends State<UserProfilePage> {
                         child: Padding(
                           padding: const EdgeInsets.fromLTRB(18, 18, 18, 8),
                           child: Row(children: [
-                            const Icon(Icons.grid_view_rounded, color: binerBlue),
+                            Icon(Icons.grid_view_rounded, color: binerBlue),
                             const SizedBox(width: 8),
                             BinerLocalizedText(binerText('پست‌ها',en:'Posts',ar:'المنشورات',tr:'Gönderiler'), style: const TextStyle(fontSize: 20, fontWeight: FontWeight.w900)),
                             const Spacer(),

@@ -13,4 +13,10 @@ return [
     'upload_url' => 'https://binercraft.ir/mention-api-pub/uploads',
     'max_upload_bytes' => 25 * 1024 * 1024,
     'token_ttl_days' => 30,
+
+    // OpenAI-compatible chat completions provider. Keep the key only in config.local.php.
+    'ai_api_url' => 'https://api.groq.com/openai/v1/chat/completions',
+    'ai_api_key' => '',
+    'ai_model' => '',
+    'ai_timeout_seconds' => 24,
 ];

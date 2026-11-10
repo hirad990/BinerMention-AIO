@@ -1,4 +1,5 @@
 import 'localized_text.dart';
+import 'insights_chart.dart';
 import 'package:flutter/material.dart';
 import 'api_client.dart';
 import 'ui_kit.dart';
@@ -46,7 +47,7 @@ class _InsightsPageState extends State<InsightsPage> {
           Icon(Icons.trending_up_rounded, color: color.withValues(alpha: .55), size: 17),
         ]),
         const SizedBox(height: 15),
-        AnimatedSwitcher(duration: const Duration(milliseconds: 220), child: BinerLocalizedText(_number(value), key: ValueKey(value?.toString() ?? 'empty'), style: const TextStyle(fontSize: 25, fontWeight: FontWeight.w900, letterSpacing: -.6))),
+        BinerLocalizedText(_number(value), style: const TextStyle(fontSize: 25, fontWeight: FontWeight.w900, letterSpacing: -.6)),
         const SizedBox(height: 4),
         BinerLocalizedText(title, style: TextStyle(fontSize: 11, color: Theme.of(context).colorScheme.onSurfaceVariant)),
       ]),
@@ -128,7 +129,10 @@ class _InsightsPageState extends State<InsightsPage> {
                   for (final item in entries) SizedBox(width: width, child: _stat(title: item.$1, value: stats[item.$2], icon: item.$3, color: item.$4)),
                 ]);
               }),
-              const SizedBox(height: 18),
+              const SizedBox(height: 20),
+              const BinerSectionHeader(title: 'روند بازدید', subtitle: 'تغییرات بازدید در هفت روز اخیر'),
+              InsightsTrendChart(points: data['trend'] as List? ?? const []),
+              const SizedBox(height: 20),
               BinerSectionHeader(title: 'زمان مطالعه', subtitle: 'مجموع زمان تعامل ثبت‌شده با پست‌های عمومی تو'),
               BinerSurfaceCard(child: Row(children: [
                 Container(width: 44, height: 44, decoration: BoxDecoration(color: const Color(0xFF9B8CFF).withValues(alpha: .12), borderRadius: BorderRadius.circular(14)), child: const Icon(Icons.schedule_rounded, color: Color(0xFF9B8CFF))),

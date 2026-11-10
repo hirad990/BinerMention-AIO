@@ -71,9 +71,24 @@ The Flutter feed records a `post_view` after a post is substantially visible and
 
 Fresh installations should import the complete `schema.sql`, which now includes the Insights and group-room tables. Existing installations should apply the additive migration above instead of re-importing the full schema.
 
+### Configure the real BinerAI language model
+
+BinerAI now uses an actual OpenAI-compatible chat-completions model. The PHP API retrieves public posts and public profile data, plus metadata for groups the signed-in user belongs to, then sends that bounded context to the configured model. Private group messages and private conversations are never included. If the provider is not configured or unavailable, the API returns an explicit error instead of generating a rule-based fake answer.
+
+Add these values to the server-only `config.local.php` (never commit the API key):
+
+```php
+'ai_api_url' => 'https://api.groq.com/openai/v1/chat/completions',
+'ai_api_key' => 'YOUR_PROVIDER_SECRET_KEY',
+'ai_model' => 'YOUR_PROVIDER_MODEL_ID',
+'ai_timeout_seconds' => 24,
+```
+
+Use a lightweight chat model supported by your provider. The endpoint and model are configurable, so another OpenAI-compatible provider can be used without changing the Flutter app. Enable PHP cURL on cPanel. The Android client checks `GET /v1/ai/status` and displays whether the model is configured. Keep the key only on the server; never add it to Flutter, web JavaScript, GitHub Actions artifacts or public repository files.
+
 ### BinerAI scope and verification
 
-This first BinerAI API iteration retrieves and summarizes records already available inside BinerMention. It does **not** browse the public web or independently verify a real-world political identity. A platform BlueTick is only the platform's own verification state; it must never be presented as proof of a person's real-world identity or public office. A future external research/LLM provider must be configured server-side with a secret key, source citations, rate limits and clear provenance before BinerAI can make web-wide claims.
+BinerAI now retrieves context from records available inside BinerMention and uses the configured external LLM to synthesize an answer. It does **not** browse the public web or independently verify a real-world political identity. A platform BlueTick is only the platform's own verification state; it must never be presented as proof of a person's real-world identity or public office. Public profile/post context and the signed-in user's joined-group metadata may be sent to the configured provider for inference; private group messages and private conversations are excluded. The API enforces a per-user AI request limit and returns source metadata for transparency.
 
 ## Register example
 

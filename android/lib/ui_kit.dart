@@ -10,8 +10,8 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:shimmer/shimmer.dart';
 import 'app_preferences.dart';
 
-const binerBlue = Color(0xFF54C8FF);
-const binerViolet = Color(0xFF9B8CFF);
+Color get binerBlue => BinerPreferences.instance.accent;
+const binerViolet = Color(0xFF7856FF);
 
 Color binerScaffoldBackground(BuildContext context) =>
     defaultTargetPlatform == TargetPlatform.iOS
@@ -19,15 +19,15 @@ Color binerScaffoldBackground(BuildContext context) =>
         : Theme.of(context).colorScheme.surface;
 
 /// Shared Material 3 theme with a Persian-friendly typeface and adaptive surfaces.
-ThemeData buildBinerTheme(Brightness brightness, {Color seedColor = binerBlue}) {
+ThemeData buildBinerTheme(Brightness brightness, {Color? seedColor}) {\n  final accentColor = seedColor ?? BinerPreferences.instance.accent;
   final dark = brightness == Brightness.dark;
   final ios = defaultTargetPlatform == TargetPlatform.iOS;
   final base = dark ? ThemeData.dark(useMaterial3: true) : ThemeData.light(useMaterial3: true);
-  final textColor = dark ? const Color(0xFFF4F7FF) : const Color(0xFF142033);
-  final pageSurface = dark ? const Color(0xFF0B111B) : const Color(0xFFF5F8FC);
-  final cardSurface = dark ? const Color(0xFF121C29) : const Color(0xFFFFFFFF);
-  final subtleSurface = dark ? const Color(0xFF182536) : const Color(0xFFEDF3FA);
-  final outline = dark ? const Color(0xFF26384D) : const Color(0xFFDCE5EF);
+  final textColor = dark ? const Color(0xFFE7E9EA) : const Color(0xFF0F1419);
+  final pageSurface = dark ? const Color(0xFF000000) : const Color(0xFFFFFFFF);
+  final cardSurface = dark ? const Color(0xFF000000) : const Color(0xFFFFFFFF);
+  final subtleSurface = dark ? const Color(0xFF16181C) : const Color(0xFFF7F9F9);
+  final outline = dark ? const Color(0xFF2F3336) : const Color(0xFFEFF3F4);
   final selectedTextTheme = switch (BinerPreferences.instance.fontFamily) {
     'system' => base.textTheme,
     'vazir' => GoogleFonts.getTextTheme('Vazirmatn', base.textTheme),
@@ -38,27 +38,29 @@ ThemeData buildBinerTheme(Brightness brightness, {Color seedColor = binerBlue}) 
     brightness: brightness,
     scaffoldBackgroundColor: defaultTargetPlatform == TargetPlatform.iOS ? Colors.transparent : pageSurface,
     colorScheme: ColorScheme.fromSeed(
-      seedColor: seedColor,
+      seedColor: accentColor,
       brightness: brightness,
       surface: pageSurface,
       surfaceContainer: cardSurface,
-      surfaceContainerLow: dark ? const Color(0xFF101A27) : const Color(0xFFFAFCFF),
+      surfaceContainerLow: dark ? const Color(0xFF000000) : const Color(0xFFFFFFFF),
       surfaceContainerHigh: subtleSurface,
       outline: outline,
       outlineVariant: outline.withValues(alpha: .7),
-      secondary: binerViolet,
+      primary: seedColor,
+      secondary: seedColor,
+      tertiary: seedColor,
     ),
     textTheme: selectedTextTheme.apply(
       bodyColor: textColor,
       displayColor: textColor,
     ),
     popupMenuTheme: PopupMenuThemeData(
-      color: dark ? const Color(0xFF182536) : const Color(0xFFFFFFFF),
+      color: dark ? const Color(0xFF16181C) : const Color(0xFFFFFFFF),
       elevation: 0,
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(18), side: BorderSide(color: seedColor.withValues(alpha: .38))),
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(18), side: BorderSide(color: accentColor.withValues(alpha: .38))),
       textStyle: TextStyle(color: dark ? const Color(0xFFF5F5F7) : const Color(0xFF142033)),
     ),
-    snackBarTheme: SnackBarThemeData(behavior: SnackBarBehavior.floating, backgroundColor: dark ? const Color(0xFF1C2B3D) : const Color(0xFF182B40), elevation: 0, shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(18), side: BorderSide(color: seedColor.withValues(alpha: .38))), insetPadding: const EdgeInsets.fromLTRB(16, 0, 16, 12), contentTextStyle: TextStyle(color: dark ? const Color(0xFFF5F5F7) : const Color(0xFF142033), fontWeight: FontWeight.w600)),
+    snackBarTheme: SnackBarThemeData(behavior: SnackBarBehavior.floating, backgroundColor: dark ? const Color(0xFF16181C) : const Color(0xFF0F1419), elevation: 0, shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(18), side: BorderSide(color: accentColor.withValues(alpha: .38))), insetPadding: const EdgeInsets.fromLTRB(16, 0, 16, 12), contentTextStyle: TextStyle(color: dark ? const Color(0xFFF5F5F7) : const Color(0xFF142033), fontWeight: FontWeight.w600)),
     splashFactory: InkRipple.splashFactory,
     pageTransitionsTheme: const PageTransitionsTheme(builders: {
       TargetPlatform.android: FadeUpwardsPageTransitionsBuilder(),
@@ -82,7 +84,7 @@ ThemeData buildBinerTheme(Brightness brightness, {Color seedColor = binerBlue}) 
       color: cardSurface,
       elevation: 0,
       margin: EdgeInsets.zero,
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(22), side: BorderSide(color: seedColor.withValues(alpha: .14))),
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16), side: BorderSide(color: outline)),
     ),
     dialogTheme: DialogThemeData(
       backgroundColor: cardSurface,
@@ -111,7 +113,7 @@ ThemeData buildBinerTheme(Brightness brightness, {Color seedColor = binerBlue}) 
     outlinedButtonTheme: OutlinedButtonThemeData(
       style: OutlinedButton.styleFrom(
         foregroundColor: seedColor,
-        side: BorderSide(color: seedColor.withValues(alpha: .38)),
+        side: BorderSide(color: accentColor.withValues(alpha: .38)),
         minimumSize: const Size(0, 46),
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(ios ? 22 : 15)),
         textStyle: TextStyle(fontWeight: ios ? FontWeight.w700 : FontWeight.w800),
@@ -135,7 +137,7 @@ ThemeData buildBinerTheme(Brightness brightness, {Color seedColor = binerBlue}) 
     ),
     tabBarTheme: TabBarThemeData(
       labelColor: seedColor,
-      unselectedLabelColor: dark ? const Color(0xFF9BAEC6) : const Color(0xFF65758B),
+      unselectedLabelColor: dark ? const Color(0xFF71767B) : const Color(0xFF536471),
       indicatorColor: seedColor,
       dividerColor: outline.withValues(alpha: .5),
       labelStyle: const TextStyle(fontWeight: FontWeight.w800),
@@ -158,11 +160,11 @@ ThemeData buildBinerTheme(Brightness brightness, {Color seedColor = binerBlue}) 
       contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
       border: OutlineInputBorder(
         borderRadius: BorderRadius.circular(ios ? 21 : 18),
-        borderSide: BorderSide(color: seedColor.withValues(alpha: .34)),
+        borderSide: BorderSide(color: accentColor.withValues(alpha: .34)),
       ),
       enabledBorder: OutlineInputBorder(
         borderRadius: BorderRadius.circular(ios ? 21 : 18),
-        borderSide: BorderSide(color: seedColor.withValues(alpha: .28)),
+        borderSide: BorderSide(color: accentColor.withValues(alpha: .28)),
       ),
       focusedBorder: OutlineInputBorder(
         borderRadius: BorderRadius.circular(ios ? 21 : 18),
@@ -176,7 +178,7 @@ ThemeData buildBinerTheme(Brightness brightness, {Color seedColor = binerBlue}) 
       labelTextStyle: WidgetStateProperty.resolveWith((states) => TextStyle(
         fontSize: 11,
         fontWeight: states.contains(WidgetState.selected) ? FontWeight.w700 : FontWeight.w500,
-        color: states.contains(WidgetState.selected) ? seedColor : (dark ? const Color(0xFF9BAEC6) : const Color(0xFF5C6C82)),
+        color: states.contains(WidgetState.selected) ? seedColor : (dark ? const Color(0xFF71767B) : const Color(0xFF536471)),
       )),
     ),
   );
@@ -190,7 +192,6 @@ class BinerBackdrop extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final dark = Theme.of(context).brightness == Brightness.dark;
-    final accent = BinerPreferences.instance.accent;
     return Stack(
       fit: StackFit.expand,
       children: [
@@ -200,49 +201,15 @@ class BinerBackdrop extends StatelessWidget {
               begin: Alignment.topLeft,
               end: Alignment.bottomRight,
               colors: dark
-                  ? const [Color(0xFF000000), Color(0xFF050509), Color(0xFF000000)]
-                  : const [Color(0xFFF4F8FF), Color(0xFFEAF3FF), Color(0xFFF9FAFF)],
+                  ? const [Color(0xFF000000), Color(0xFF000000), Color(0xFF000000)]
+                  : const [Color(0xFFFFFFFF), Color(0xFFFFFFFF), Color(0xFFFFFFFF)],
             ),
           ),
         ),
-        if (!BinerPreferences.instance.fastMode)
-          Positioned.fill(
-            child: CustomPaint(painter: _AmbientGlowPainter(dark: dark, accent: accent)),
-          ),
         child,
       ],
     );
   }
-}
-
-class _AmbientGlowPainter extends CustomPainter {
-  const _AmbientGlowPainter({required this.dark, required this.accent});
-  final bool dark;
-  final Color accent;
-
-  @override
-  void paint(Canvas canvas, Size size) {
-    final blue = Paint()
-      ..shader = RadialGradient(
-        colors: [
-          accent.withValues(alpha: dark ? .15 : .13),
-          accent.withValues(alpha: 0),
-        ],
-      ).createShader(Rect.fromCircle(center: Offset(size.width * .92, size.height * .08), radius: size.width * .72));
-    canvas.drawCircle(Offset(size.width * .92, size.height * .08), size.width * .72, blue);
-
-    final violet = Paint()
-      ..shader = RadialGradient(
-        colors: [
-          binerViolet.withValues(alpha: dark ? .13 : .10),
-          binerViolet.withValues(alpha: 0),
-        ],
-      ).createShader(Rect.fromCircle(center: Offset(size.width * .04, size.height * .72), radius: size.width * .62));
-    canvas.drawCircle(Offset(size.width * .04, size.height * .72), size.width * .62, violet);
-  }
-
-  @override
-  bool shouldRepaint(covariant _AmbientGlowPainter oldDelegate) => oldDelegate.dark != dark || oldDelegate.accent != accent;
 }
 
 /// Restrained blur surface for navigation and floating chrome.
@@ -348,7 +315,7 @@ class BinerSurfaceCard extends StatelessWidget {
     required this.child,
     this.padding = const EdgeInsets.all(16),
     this.margin = EdgeInsets.zero,
-    this.radius = 22,
+    this.radius = 16,
     this.accent,
     this.onTap,
   });

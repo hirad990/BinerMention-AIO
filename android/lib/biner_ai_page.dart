@@ -1,12 +1,11 @@
 import 'app_preferences.dart';
 import 'localized_text.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_animate/flutter_animate.dart';
 import 'api_client.dart';
 import 'ui_kit.dart';
 
-const _blue = Color(0xFF54C8FF);
-const _violet = Color(0xFF9B8CFF);
+Color get _blue => BinerPreferences.instance.accent;
+const _violet = Color(0xFF7856FF);
 
 class BinerAIPage extends StatefulWidget {
   const BinerAIPage({super.key, required this.api});
@@ -19,6 +18,13 @@ class _BinerAIPageState extends State<BinerAIPage> {
   final _scroll = ScrollController();
   final _history = <Map<String, dynamic>>[];
   bool _busy = false;
+  late Future<Map<String, dynamic>> _statusFuture;
+
+  @override
+  void initState() {
+    super.initState();
+    _statusFuture = widget.api.aiStatus();
+  }
 
   @override
   void dispose() { _controller.dispose(); _scroll.dispose(); super.dispose(); }
@@ -57,19 +63,20 @@ class _BinerAIPageState extends State<BinerAIPage> {
     final profile = data['profile'] is Map ? Map<String, dynamic>.from(data['profile'] as Map) : null;
     final recent = (data['recent_posts'] as List? ?? data['results'] as List? ?? const []).whereType<Map>().toList();
     final limitations = (data['limitations'] as List? ?? const []).map((x) => x.toString()).toList();
+    final sources = (data['sources'] as List? ?? const []).whereType<Map>().toList();
     return Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
       BinerLocalizedText(data['answer']?.toString() ?? 'پاسخی دریافت نشد.', style: const TextStyle(height: 1.7)),
       if (profile != null) ...[
         const SizedBox(height: 14),
         _glass(Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
           Row(children: [
-            const CircleAvatar(backgroundColor: Color(0x2239C5FF), child: Icon(Icons.person_rounded, color: _blue)),
+            CircleAvatar(backgroundColor: Color(0x2239C5FF), child: Icon(Icons.person_rounded, color: _blue)),
             const SizedBox(width: 10),
             Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
               BinerLocalizedText(profile['display_name']?.toString() ?? profile['username']?.toString() ?? 'کاربر', style: const TextStyle(fontWeight: FontWeight.w800)),
               BinerLocalizedText('@${profile['username'] ?? ''}', style: const TextStyle(color: Colors.grey, fontSize: 12)),
             ])),
-            if (profile['BlueTick'] == true) const Icon(Icons.verified_rounded, color: _blue),
+            if (profile['BlueTick'] == true) Icon(Icons.verified_rounded, color: _blue),
           ]),
           const Divider(height: 22),
           Wrap(spacing: 8, runSpacing: 8, children: [
@@ -85,17 +92,30 @@ class _BinerAIPageState extends State<BinerAIPage> {
         const BinerLocalizedText('پست‌های مرتبط / اخیر', style: TextStyle(fontWeight: FontWeight.w800)),
         const SizedBox(height: 8),
         ...recent.take(5).map((p) => _glass(Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-          BinerLocalizedText('@${p['username'] ?? ''}', style: const TextStyle(color: _blue, fontSize: 12, fontWeight: FontWeight.w700)),
+          BinerLocalizedText('@${p['username'] ?? ''}', style: TextStyle(color: _blue, fontSize: 12, fontWeight: FontWeight.w700)),
           const SizedBox(height: 5),
           BinerLocalizedText(p['body']?.toString() ?? '', maxLines: 5, overflow: TextOverflow.ellipsis),
           const SizedBox(height: 6),
           BinerLocalizedText('♥ ${p['likes_count'] ?? 0}   ↻ ${p['reposts_count'] ?? 0}', style: const TextStyle(color: Colors.grey, fontSize: 11)),
         ]))),
       ],
+      if (sources.isNotEmpty) ...[
+        const SizedBox(height: 12),
+        _glass(Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+          Row(children: [Icon(Icons.source_rounded, color: _blue, size: 17), SizedBox(width: 7), BinerLocalizedText('منابع استفاده‌شده', style: TextStyle(fontWeight: FontWeight.w800, fontSize: 12))]),
+          const SizedBox(height: 8),
+          for (final source in sources.take(12))
+            Padding(padding: const EdgeInsets.only(bottom: 5), child: Row(children: [
+              Icon(Icons.link_rounded, color: _blue, size: 14),
+              const SizedBox(width: 7),
+              Expanded(child: BinerLocalizedText(source['type'] == 'joined_group_metadata' ? (source['title']?.toString() ?? 'گروه') : '@' + (source['username']?.toString() ?? 'user') + ' · #' + (source['id']?.toString() ?? ''), style: const TextStyle(fontSize: 11, color: Colors.grey))),
+            ])),
+        ])),
+      ],
       if (limitations.isNotEmpty) ...[
         const SizedBox(height: 12),
         _glass(Row(crossAxisAlignment: CrossAxisAlignment.start, children: [
-          const Icon(Icons.info_outline_rounded, color: _blue, size: 18),
+          Icon(Icons.info_outline_rounded, color: _blue, size: 18),
           const SizedBox(width: 8),
           Expanded(child: BinerLocalizedText(limitations.join('\n'), style: const TextStyle(fontSize: 11, height: 1.6, color: Colors.grey))),
         ])),
@@ -113,27 +133,59 @@ class _BinerAIPageState extends State<BinerAIPage> {
   Widget build(BuildContext context) => Scaffold(backgroundColor: binerScaffoldBackground(context),
     appBar: AppBar(title: const Row(children: [Icon(Icons.auto_awesome_rounded, color: _violet), SizedBox(width: 9), BinerLocalizedText('BinerAI', style: TextStyle(fontWeight: FontWeight.w900))]), actions: [IconButton(tooltip: binerText('گفت‌وگوی تازه'), onPressed: _busy ? null : () => setState(_history.clear), icon: const Icon(Icons.add_comment_outlined))]),
     body: Column(children: [
+      FutureBuilder<Map<String, dynamic>>(
+        future: _statusFuture,
+        builder: (context, snapshot) {
+          if (!snapshot.hasData) return const SizedBox.shrink();
+          final configured = snapshot.data?['configured'] == true;
+          final statusColor = configured ? const Color(0xFF20B77A) : const Color(0xFFFFB547);
+          return Container(
+            width: double.infinity,
+            margin: const EdgeInsets.fromLTRB(14, 8, 14, 0),
+            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 9),
+            decoration: BoxDecoration(
+              color: statusColor.withValues(alpha: .10),
+              borderRadius: BorderRadius.circular(12),
+              border: Border.all(color: statusColor.withValues(alpha: .28)),
+            ),
+            child: Row(children: [
+              Icon(configured ? Icons.check_circle_rounded : Icons.settings_suggest_rounded, size: 17, color: statusColor),
+              const SizedBox(width: 8),
+              Expanded(child: BinerLocalizedText(
+                configured ? binerText('مدل زبانی پیکربندی شده') + ' · ' + (snapshot.data?['model']?.toString() ?? '') : binerText('مدل زبانی هنوز روی سرور تنظیم نشده است.'),
+                style: const TextStyle(fontSize: 11, fontWeight: FontWeight.w700),
+              )),
+              if (!configured) IconButton(
+                visualDensity: VisualDensity.compact,
+                tooltip: binerText('بررسی دوباره'),
+                onPressed: () => setState(() => _statusFuture = widget.api.aiStatus()),
+                icon: const Icon(Icons.refresh_rounded, size: 17),
+              ),
+            ]),
+          );
+        },
+      ),
       Expanded(child: _history.isEmpty ? ListView(physics: const AlwaysScrollableScrollPhysics(parent: BouncingScrollPhysics()), padding: const EdgeInsets.all(20), children: [
         const SizedBox(height: 28),
-        Center(child: Container(width: 82, height: 82, decoration: BoxDecoration(shape: BoxShape.circle, gradient: const LinearGradient(colors: [_blue, _violet]), boxShadow: [BoxShadow(color: _blue.withValues(alpha: .25), blurRadius: 30)]), child: const Icon(Icons.auto_awesome_rounded, color: Color(0xFF071426), size: 42))).animate().scale(curve: Curves.easeOutBack),
+        Center(child: Container(width: 82, height: 82, decoration: BoxDecoration(shape: BoxShape.circle, gradient: LinearGradient(colors: [_blue, _violet]), boxShadow: [BoxShadow(color: _blue.withValues(alpha: .25), blurRadius: 30)]), child: Icon(Icons.auto_awesome_rounded, color: Color(0xFF071426), size: 42))),
         const SizedBox(height: 18),
         const Center(child: BinerLocalizedText('پرسش کن؛ داده‌ها را شفاف ببین.', style: TextStyle(fontSize: 20, fontWeight: FontWeight.w900))),
         const SizedBox(height: 8),
-        const Center(child: BinerLocalizedText('BinerAI اطلاعات موجود در BinerMention، آمار حساب‌ها و پست‌های عمومی را بررسی می‌کند. این نسخه هنوز جست‌وجوی وب بیرونی ندارد.', textAlign: TextAlign.center, style: TextStyle(color: Colors.grey, height: 1.7))),
+        const Center(child: BinerLocalizedText('BinerAI با مدل زبانی واقعی و اطلاعات پست‌ها، پروفایل‌های عمومی و فرادادهٔ گروه‌هایی که عضو آن‌ها هستی پاسخ می‌دهد. پیام‌های خصوصی به مدل فرستاده نمی‌شوند.', textAlign: TextAlign.center, style: TextStyle(color: Colors.grey, height: 1.7))),
         const SizedBox(height: 24),
         for (final prompt in ['درباره @hirad990 چه اطلاعاتی در BinerMention ثبت شده؟', 'آخرین پست‌های @hirad990 را نشان بده', 'درباره این موضوع چه پست‌هایی منتشر شده؟'])
-          Padding(padding: const EdgeInsets.only(bottom: 9), child: OutlinedButton.icon(onPressed: _busy ? null : () => _ask(prompt), icon: const Icon(Icons.bolt_rounded), label: BinerLocalizedText(prompt), style: OutlinedButton.styleFrom(alignment: Alignment.centerLeft, padding: const EdgeInsets.all(14), side: BorderSide(color: _blue.withValues(alpha: .25))))),
+          Padding(padding: EdgeInsets.only(bottom: 9), child: OutlinedButton.icon(onPressed: _busy ? null : () => _ask(prompt), icon: Icon(Icons.bolt_rounded), label: BinerLocalizedText(prompt), style: OutlinedButton.styleFrom(alignment: Alignment.centerLeft, padding: EdgeInsets.all(14), side: BorderSide(color: _blue.withValues(alpha: .25))))),
       ]) : ListView(controller: _scroll, physics: const BouncingScrollPhysics(), padding: const EdgeInsets.fromLTRB(14, 14, 14, 22), children: [
         for (final item in _history)
           Padding(padding: const EdgeInsets.only(bottom: 12), child: item['role'] == 'user'
-            ? Align(alignment: AlignmentDirectional.centerEnd, child: Container(constraints: const BoxConstraints(maxWidth: 320), padding: const EdgeInsets.all(13), decoration: BoxDecoration(color: _blue.withValues(alpha: .14), borderRadius: BorderRadius.circular(18)), child: BinerLocalizedText(item['text'].toString())))
-            : Align(alignment: AlignmentDirectional.centerStart, child: Container(constraints: const BoxConstraints(maxWidth: 360), padding: const EdgeInsets.all(13), decoration: BoxDecoration(color: Theme.of(context).colorScheme.surface, border: Border.all(color: _blue.withValues(alpha: .18)), borderRadius: BorderRadius.circular(18)), child: item['role'] == 'error' ? BinerLocalizedText(item['text'].toString(), style: const TextStyle(color: Colors.redAccent)) : _answer(Map<String, dynamic>.from(item['data'] as Map))))),
-        if (_busy) const Padding(padding: EdgeInsets.all(16), child: Row(children: [SizedBox(width: 18, height: 18, child: CircularProgressIndicator(strokeWidth: 2, color: _blue)), SizedBox(width: 10), BinerLocalizedText('در حال بررسی داده‌ها…', style: TextStyle(color: Colors.grey))])),
+            ? Align(alignment: AlignmentDirectional.centerEnd, child: Container(constraints: BoxConstraints(maxWidth: 320), padding: EdgeInsets.all(13), decoration: BoxDecoration(color: _blue.withValues(alpha: .14), borderRadius: BorderRadius.circular(18)), child: BinerLocalizedText(item['text'].toString())))
+            : Align(alignment: AlignmentDirectional.centerStart, child: Container(constraints: BoxConstraints(maxWidth: 360), padding: EdgeInsets.all(13), decoration: BoxDecoration(color: Theme.of(context).colorScheme.surface, border: Border.all(color: _blue.withValues(alpha: .18)), borderRadius: BorderRadius.circular(18)), child: item['role'] == 'error' ? BinerLocalizedText(item['text'].toString(), style: TextStyle(color: Colors.redAccent)) : _answer(Map<String, dynamic>.from(item['data'] as Map))))),
+        if (_busy) Padding(padding: EdgeInsets.all(16), child: Row(children: [SizedBox(width: 18, height: 18, child: CircularProgressIndicator(strokeWidth: 2, color: _blue)), SizedBox(width: 10), BinerLocalizedText('در حال بررسی داده‌ها…', style: TextStyle(color: Colors.grey))])),
       ])),
       SafeArea(top: false, child: Padding(padding: const EdgeInsets.fromLTRB(12, 8, 12, 12), child: Row(children: [
         Expanded(child: TextField(controller: _controller, minLines: 1, maxLines: 4, onSubmitted: (_) => _ask(), decoration: InputDecoration(hintText: binerText('از BinerAI چیزی بپرس…'), filled: true, border: OutlineInputBorder(borderRadius: BorderRadius.circular(20), borderSide: BorderSide.none)))),
         const SizedBox(width: 8),
-        IconButton.filled(onPressed: _busy ? null : _ask, style: IconButton.styleFrom(backgroundColor: _blue, foregroundColor: const Color(0xFF071426)), icon: _busy ? const SizedBox(width: 18, height: 18, child: CircularProgressIndicator(strokeWidth: 2)) : const Icon(Icons.arrow_upward_rounded)),
+        IconButton.filled(onPressed: _busy ? null : _ask, style: IconButton.styleFrom(backgroundColor: _blue, foregroundColor: Color(0xFF071426)), icon: _busy ? SizedBox(width: 18, height: 18, child: CircularProgressIndicator(strokeWidth: 2)) : Icon(Icons.arrow_upward_rounded)),
       ]))),
     ]),
   );
