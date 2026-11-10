@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'dart:math' as math;
+import 'dart:typed_data';
 import 'dart:ui';
 import 'dart:convert';
 import 'package:flutter/services.dart';
@@ -1625,7 +1626,7 @@ class _LiveHomeState extends State<LiveHome> with WidgetsBindingObserver {
                 radius: 38, backgroundColor: Theme.of(context).scaffoldBackgroundColor,
                 backgroundImage: avatarFile == null && value(user, 'avatar_url').startsWith('https://') ? NetworkImage(value(user, 'avatar_url')) : null,
                 child: avatarFile != null
-                    ? FutureBuilder<List<int>>(future: avatarFile!.readAsBytes(), builder: (context, snapshot) => snapshot.hasData ? ClipOval(child: Image.memory(snapshot.data!, width: 76, height: 76, fit: BoxFit.cover)) : const Icon(Icons.person, size: 34, color: cBlue))
+                    ? FutureBuilder<Uint8List>(future: avatarFile!.readAsBytes(), builder: (context, snapshot) => snapshot.hasData ? ClipOval(child: Image.memory(snapshot.data!, width: 76, height: 76, fit: BoxFit.cover)) : const Icon(Icons.person, size: 34, color: cBlue))
                     : !value(user, 'avatar_url').startsWith('https://') ? const Icon(Icons.person, size: 34, color: cBlue) : null,
               ),
             ),
