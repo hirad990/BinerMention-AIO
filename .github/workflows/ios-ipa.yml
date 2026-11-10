@@ -1,0 +1,90 @@
+name: BinerMention iOS IPA
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'android/**'
+      - '.github/workflows/ios-ipa.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ios-ipa-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  build-ios-ipa:
+    name: Build BinerMention IPA
+    runs-on: macos-latest
+    timeout-minutes: 60
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          channel: stable
+          cache: true
+          cache-key: flutter-${{ runner.os }}-${{ hashFiles('android/pubspec.yaml') }}
+
+      - name: Generate iOS project
+        run: flutter create --platforms=ios --org ir.binercraft --project-name binerm_mention "$RUNNER_TEMP/binerm_mention"
+
+      - name: Inject Flutter application source
+        run: |
+          cp android/pubspec.yaml "$RUNNER_TEMP/binerm_mention/pubspec.yaml"
+          rm -rf "$RUNNER_TEMP/binerm_mention/lib" "$RUNNER_TEMP/binerm_mention/test"
+          cp -R android/lib "$RUNNER_TEMP/binerm_mention/lib"
+          if [ -d android/test ]; then cp -R android/test "$RUNNER_TEMP/binerm_mention/test"; fi
+          PLIST="$RUNNER_TEMP/binerm_mention/ios/Runner/Info.plist" python3 - <<'PY'
+          import os
+          import plistlib
+          from pathlib import Path
+
+          path = Path(os.environ["PLIST"])
+          with path.open("rb") as stream:
+              data = plistlib.load(stream)
+          data["CFBundleDisplayName"] = "BinerMention"
+          with path.open("wb") as stream:
+              plistlib.dump(data, stream)
+          PY
+
+      - name: Resolve dependencies
+        working-directory: ${{ runner.temp }}/binerm_mention
+        run: flutter pub get
+
+      - name: Analyze Dart code
+        working-directory: ${{ runner.temp }}/binerm_mention
+        run: flutter analyze --no-fatal-infos
+
+      - name: Run Flutter tests
+        working-directory: ${{ runner.temp }}/binerm_mention
+        run: flutter test --reporter expanded
+
+      - name: Build iOS app (unsigned)
+        working-directory: ${{ runner.temp }}/binerm_mention
+        run: flutter build ios --release --no-codesign
+
+      - name: Package a real IPA archive
+        run: |
+          set -euo pipefail
+          APP="$RUNNER_TEMP/binerm_mention/build/ios/iphoneos/Runner.app"
+          test -d "$APP"
+          mkdir -p "$RUNNER_TEMP/ipa/Payload"
+          ditto "$APP" "$RUNNER_TEMP/ipa/Payload/BinerMention.app"
+          cd "$RUNNER_TEMP/ipa"
+          /usr/bin/zip -qry "$RUNNER_TEMP/BinerMention-iOS.ipa" Payload
+          test -s "$RUNNER_TEMP/BinerMention-iOS.ipa"
+          /usr/bin/unzip -l "$RUNNER_TEMP/BinerMention-iOS.ipa" | grep -q 'Payload/BinerMention.app/'
+
+      - name: Upload IPA artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: BinerMention-iOS-IPA
+          path: ${{ runner.temp }}/BinerMention-iOS.ipa
+          if-no-files-found: error
+          retention-days: 14
