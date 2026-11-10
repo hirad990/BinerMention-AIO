@@ -353,6 +353,7 @@ const Map<String, List<String>> _uiTranslations = {
   'دنبال‌کردن': ['Follow', 'متابعة', 'Takip et'],
   'شناسه فایل از سرور دریافت نشد.': ['The server did not return the file ID.', 'لم يُرجع الخادم معرّف الملف.', 'Sunucu dosya kimliğini döndürmedi.'],
   'Creator Studio · ۱۰ ابزار': ['Creator Studio · 10 tools', 'استوديو المنشئ · 10 أدوات', 'İçerik stüdyosu · 10 araç'],
+  'حساب تأییدشده': ['Verified account', 'حساب موثّق', 'Doğrulanmış hesap'],
   'آمار از رویدادهای ثبت‌شده در BinerMention محاسبه می‌شود؛ هر شاخص باید قابل ردیابی و توضیح باشد.': ['Statistics are calculated from recorded BinerMention events; every metric should be traceable and explainable.', 'تُحسب الإحصاءات من أحداث BinerMention المسجلة؛ ويجب أن يكون كل مؤشر قابلاً للتتبع والتفسير.', 'İstatistikler kaydedilen BinerMention olaylarından hesaplanır; her ölçüm izlenebilir ve açıklanabilir olmalıdır.'],
   'انتخاب مقصد': ['Choose destination', 'اختر الوجهة', 'Hedef seç'],
 };
