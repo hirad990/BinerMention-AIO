@@ -2071,7 +2071,7 @@ class _ChatPageState extends State<ChatPage> {
       if (!mounted) return;
       Navigator.of(context, rootNavigator: true).pop();
       await showDialog<void>(context: context, builder: (ctx) => AlertDialog(
-        title: Text(translate ? binerText(binerText('ترجمه پیام',en:'Translate message',ar:'ترجمة الرسالة',tr:'Mesajı çevir'),en:'Message translation',ar:'ترجمة الرسالة',tr:'Mesaj çevirisi') : binerText('خلاصه پیام',en:'Message summary',ar:'ملخص الرسالة',tr:'Mesaj özeti')),
+        title: Text(translate ? binerText('ترجمه پیام',en:'Message translation',ar:'ترجمة الرسالة',tr:'Mesaj çevirisi') : binerText('خلاصه پیام',en:'Message summary',ar:'ملخص الرسالة',tr:'Mesaj özeti')),
         content: SelectableText(result),
         actions: [TextButton(onPressed: () => Navigator.pop(ctx), child: Text(binerText('بستن',en:'Close',ar:'إغلاق',tr:'Kapat')))],
       ));
