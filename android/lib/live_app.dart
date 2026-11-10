@@ -17,6 +17,7 @@ import 'ui_kit.dart';
 import 'profile_page.dart';
 import 'biner_ai_page.dart';
 import 'insights_page.dart';
+import 'creator_studio.dart';
 import 'group_rooms_page.dart';
 import 'media_editor.dart';
 import 'media_viewer.dart';
@@ -793,6 +794,9 @@ class _LiveHomeState extends State<LiveHome> with WidgetsBindingObserver {
   Future<void> openInsights() async {
     await Navigator.of(context).push(MaterialPageRoute<void>(builder: (_) => InsightsPage(api: widget.api)));
   }
+  Future<void> openCreatorStudio() async {
+    await Navigator.of(context).push(MaterialPageRoute<void>(builder: (_) => CreatorStudioPage(posts: List<Map<String, dynamic>>.unmodifiable(posts))));
+  }
   Future<void> openGroupRooms() async {
     await Navigator.of(context).push(MaterialPageRoute<void>(builder: (_) => GroupRoomsPage(api: widget.api)));
   }
@@ -1208,6 +1212,9 @@ class _LiveHomeState extends State<LiveHome> with WidgetsBindingObserver {
                 case 'insights':
                   openInsights();
                   break;
+                case 'studio':
+                  openCreatorStudio();
+                  break;
                 case 'theme':
                   widget.onToggleTheme();
                   break;
@@ -1230,6 +1237,15 @@ class _LiveHomeState extends State<LiveHome> with WidgetsBindingObserver {
                   contentPadding: EdgeInsets.zero,
                   leading: Icon(Icons.insights_rounded, color: cBlue),
                   title: Text('آمار حساب'),
+                ),
+              ),
+              const PopupMenuItem(
+                value: 'studio',
+                child: ListTile(
+                  dense: true,
+                  contentPadding: EdgeInsets.zero,
+                  leading: Icon(Icons.auto_awesome_mosaic_rounded, color: Color(0xFF66D6B2)),
+                  title: Text('Creator Studio · ۱۰ ابزار'),
                 ),
               ),
               PopupMenuItem(
