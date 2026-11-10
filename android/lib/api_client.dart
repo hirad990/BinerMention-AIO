@@ -85,8 +85,8 @@ class BinerApi {
     } catch (_) {
       throw ApiException(
         response.statusCode >= 500
-            ? binerText('سرور موقتاً در دسترس نیست.')
-            : binerText('پاسخ سرور معتبر نیست (HTTP ${response.statusCode}).'),
+            ? binerText(binerText('سرور موقتاً در دسترس نیست.'))
+            : binerText(binerText('پاسخ سرور معتبر نیست (HTTP ${response.statusCode}).')),
         statusCode: response.statusCode,
       );
     }
