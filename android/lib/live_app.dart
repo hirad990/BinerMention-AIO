@@ -1010,6 +1010,7 @@ class _LiveHomeState extends State<LiveHome> with WidgetsBindingObserver {
     final file = result['attachment'] as XFile?;
     if (pollOptions != null && (pollOptions.length < 2 || pollOptions.length > 4)) { toast(binerText('نظرسنجی باید ۲ تا ۴ گزینه داشته باشد.',en:'A poll needs 2 to 4 options.',ar:'يجب أن يحتوي الاستطلاع على خيارين إلى أربعة.',tr:'Anket 2-4 seçenek içermeli.')); return; }
     if (text.isEmpty && file == null && (pollOptions == null || pollOptions.isEmpty) && threadParts.isEmpty) return;
+    if (threadParts.isNotEmpty && text.isEmpty) { toast('بخش اول Thread نمی‌تواند خالی باشد.'); return; }
     if (threadParts.length > 9) { toast('هر Thread حداکثر ۱۰ بخش دارد.'); return; }
     if (threadParts.any((part) => part.length > 280)) { toast('هر بخش Thread حداکثر ۲۸۰ نویسه دارد.'); return; }
     if (threadParts.isNotEmpty && (pollOptions != null || file != null)) { toast('برای انتشار Thread چندبخشی، فعلاً نظرسنجی و رسانه را جداگانه منتشر کن.'); return; }
@@ -1030,7 +1031,7 @@ class _LiveHomeState extends State<LiveHome> with WidgetsBindingObserver {
         }
       }
       if (replyToId == null && mounted) setState(() => posts.insert(0, item));
-      if (replyToId != null && mounted) toast('کامنت ثبت شد.');
+      if (replyToId != null && mounted) toast('پاسخ ثبت شد.');
       if (threadParts.isNotEmpty && mounted) toast('Thread با ${threadParts.length + 1} بخش منتشر شد.');
     } on ApiException catch (e) {
       if (mounted) toast(e.message);
@@ -1153,7 +1154,7 @@ class _LiveHomeState extends State<LiveHome> with WidgetsBindingObserver {
           const SizedBox(height: 12),
           Container(width: 42, height: 4, decoration: BoxDecoration(color: cMuted.withValues(alpha: .5), borderRadius: BorderRadius.circular(4))),
           Padding(padding: const EdgeInsets.fromLTRB(18, 16, 18, 10), child: Row(children: [
-            const Expanded(child: BinerLocalizedText('کامنت‌های این پست', style: TextStyle(fontSize: 21, fontWeight: FontWeight.w800))),
+            const Expanded(child: BinerLocalizedText('Thread و پاسخ‌های این پست', style: TextStyle(fontSize: 21, fontWeight: FontWeight.w800))),
             BinerLocalizedText(fmt(post['replies_count'] ?? 0) + ' کامنت', style: const TextStyle(color: cMuted)),
           ])),
           Container(
