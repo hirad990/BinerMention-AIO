@@ -194,6 +194,11 @@ class _GroupChatPageState extends State<GroupChatPage> {
         setState(() => _loading = false);
         ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(e.message)));
       }
+    } catch (_) {
+      if (mounted) {
+        setState(() => _loading = false);
+        ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('بارگذاری پیام‌های گروه انجام نشد.')));
+      }
     }
   }
 
@@ -215,6 +220,8 @@ class _GroupChatPageState extends State<GroupChatPage> {
       await _load();
     } on ApiException catch (e) {
       if (mounted) ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(e.message)));
+    } catch (_) {
+      if (mounted) ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('ارسال پیام انجام نشد. دوباره تلاش کن.')));
     } finally {
       if (mounted) setState(() => _sending = false);
     }
