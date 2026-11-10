@@ -87,7 +87,7 @@ void main() {
     preferences.locale = const Locale('en');
     expect(binerText('اتاق‌های گفتگو'), 'Chat rooms');
     expect(binerText('پاسخ به پست #42'), 'Reply to post #42');
-    expect(binerText('۲ دقیقه'), '۲ دقیقه');
+    expect(binerText('2 دقیقه'), '۲ دقیقه');
 
     preferences.locale = const Locale('ar');
     expect(binerText('اتاق‌های گفتگو'), 'غرف المحادثة');
@@ -95,7 +95,7 @@ void main() {
 
     preferences.locale = const Locale('tr');
     expect(binerText('اتاق‌های گفتگو'), 'Sohbet odaları');
-    expect(binerText('۳ دقیقه'), '۳ dk');
+    expect(binerText('3 دقیقه'), '۳ dk');
 
     preferences.locale = const Locale('fa');
     expect(binerText('اتاق‌های گفتگو'), 'اتاق‌های گفتگو');
