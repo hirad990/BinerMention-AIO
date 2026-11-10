@@ -88,7 +88,20 @@ class _BinerLiveAppState extends State<BinerLiveApp> {
     theme: buildBinerTheme(Brightness.light, seedColor: BinerPreferences.instance.accent),
     darkTheme: buildBinerTheme(Brightness.dark, seedColor: BinerPreferences.instance.accent),
     themeMode: themeMode,
-    builder: (context, child) => Directionality(textDirection: BinerPreferences.instance.direction, child: BinerBackdrop(child: child ?? const SizedBox.shrink())),
+    builder: (context, child) {
+      final brightness = Theme.of(context).brightness;
+      return CupertinoTheme(
+        data: CupertinoThemeData(
+          brightness: brightness,
+          primaryColor: BinerPreferences.instance.accent,
+          scaffoldBackgroundColor: Theme.of(context).scaffoldBackgroundColor,
+        ),
+        child: Directionality(
+          textDirection: BinerPreferences.instance.direction,
+          child: BinerBackdrop(child: child ?? const SizedBox.shrink()),
+        ),
+      );
+    },
     home: AnimatedSwitcher(
       duration: const Duration(milliseconds: 320),
       switchInCurve: Curves.easeOutCubic,
@@ -2397,8 +2410,8 @@ class _BinerFloatingNavBar extends StatelessWidget {
             child: BackdropFilter(
               filter: ImageFilter.blur(sigmaX: 26, sigmaY: 26),
               child: Container(
-                height: 62,
-                padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 7),
+                height: 70,
+                padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 6),
                 decoration: BoxDecoration(
                   color: dark
                       ? const Color(0xD91B1B20)
@@ -2455,16 +2468,44 @@ class _BinerFloatingNavBar extends StatelessWidget {
                               ),
                               child: Center(
                                 child: AnimatedScale(
-                                  scale: selected ? 1.08 : 1,
+                                  scale: selected ? 1.06 : 1,
                                   duration: const Duration(milliseconds: 220),
-                                  child: Icon(
-                                    _icons[index],
-                                    size: 21,
-                                    color: selected
-                                        ? (dark
-                                            ? Colors.white
-                                            : const Color(0xFF172033))
-                                        : foreground.withValues(alpha: .72),
+                                  child: Column(
+                                    mainAxisSize: MainAxisSize.min,
+                                    mainAxisAlignment: MainAxisAlignment.center,
+                                    children: [
+                                      Icon(
+                                        _icons[index],
+                                        size: 20,
+                                        color: selected
+                                            ? (dark
+                                                ? Colors.white
+                                                : const Color(0xFF172033))
+                                            : foreground.withValues(alpha: .72),
+                                      ),
+                                      AnimatedSize(
+                                        duration: const Duration(milliseconds: 180),
+                                        curve: Curves.easeOutCubic,
+                                        child: selected
+                                            ? Padding(
+                                                padding: const EdgeInsets.only(top: 2),
+                                                child: BinerLocalizedText(
+                                                  labels[index],
+                                                  maxLines: 1,
+                                                  overflow: TextOverflow.ellipsis,
+                                                  style: TextStyle(
+                                                    fontSize: 9,
+                                                    height: 1,
+                                                    fontWeight: FontWeight.w700,
+                                                    color: dark
+                                                        ? Colors.white
+                                                        : const Color(0xFF172033),
+                                                  ),
+                                                ),
+                                              )
+                                            : const SizedBox(height: 0, width: 0),
+                                      ),
+                                    ],
                                   ),
                                 ),
                               ),
