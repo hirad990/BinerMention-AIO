@@ -90,7 +90,7 @@ class _BinerMediaViewerPageState extends State<_BinerMediaViewerPage> {
         actions: [
           if (widget.isVideo && _ready)
             PopupMenuButton<double>(
-              tooltip: 'سرعت پخش',
+              tooltip: binerText('سرعت پخش'),
               initialValue: _speed,
               onSelected: _setSpeed,
               itemBuilder: (_) => const [
