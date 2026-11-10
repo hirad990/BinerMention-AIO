@@ -363,7 +363,7 @@ class _CreatorStudioPageState extends State<CreatorStudioPage> {
         TextField(controller: controller, minLines: 3, maxLines: 6, onChanged: (_) => refresh(() {}), decoration: InputDecoration(hintText: binerText('متنت را وارد کن…'))),
         const SizedBox(height: 12),
         Wrap(spacing: 8, runSpacing: 8, children: [
-          _metric(binerText('نویسه'), '${text.length}'), _metric(binerText('واژه'), '${words.length}'), _metric(binerText('هشتگ'), '$hashtags'), _metric(binerText('منشن'), '$mentions'), _metric(binerText('مطالعه'), '${(words.length / 180).ceil()} دقیقه'),
+          _metric(binerText('نویسه'), '${text.length}'), _metric(binerText('واژه'), '${words.length}'), _metric(binerText('هشتگ'), '$hashtags'), _metric(binerText('منشن'), '$mentions'), _metric(binerText('مطالعه'), binerText('${(words.length / 180).ceil()} دقیقه')),
         ]),
       ]));
     }));
