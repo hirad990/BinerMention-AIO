@@ -225,27 +225,49 @@ String binerText(String fa, {String? en, String? ar, String? tr}) {
 }
 
 String? _translateDynamicBinerText(String value, String language) {
-  final minute = RegExp(r'^(\\d+) دقیقه$').firstMatch(value);
+  final minute = RegExp(r'^(\d+) دقیقه$').firstMatch(value);
   if (minute != null) {
     final n = minute.group(1)!;
     return switch (language) { 'en' => '$n min', 'ar' => '$n دقيقة', 'tr' => '$n dk', _ => null };
   }
-  final hour = RegExp(r'^(\\d+) ساعت$').firstMatch(value);
+  final hour = RegExp(r'^(\d+) ساعت$').firstMatch(value);
   if (hour != null) {
     final n = hour.group(1)!;
     return switch (language) { 'en' => '$n hr', 'ar' => '$n ساعة', 'tr' => '$n sa', _ => null };
   }
-  final chars = RegExp(r'^(\\d+) نویسه$').firstMatch(value);
+  final chars = RegExp(r'^(\d+) نویسه$').firstMatch(value);
   if (chars != null) {
     final n = chars.group(1)!;
     return switch (language) { 'en' => '$n characters', 'ar' => '$n حرفاً', 'tr' => '$n karakter', _ => null };
   }
-  final recent = RegExp(r'^(\\d+) پیام اخیر$').firstMatch(value);
+  final recent = RegExp(r'^(\d+) پیام اخیر$').firstMatch(value);
   if (recent != null) {
     final n = recent.group(1)!;
     return switch (language) { 'en' => '$n recent messages', 'ar' => '$n رسالة حديثة', 'tr' => '$n son mesaj', _ => null };
   }
-  final members = RegExp(r'^(\\d+) عضو  ·  (.*)$').firstMatch(value);
+  final reading = RegExp(r'^(\d+) واژه · حدود (\d+) دقیقه مطالعه$').firstMatch(value);
+  if (reading != null) {
+    final words = reading.group(1)!;
+    final minutes = reading.group(2)!;
+    return switch (language) {
+      'en' => '$words words · about $minutes min read',
+      'ar' => '$words كلمة · نحو $minutes دقيقة قراءة',
+      'tr' => '$words kelime · yaklaşık $minutes dk okuma',
+      _ => null,
+    };
+  }
+  final sections = RegExp(r'^(\d+) بخش آماده شد$').firstMatch(value);
+  if (sections != null) {
+    final n = sections.group(1)!;
+    return switch (language) { 'en' => '$n sections ready', 'ar' => 'تم تجهيز $n أقسام', 'tr' => '$n bölüm hazır', _ => null };
+  }
+  final section = RegExp(r'^بخش (\d+) · (\d+)/280$').firstMatch(value);
+  if (section != null) {
+    final n = section.group(1)!;
+    final chars = section.group(2)!;
+    return switch (language) { 'en' => 'Part $n · $chars/280', 'ar' => 'الجزء $n · $chars/280', 'tr' => 'Bölüm $n · $chars/280', _ => null };
+  }
+  final members = RegExp(r'^(\d+) عضو  ·  (.*)$').firstMatch(value);
   if (members != null) {
     final n = members.group(1)!;
     final last = members.group(2)!;
