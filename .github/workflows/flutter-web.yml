@@ -6,6 +6,10 @@ on:
     paths:
       - 'android/**'
       - '.github/workflows/flutter-web.yml'
+  pull_request:
+    paths:
+      - 'android/**'
+      - '.github/workflows/flutter-web.yml'
   workflow_dispatch:
 
 permissions:
@@ -40,6 +44,35 @@ jobs:
           rm -rf "$RUNNER_TEMP/binerm_mention/lib" "$RUNNER_TEMP/binerm_mention/test"
           cp -R android/lib "$RUNNER_TEMP/binerm_mention/lib"
           if [ -d android/test ]; then cp -R android/test "$RUNNER_TEMP/binerm_mention/test"; fi
+          mkdir -p "$RUNNER_TEMP/binerm_mention/web/icons"
+          cp android/web/manifest.json "$RUNNER_TEMP/binerm_mention/web/manifest.json"
+          cp android/web/binermention-push-sw.js "$RUNNER_TEMP/binerm_mention/web/binermention-push-sw.js"
+          cp f9ce68bae32185e60d387b03ed84504f88a5cc7c.png "$RUNNER_TEMP/binerm_mention/web/icons/icon-192.png"
+          cp f9ce68bae32185e60d387b03ed84504f88a5cc7c.png "$RUNNER_TEMP/binerm_mention/web/icons/icon-512.png"
+          python3 - "$RUNNER_TEMP/binerm_mention/web/index.html" <<'PY'
+          import sys
+          from pathlib import Path
+          p = Path(sys.argv[1])
+          html = p.read_text()
+          tags = '''
+          <meta name="mobile-web-app-capable" content="yes">
+          <meta name="apple-mobile-web-app-capable" content="yes">
+          <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+          <meta name="apple-mobile-web-app-title" content="BinerMention">
+          <link rel="apple-touch-icon" href="icons/icon-192.png">
+          <link rel="manifest" href="manifest.json">
+          <script>
+            if ('serviceWorker' in navigator) {
+              window.addEventListener('load', () => {
+                navigator.serviceWorker.register('binermention-push-sw.js', { scope: './' }).catch(console.error);
+              });
+            }
+          </script>
+          '''
+          if 'binermention-push-sw.js' not in html:
+              html = html.replace('</head>', tags + '\\n</head>')
+          p.write_text(html)
+          PY
 
       - name: Resolve Flutter dependencies
         working-directory: ${{ runner.temp }}/binerm_mention
@@ -66,6 +99,9 @@ jobs:
         run: |
           test -s "$RUNNER_TEMP/binerm_mention/build/web/index.html"
           test -s "$RUNNER_TEMP/binerm_mention/build/web/flutter_bootstrap.js"
+          test -s "$RUNNER_TEMP/binerm_mention/build/web/manifest.json"
+          test -s "$RUNNER_TEMP/binerm_mention/build/web/binermention-push-sw.js"
+          test -s "$RUNNER_TEMP/binerm_mention/build/web/icons/icon-512.png"
           mkdir -p "$RUNNER_TEMP/BinerMention-Web"
           cp -R "$RUNNER_TEMP/binerm_mention/build/web/." "$RUNNER_TEMP/BinerMention-Web/"
           cd "$RUNNER_TEMP"
