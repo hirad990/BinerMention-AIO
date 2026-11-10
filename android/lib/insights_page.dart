@@ -1,3 +1,4 @@
+import 'localized_text.dart';
 import 'package:flutter/material.dart';
 import 'api_client.dart';
 import 'ui_kit.dart';
@@ -45,9 +46,9 @@ class _InsightsPageState extends State<InsightsPage> {
           Icon(Icons.trending_up_rounded, color: color.withValues(alpha: .55), size: 17),
         ]),
         const SizedBox(height: 15),
-        AnimatedSwitcher(duration: const Duration(milliseconds: 220), child: Text(_number(value), key: ValueKey(value?.toString() ?? 'empty'), style: const TextStyle(fontSize: 25, fontWeight: FontWeight.w900, letterSpacing: -.6))),
+        AnimatedSwitcher(duration: const Duration(milliseconds: 220), child: BinerLocalizedText(_number(value), key: ValueKey(value?.toString() ?? 'empty'), style: const TextStyle(fontSize: 25, fontWeight: FontWeight.w900, letterSpacing: -.6))),
         const SizedBox(height: 4),
-        Text(title, style: TextStyle(fontSize: 11, color: Theme.of(context).colorScheme.onSurfaceVariant)),
+        BinerLocalizedText(title, style: TextStyle(fontSize: 11, color: Theme.of(context).colorScheme.onSurfaceVariant)),
       ]),
     );
   }
@@ -55,20 +56,20 @@ class _InsightsPageState extends State<InsightsPage> {
   Widget _miniMetric(IconData icon, String value) => Row(mainAxisSize: MainAxisSize.min, children: [
     Icon(icon, size: 15, color: Theme.of(context).colorScheme.onSurfaceVariant),
     const SizedBox(width: 5),
-    Text(value, style: TextStyle(fontSize: 11, color: Theme.of(context).colorScheme.onSurfaceVariant, fontWeight: FontWeight.w700)),
+    BinerLocalizedText(value, style: TextStyle(fontSize: 11, color: Theme.of(context).colorScheme.onSurfaceVariant, fontWeight: FontWeight.w700)),
   ]);
 
   Widget _topPost(Map post, int index) => BinerSurfaceCard(
     margin: const EdgeInsets.only(bottom: 9), padding: const EdgeInsets.all(15), radius: 19,
     child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
       Row(children: [
-        Container(width: 28, height: 28, alignment: Alignment.center, decoration: BoxDecoration(color: Theme.of(context).colorScheme.primary.withValues(alpha: .12), borderRadius: BorderRadius.circular(9)), child: Text('${index + 1}', style: TextStyle(color: Theme.of(context).colorScheme.primary, fontWeight: FontWeight.w900))),
+        Container(width: 28, height: 28, alignment: Alignment.center, decoration: BoxDecoration(color: Theme.of(context).colorScheme.primary.withValues(alpha: .12), borderRadius: BorderRadius.circular(9)), child: BinerLocalizedText('${index + 1}', style: TextStyle(color: Theme.of(context).colorScheme.primary, fontWeight: FontWeight.w900))),
         const SizedBox(width: 9),
-        Expanded(child: Text('@${post['username'] ?? 'user'}', style: TextStyle(color: Theme.of(context).colorScheme.primary, fontSize: 12, fontWeight: FontWeight.w800))),
+        Expanded(child: BinerLocalizedText('@${post['username'] ?? 'user'}', style: TextStyle(color: Theme.of(context).colorScheme.primary, fontSize: 12, fontWeight: FontWeight.w800))),
         const Icon(Icons.insights_rounded, size: 17, color: Colors.grey),
       ]),
       const SizedBox(height: 10),
-      Text(post['body']?.toString() ?? '', maxLines: 4, overflow: TextOverflow.ellipsis, style: const TextStyle(height: 1.55)),
+      BinerLocalizedText(post['body']?.toString() ?? '', maxLines: 4, overflow: TextOverflow.ellipsis, style: const TextStyle(height: 1.55)),
       const SizedBox(height: 12),
       Wrap(spacing: 16, runSpacing: 8, children: [
         _miniMetric(Icons.favorite_border_rounded, _number(post['likes_count'])),
@@ -78,8 +79,8 @@ class _InsightsPageState extends State<InsightsPage> {
     ]),
   );
 
-  @override Widget build(BuildContext context) => Scaffold(backgroundColor: Theme.of(context).colorScheme.surface,
-    appBar: AppBar(title: const Text('Biner Insights'), actions: [IconButton(tooltip: 'به‌روزرسانی آمار', onPressed: _reload, icon: const Icon(Icons.refresh_rounded))]),
+  @override Widget build(BuildContext context) => Scaffold(backgroundColor: binerScaffoldBackground(context),
+    appBar: AppBar(title: const BinerLocalizedText('Biner Insights'), actions: [IconButton(tooltip: 'به‌روزرسانی آمار', onPressed: _reload, icon: const Icon(Icons.refresh_rounded))]),
     body: FutureBuilder<Map<String, dynamic>>(
       future: _future,
       builder: (context, snapshot) {
@@ -87,7 +88,7 @@ class _InsightsPageState extends State<InsightsPage> {
         if (snapshot.hasError) return BinerEmptyState(
           icon: Icons.cloud_off_rounded, title: 'آمار بارگذاری نشد',
           description: 'اتصال به سرور یا دسترسی API را بررسی کن و دوباره تلاش کن.',
-          action: FilledButton.icon(onPressed: _reload, icon: const Icon(Icons.refresh_rounded), label: const Text('تلاش دوباره')),
+          action: FilledButton.icon(onPressed: _reload, icon: const Icon(Icons.refresh_rounded), label: const BinerLocalizedText('تلاش دوباره')),
         );
         final data = snapshot.data ?? const <String, dynamic>{};
         final stats = data['stats'] is Map ? Map<String, dynamic>.from(data['stats'] as Map) : <String, dynamic>{};
@@ -112,9 +113,9 @@ class _InsightsPageState extends State<InsightsPage> {
                   decoration: const BoxDecoration(gradient: LinearGradient(begin: Alignment.topLeft, end: Alignment.bottomRight, colors: [Color(0xFF102B45), Color(0xFF211A45)]), borderRadius: BorderRadius.all(Radius.circular(18))),
                   padding: const EdgeInsets.all(18),
                   child: const Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-                    Row(children: [Icon(Icons.insights_rounded, color: Color(0xFF54C8FF)), SizedBox(width: 9), Text('نمای کلی حساب', style: TextStyle(color: Colors.white, fontSize: 18, fontWeight: FontWeight.w900))]),
+                    Row(children: [Icon(Icons.insights_rounded, color: Color(0xFF54C8FF)), SizedBox(width: 9), BinerLocalizedText('نمای کلی حساب', style: TextStyle(color: Colors.white, fontSize: 18, fontWeight: FontWeight.w900))]),
                     SizedBox(height: 8),
-                    Text('آمار از رویدادهای ثبت‌شده در BinerMention محاسبه می‌شود؛ هر شاخص باید قابل ردیابی و توضیح باشد.', style: TextStyle(color: Colors.white70, height: 1.6, fontSize: 12)),
+                    BinerLocalizedText('آمار از رویدادهای ثبت‌شده در BinerMention محاسبه می‌شود؛ هر شاخص باید قابل ردیابی و توضیح باشد.', style: TextStyle(color: Colors.white70, height: 1.6, fontSize: 12)),
                   ]),
                 ),
               ),
@@ -133,8 +134,8 @@ class _InsightsPageState extends State<InsightsPage> {
                 Container(width: 44, height: 44, decoration: BoxDecoration(color: const Color(0xFF9B8CFF).withValues(alpha: .12), borderRadius: BorderRadius.circular(14)), child: const Icon(Icons.schedule_rounded, color: Color(0xFF9B8CFF))),
                 const SizedBox(width: 12),
                 Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-                  Text(_readingTime(stats['reading_time_ms']), style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w900)),
-                  Text('این شاخص از زمان فعال‌شدن ثبت رویدادها معتبر است.', style: TextStyle(color: Theme.of(context).colorScheme.onSurfaceVariant, fontSize: 11, height: 1.4)),
+                  BinerLocalizedText(_readingTime(stats['reading_time_ms']), style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w900)),
+                  BinerLocalizedText('این شاخص از زمان فعال‌شدن ثبت رویدادها معتبر است.', style: TextStyle(color: Theme.of(context).colorScheme.onSurfaceVariant, fontSize: 11, height: 1.4)),
                 ])),
               ])),
               const SizedBox(height: 20),
@@ -145,7 +146,7 @@ class _InsightsPageState extends State<InsightsPage> {
               BinerSurfaceCard(accent: const Color(0xFF9B8CFF), child: Row(crossAxisAlignment: CrossAxisAlignment.start, children: [
                 const Icon(Icons.verified_user_outlined, color: Color(0xFF9B8CFF), size: 20),
                 const SizedBox(width: 10),
-                Expanded(child: Text(data['transparency_note']?.toString() ?? 'آمار فقط از داده‌های ذخیره‌شده در سامانه محاسبه می‌شود.', style: TextStyle(color: Theme.of(context).colorScheme.onSurfaceVariant, fontSize: 11, height: 1.65))),
+                Expanded(child: BinerLocalizedText(data['transparency_note']?.toString() ?? 'آمار فقط از داده‌های ذخیره‌شده در سامانه محاسبه می‌شود.', style: TextStyle(color: Theme.of(context).colorScheme.onSurfaceVariant, fontSize: 11, height: 1.65))),
               ])),
             ],
           ),

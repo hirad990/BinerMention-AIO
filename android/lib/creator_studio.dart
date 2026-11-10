@@ -1,5 +1,8 @@
+import 'localized_text.dart';
 import 'dart:math' as math;
 import 'package:flutter/material.dart';
+import 'app_preferences.dart';
+import 'ui_kit.dart';
 import 'package:flutter/services.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -49,7 +52,7 @@ class _CreatorStudioPageState extends State<CreatorStudioPage> {
 
   void _toast(String message) {
     ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-      content: Text(message),
+      content: BinerLocalizedText(message),
       behavior: SnackBarBehavior.floating,
       backgroundColor: Theme.of(context).colorScheme.surfaceContainerHigh,
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
@@ -71,7 +74,7 @@ class _CreatorStudioPageState extends State<CreatorStudioPage> {
         child: Padding(
           padding: const EdgeInsets.all(20),
           child: Column(mainAxisSize: MainAxisSize.min, crossAxisAlignment: CrossAxisAlignment.stretch, children: [
-            Text(title, style: const TextStyle(fontSize: 19, fontWeight: FontWeight.w900)),
+            BinerLocalizedText(title, style: const TextStyle(fontSize: 19, fontWeight: FontWeight.w900)),
             const SizedBox(height: 14),
             TextField(
               controller: controller,
@@ -80,7 +83,7 @@ class _CreatorStudioPageState extends State<CreatorStudioPage> {
               maxLines: 8,
               maxLength: maxLength,
               decoration: InputDecoration(
-                hintText: 'اینجا بنویس…',
+                hintText: binerText('اینجا بنویس…'),
                 filled: true,
                 fillColor: Colors.white.withValues(alpha: .045),
                 border: OutlineInputBorder(borderRadius: BorderRadius.circular(16), borderSide: BorderSide.none),
@@ -88,9 +91,9 @@ class _CreatorStudioPageState extends State<CreatorStudioPage> {
             ),
             const SizedBox(height: 10),
             Row(children: [
-              Expanded(child: TextButton(onPressed: () => Navigator.pop(ctx), child: const Text('لغو'))),
+              Expanded(child: TextButton(onPressed: () => Navigator.pop(ctx), child: const BinerLocalizedText('لغو'))),
               const SizedBox(width: 8),
-              Expanded(child: FilledButton(onPressed: () => Navigator.pop(ctx, controller.text.trim()), child: const Text('ذخیره'))),
+              Expanded(child: FilledButton(onPressed: () => Navigator.pop(ctx, controller.text.trim()), child: const BinerLocalizedText('ذخیره'))),
             ]),
           ]),
         ),
@@ -112,15 +115,15 @@ class _CreatorStudioPageState extends State<CreatorStudioPage> {
           child: StatefulBuilder(builder: (ctx, refresh) => Column(mainAxisSize: MainAxisSize.min, children: [
             _handle(),
             const SizedBox(height: 12),
-            Row(children: [const Expanded(child: Text('گاوصندوق پیش‌نویس‌ها', style: TextStyle(fontSize: 19, fontWeight: FontWeight.w900))), _miniAction(Icons.add_rounded, 'پیش‌نویس تازه', () => Navigator.pop(ctx, 'new'))]),
+            Row(children: [const Expanded(child: BinerLocalizedText('گاوصندوق پیش‌نویس‌ها', style: TextStyle(fontSize: 19, fontWeight: FontWeight.w900))), _miniAction(Icons.add_rounded, 'پیش‌نویس تازه', () => Navigator.pop(ctx, 'new'))]),
             const SizedBox(height: 12),
-            if (drafts.isEmpty) const Padding(padding: EdgeInsets.all(22), child: Text('هنوز پیش‌نویسی ذخیره نکردی.', style: TextStyle(color: Colors.white60))),
+            if (drafts.isEmpty) const Padding(padding: EdgeInsets.all(22), child: BinerLocalizedText('هنوز پیش‌نویسی ذخیره نکردی.', style: TextStyle(color: Colors.white60))),
             ...List.generate(drafts.length, (i) => Container(
               margin: const EdgeInsets.only(bottom: 8),
               decoration: BoxDecoration(color: Colors.white.withValues(alpha: .045), borderRadius: BorderRadius.circular(16)),
               child: ListTile(
-                title: Text(drafts[i], maxLines: 2, overflow: TextOverflow.ellipsis),
-                subtitle: Text('${drafts[i].length} نویسه', style: const TextStyle(color: Colors.white54, fontSize: 11)),
+                title: BinerLocalizedText(drafts[i], maxLines: 2, overflow: TextOverflow.ellipsis),
+                subtitle: BinerLocalizedText('${drafts[i].length} نویسه', style: const TextStyle(color: Colors.white54, fontSize: 11)),
                 onTap: () => Navigator.pop(ctx, 'edit:$i'),
                 trailing: IconButton(onPressed: () { drafts.removeAt(i); _persist('creator_drafts_v1', drafts); refresh(() {}); }, icon: const Icon(Icons.delete_outline, color: Color(0xFFFF8293))),
               ),
@@ -149,7 +152,7 @@ class _CreatorStudioPageState extends State<CreatorStudioPage> {
       'آزمایشگاه هشتگ',
       'موضوع یا چند کلمه وارد کن؛ هشتگ‌های پیشنهادی به‌صورت محلی ساخته می‌شوند.',
       Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
-        TextField(controller: controller, onChanged: (_) => refresh(() {}), decoration: const InputDecoration(hintText: 'مثلاً برنامه‌نویسی، تکنولوژی، هنر')),
+        TextField(controller: controller, onChanged: (_) => refresh(() {}), decoration: InputDecoration(hintText: binerText('مثلاً برنامه‌نویسی، تکنولوژی، هنر'))),
         const SizedBox(height: 12),
         if (result.isNotEmpty) SelectableText(result, style: const TextStyle(color: _blue, height: 1.8, fontWeight: FontWeight.w700)),
         _primary('ساخت هشتگ', () {
@@ -170,7 +173,7 @@ class _CreatorStudioPageState extends State<CreatorStudioPage> {
       'کارگاه ویرایش متن',
       'متن را مرتب کن و نسخهٔ تمیزشده را کپی کن.',
       Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
-        TextField(controller: controller, minLines: 3, maxLines: 6, decoration: const InputDecoration(hintText: 'متن خودت را وارد کن…')),
+        TextField(controller: controller, minLines: 3, maxLines: 6, decoration: InputDecoration(hintText: binerText('متن خودت را وارد کن…'))),
         const SizedBox(height: 10),
         Wrap(spacing: 8, runSpacing: 8, children: [
           _chip('پاک‌سازی فاصله‌ها', () => output = controller.text.replaceAll(RegExp(r'[ \t]+'), ' ').replaceAll(RegExp(r'\n{3,}'), '\n\n').trim(), () => refresh(() {})),
@@ -188,11 +191,11 @@ class _CreatorStudioPageState extends State<CreatorStudioPage> {
       padding: const EdgeInsets.all(18),
       child: Column(mainAxisSize: MainAxisSize.min, children: [
         _handle(), const SizedBox(height: 12),
-        const Align(alignment: Alignment.centerRight, child: Text('کتابخانهٔ پاسخ‌های آماده', style: TextStyle(fontSize: 19, fontWeight: FontWeight.w900))),
+        const Align(alignment: Alignment.centerRight, child: BinerLocalizedText('کتابخانهٔ پاسخ‌های آماده', style: TextStyle(fontSize: 19, fontWeight: FontWeight.w900))),
         const SizedBox(height: 10),
         ...List.generate(snippets.length, (i) => ListTile(
           contentPadding: EdgeInsets.zero,
-          title: Text(snippets[i], maxLines: 2, overflow: TextOverflow.ellipsis),
+          title: BinerLocalizedText(snippets[i], maxLines: 2, overflow: TextOverflow.ellipsis),
           trailing: IconButton(onPressed: () => Navigator.pop(ctx, 'copy:$i'), icon: const Icon(Icons.copy_rounded, color: _blue)),
           onTap: () => Navigator.pop(ctx, 'copy:$i'),
         )),
@@ -214,11 +217,11 @@ class _CreatorStudioPageState extends State<CreatorStudioPage> {
       'فیلتر واژه‌های دلخواه',
       'واژه‌هایی که نمی‌خواهی در فید ببینی ذخیره کن. این فهرست آمادهٔ اتصال به فیلتر فید است.',
       Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
-        TextField(controller: controller, decoration: const InputDecoration(hintText: 'یک واژه یا عبارت')),
+        TextField(controller: controller, decoration: InputDecoration(hintText: binerText('یک واژه یا عبارت'))),
         const SizedBox(height: 8),
         _primary('افزودن واژه', () { final word = controller.text.trim(); if (word.isNotEmpty && !mutedWords.contains(word)) { setState(() => mutedWords.add(word)); _persist('creator_muted_words_v1', mutedWords); controller.clear(); refresh(() {}); } }),
         const SizedBox(height: 8),
-        Wrap(spacing: 6, runSpacing: 6, children: mutedWords.map((word) => InputChip(label: Text(word), onDeleted: () { setState(() => mutedWords.remove(word)); _persist('creator_muted_words_v1', mutedWords); refresh(() {}); })).toList()),
+        Wrap(spacing: 6, runSpacing: 6, children: mutedWords.map((word) => InputChip(label: BinerLocalizedText(word), onDeleted: () { setState(() => mutedWords.remove(word)); _persist('creator_muted_words_v1', mutedWords); refresh(() {}); })).toList()),
       ]),
     )));
     controller.dispose();
@@ -230,21 +233,21 @@ class _CreatorStudioPageState extends State<CreatorStudioPage> {
       'حالت مطالعهٔ متمرکز',
       'متن یک پست را اینجا قرار بده تا بدون شلوغی و با خوانایی بیشتر نمایش داده شود.',
       Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
-        TextField(controller: controller, minLines: 3, maxLines: 6, decoration: const InputDecoration(hintText: 'متن پست…')),
+        TextField(controller: controller, minLines: 3, maxLines: 6, decoration: InputDecoration(hintText: binerText('متن پست…'))),
         _primary('شروع مطالعه', () => Navigator.pop(ctx, controller.text.trim())),
       ]),
     ));
     controller.dispose();
     if (text == null || text.isEmpty || !mounted) return;
     await showDialog<void>(context: context, builder: (ctx) => Dialog(
-      backgroundColor: Theme.of(context).colorScheme.surface,
+      backgroundColor: binerScaffoldBackground(context),
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(26), side: BorderSide(color: _blue.withValues(alpha: .25))),
       child: Padding(padding: const EdgeInsets.all(24), child: Column(mainAxisSize: MainAxisSize.min, children: [
         const Icon(Icons.menu_book_rounded, color: _blue, size: 30),
         const SizedBox(height: 16),
         SelectableText(text, textAlign: TextAlign.start, style: const TextStyle(fontSize: 19, height: 1.9, letterSpacing: .1)),
         const SizedBox(height: 16),
-        Text('${text.split(RegExp(r'\s+')).length} واژه · حدود ${(text.split(RegExp(r'\s+')).length / 180).ceil()} دقیقه مطالعه', style: const TextStyle(color: Colors.white54, fontSize: 11)),
+        BinerLocalizedText('${text.split(RegExp(r'\s+')).length} واژه · حدود ${(text.split(RegExp(r'\s+')).length / 180).ceil()} دقیقه مطالعه', style: const TextStyle(color: Colors.white54, fontSize: 11)),
       ])),
     ));
   }
@@ -255,11 +258,11 @@ class _CreatorStudioPageState extends State<CreatorStudioPage> {
       'استودیوی بیوگرافی',
       'بیوی کوتاه پروفایلت را بنویس، پیش‌نمایش بگیر و کپی کن.',
       Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
-        TextField(controller: controller, maxLength: 160, minLines: 2, maxLines: 4, onChanged: (_) => refresh(() {}), decoration: const InputDecoration(hintText: 'علاقه‌مندی‌ها، تخصص‌ها و لینک‌ها…')),
+        TextField(controller: controller, maxLength: 160, minLines: 2, maxLines: 4, onChanged: (_) => refresh(() {}), decoration: InputDecoration(hintText: binerText('علاقه‌مندی‌ها، تخصص‌ها و لینک‌ها…'))),
         Container(padding: const EdgeInsets.all(14), decoration: BoxDecoration(color: Colors.white.withValues(alpha: .05), borderRadius: BorderRadius.circular(16)), child: Row(crossAxisAlignment: CrossAxisAlignment.start, children: [
           const CircleAvatar(backgroundColor: Color(0xFF18314B), child: Icon(Icons.person_rounded, color: _blue)),
           const SizedBox(width: 12),
-          Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [const Text('پیش‌نمایش پروفایل', style: TextStyle(fontWeight: FontWeight.w800)), const SizedBox(height: 6), Text(controller.text.isEmpty ? 'بیوی تو اینجا نمایش داده می‌شود.' : controller.text, style: const TextStyle(color: Colors.white70, height: 1.5))])),
+          Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [const BinerLocalizedText('پیش‌نمایش پروفایل', style: TextStyle(fontWeight: FontWeight.w800)), const SizedBox(height: 6), BinerLocalizedText(controller.text.isEmpty ? 'بیوی تو اینجا نمایش داده می‌شود.' : controller.text, style: const TextStyle(color: Colors.white70, height: 1.5))])),
         ])),
         _secondary('کپی بیو', () => _copy(controller.text.trim())),
       ]),
@@ -283,7 +286,7 @@ class _CreatorStudioPageState extends State<CreatorStudioPage> {
       'مولد ایدهٔ پست',
       'برای شروع نوشتن، یک جرقهٔ تازه بگیر.',
       Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
-        Container(padding: const EdgeInsets.all(18), decoration: BoxDecoration(color: Theme.of(context).colorScheme.surfaceContainerHigh, borderRadius: BorderRadius.circular(18), border: Border.all(color: Theme.of(context).colorScheme.outlineVariant)), child: Text(_idea, style: const TextStyle(fontSize: 17, height: 1.6, fontWeight: FontWeight.w700))),
+        Container(padding: const EdgeInsets.all(18), decoration: BoxDecoration(color: Theme.of(context).colorScheme.surfaceContainerHigh, borderRadius: BorderRadius.circular(18), border: Border.all(color: Theme.of(context).colorScheme.outlineVariant)), child: BinerLocalizedText(_idea, style: const TextStyle(fontSize: 17, height: 1.6, fontWeight: FontWeight.w700))),
         const SizedBox(height: 12),
         _primary('ایدهٔ بعدی', () { setState(() => _idea = ideas[random.nextInt(ideas.length)]); refresh(() {}); }),
         _secondary('کپی ایده', () => _copy(_idea)),
@@ -299,7 +302,7 @@ class _CreatorStudioPageState extends State<CreatorStudioPage> {
       'برنامه‌ریز رشته‌پست',
       'یک متن بلند را به بخش‌های حداکثر ۲۸۰ نویسه‌ای تقسیم کن.',
       Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
-        TextField(controller: controller, minLines: 3, maxLines: 6, maxLength: 10000, decoration: const InputDecoration(hintText: 'متن کامل رشته‌پست…')),
+        TextField(controller: controller, minLines: 3, maxLines: 6, maxLength: 10000, decoration: InputDecoration(hintText: binerText('متن کامل رشته‌پست…'))),
         _primary('تقسیم متن', () {
           final words = controller.text.trim().split(RegExp(r'\s+')).where((e) => e.isNotEmpty);
           parts = [];
@@ -313,8 +316,8 @@ class _CreatorStudioPageState extends State<CreatorStudioPage> {
           refresh(() {});
         }),
         if (parts.isNotEmpty) ...[
-          Text('${parts.length} بخش آماده شد', style: const TextStyle(color: _blue, fontWeight: FontWeight.w800)),
-          SizedBox(height: 220, child: ListView.builder(itemCount: parts.length, itemBuilder: (_, i) => Container(margin: const EdgeInsets.only(top: 8), padding: const EdgeInsets.all(12), decoration: BoxDecoration(color: Colors.white.withValues(alpha: .05), borderRadius: BorderRadius.circular(14)), child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [Text('بخش ${i + 1} · ${parts[i].length}/280', style: const TextStyle(color: _blue, fontSize: 11)), const SizedBox(height: 5), Text(parts[i])])))),
+          BinerLocalizedText('${parts.length} بخش آماده شد', style: const TextStyle(color: _blue, fontWeight: FontWeight.w800)),
+          SizedBox(height: 220, child: ListView.builder(itemCount: parts.length, itemBuilder: (_, i) => Container(margin: const EdgeInsets.only(top: 8), padding: const EdgeInsets.all(12), decoration: BoxDecoration(color: Colors.white.withValues(alpha: .05), borderRadius: BorderRadius.circular(14)), child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [BinerLocalizedText('بخش ${i + 1} · ${parts[i].length}/280', style: const TextStyle(color: _blue, fontSize: 11)), const SizedBox(height: 5), BinerLocalizedText(parts[i])])))),
           _secondary('کپی کل رشته‌پست', () => _copy(parts.asMap().entries.map((e) => '${e.value}\n(${e.key + 1}/${parts.length})').join('\n\n'))),
         ],
       ]),
@@ -323,18 +326,18 @@ class _CreatorStudioPageState extends State<CreatorStudioPage> {
   }
 
   Widget _handle() => Center(child: Container(width: 42, height: 4, decoration: BoxDecoration(color: Colors.white24, borderRadius: BorderRadius.circular(8))));
-  Widget _miniAction(IconData icon, String label, VoidCallback onTap) => InkWell(onTap: onTap, borderRadius: BorderRadius.circular(12), child: Container(padding: const EdgeInsets.symmetric(horizontal: 11, vertical: 8), decoration: BoxDecoration(color: _blue.withValues(alpha: .12), borderRadius: BorderRadius.circular(12)), child: Row(mainAxisSize: MainAxisSize.min, children: [Icon(icon, color: _blue, size: 17), const SizedBox(width: 5), Text(label, style: const TextStyle(color: _blue, fontSize: 11, fontWeight: FontWeight.w800))])));
-  Widget _primary(String label, VoidCallback onTap) => Padding(padding: const EdgeInsets.only(top: 12), child: SizedBox(height: 46, child: FilledButton(onPressed: onTap, style: FilledButton.styleFrom(backgroundColor: _blue, foregroundColor: _ink, shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14))), child: Text(label, style: const TextStyle(fontWeight: FontWeight.w900)))));
-  Widget _secondary(String label, VoidCallback onTap) => Padding(padding: const EdgeInsets.only(top: 8), child: OutlinedButton(onPressed: onTap, style: OutlinedButton.styleFrom(foregroundColor: _blue, side: BorderSide(color: _blue.withValues(alpha: .35)), shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14))), child: Text(label)));
-  Widget _chip(String label, VoidCallback onTap, VoidCallback refresh) => ActionChip(label: Text(label, style: const TextStyle(fontSize: 11)), onPressed: () { onTap(); refresh(); }, backgroundColor: _blue.withValues(alpha: .10), side: BorderSide(color: _blue.withValues(alpha: .2)));
+  Widget _miniAction(IconData icon, String label, VoidCallback onTap) => InkWell(onTap: onTap, borderRadius: BorderRadius.circular(12), child: Container(padding: const EdgeInsets.symmetric(horizontal: 11, vertical: 8), decoration: BoxDecoration(color: _blue.withValues(alpha: .12), borderRadius: BorderRadius.circular(12)), child: Row(mainAxisSize: MainAxisSize.min, children: [Icon(icon, color: _blue, size: 17), const SizedBox(width: 5), BinerLocalizedText(label, style: const TextStyle(color: _blue, fontSize: 11, fontWeight: FontWeight.w800))])));
+  Widget _primary(String label, VoidCallback onTap) => Padding(padding: const EdgeInsets.only(top: 12), child: SizedBox(height: 46, child: FilledButton(onPressed: onTap, style: FilledButton.styleFrom(backgroundColor: _blue, foregroundColor: _ink, shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14))), child: BinerLocalizedText(label, style: const TextStyle(fontWeight: FontWeight.w900)))));
+  Widget _secondary(String label, VoidCallback onTap) => Padding(padding: const EdgeInsets.only(top: 8), child: OutlinedButton(onPressed: onTap, style: OutlinedButton.styleFrom(foregroundColor: _blue, side: BorderSide(color: _blue.withValues(alpha: .35)), shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14))), child: BinerLocalizedText(label)));
+  Widget _chip(String label, VoidCallback onTap, VoidCallback refresh) => ActionChip(label: BinerLocalizedText(label, style: const TextStyle(fontSize: 11)), onPressed: () { onTap(); refresh(); }, backgroundColor: _blue.withValues(alpha: .10), side: BorderSide(color: _blue.withValues(alpha: .2)));
   Widget _toolDialog(String title, String subtitle, Widget child) => Dialog(
     backgroundColor: Theme.of(context).colorScheme.surfaceContainer,
     shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24), side: BorderSide(color: _blue.withValues(alpha: .24))),
     child: Padding(padding: const EdgeInsets.all(20), child: SingleChildScrollView(child: Column(mainAxisSize: MainAxisSize.min, crossAxisAlignment: CrossAxisAlignment.stretch, children: [
-      Text(title, style: const TextStyle(fontSize: 20, fontWeight: FontWeight.w900)),
-      const SizedBox(height: 6), Text(subtitle, style: const TextStyle(color: Colors.white60, fontSize: 12, height: 1.5)),
+      BinerLocalizedText(title, style: const TextStyle(fontSize: 20, fontWeight: FontWeight.w900)),
+      const SizedBox(height: 6), BinerLocalizedText(subtitle, style: const TextStyle(color: Colors.white60, fontSize: 12, height: 1.5)),
       const SizedBox(height: 16), child,
-      Align(alignment: Alignment.centerLeft, child: TextButton(onPressed: () => Navigator.pop(context), child: const Text('بستن'))),
+      Align(alignment: Alignment.centerLeft, child: TextButton(onPressed: () => Navigator.pop(context), child: const BinerLocalizedText('بستن'))),
     ]))),
   );
 
@@ -359,7 +362,7 @@ class _CreatorStudioPageState extends State<CreatorStudioPage> {
       final hashtags = RegExp(r'#[\p{L}\p{N}_]+', unicode: true).allMatches(text).length;
       final mentions = RegExp(r'@[A-Za-z0-9_]+').allMatches(text).length;
       return _toolDialog('تحلیل‌گر متن', 'آمار زندهٔ نوشته؛ همه‌چیز روی خود دستگاه محاسبه می‌شود.', Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
-        TextField(controller: controller, minLines: 3, maxLines: 6, onChanged: (_) => refresh(() {}), decoration: const InputDecoration(hintText: 'متنت را وارد کن…')),
+        TextField(controller: controller, minLines: 3, maxLines: 6, onChanged: (_) => refresh(() {}), decoration: InputDecoration(hintText: binerText('متنت را وارد کن…'))),
         const SizedBox(height: 12),
         Wrap(spacing: 8, runSpacing: 8, children: [
           _metric('نویسه', '${text.length}'), _metric('واژه', '${words.length}'), _metric('هشتگ', '$hashtags'), _metric('منشن', '$mentions'), _metric('مطالعه', '${(words.length / 180).ceil()} دقیقه'),
@@ -369,14 +372,14 @@ class _CreatorStudioPageState extends State<CreatorStudioPage> {
     controller.dispose();
   }
 
-  Widget _metric(String label, String value) => Container(width: 94, padding: const EdgeInsets.all(12), decoration: BoxDecoration(color: Colors.white.withValues(alpha: .05), borderRadius: BorderRadius.circular(14)), child: Column(children: [Text(value, style: const TextStyle(fontSize: 18, color: _blue, fontWeight: FontWeight.w900)), Text(label, style: const TextStyle(fontSize: 10, color: Colors.white60))]));
+  Widget _metric(String label, String value) => Container(width: 94, padding: const EdgeInsets.all(12), decoration: BoxDecoration(color: Colors.white.withValues(alpha: .05), borderRadius: BorderRadius.circular(14)), child: Column(children: [BinerLocalizedText(value, style: const TextStyle(fontSize: 18, color: _blue, fontWeight: FontWeight.w900)), BinerLocalizedText(label, style: const TextStyle(fontSize: 10, color: Colors.white60))]));
 
   @override
   Widget build(BuildContext context) {
     final dark = Theme.of(context).brightness == Brightness.dark;
     return Scaffold(
-      backgroundColor: Theme.of(context).colorScheme.surface,
-      appBar: AppBar(title: const Text('Creator Studio'), leading: IconButton(onPressed: () => Navigator.maybePop(context), icon: const Icon(Icons.arrow_back_rounded))),
+      backgroundColor: binerScaffoldBackground(context),
+      appBar: AppBar(title: const BinerLocalizedText('Creator Studio'), leading: IconButton(onPressed: () => Navigator.maybePop(context), icon: const Icon(Icons.arrow_back_rounded))),
       body: !loaded ? const Center(child: CircularProgressIndicator(color: _blue)) : CustomScrollView(
         physics: const BouncingScrollPhysics(),
         slivers: [
@@ -384,11 +387,11 @@ class _CreatorStudioPageState extends State<CreatorStudioPage> {
             padding: const EdgeInsets.all(20),
             decoration: BoxDecoration(color: Theme.of(context).colorScheme.surfaceContainer, borderRadius: BorderRadius.circular(26), border: Border.all(color: Theme.of(context).colorScheme.outlineVariant)),
             child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-              const Row(children: [Icon(Icons.bolt_rounded, color: _blue), SizedBox(width: 8), Text('BINER / CREATOR TOOLS', style: TextStyle(fontSize: 10, letterSpacing: 1.8, color: Colors.white70, fontWeight: FontWeight.w900))]),
+              const Row(children: [Icon(Icons.bolt_rounded, color: _blue), SizedBox(width: 8), BinerLocalizedText('BINER / CREATOR TOOLS', style: TextStyle(fontSize: 10, letterSpacing: 1.8, color: Colors.white70, fontWeight: FontWeight.w900))]),
               const SizedBox(height: 12),
-              const Text('ایده‌ات را به محتوا تبدیل کن.', style: TextStyle(fontSize: 23, fontWeight: FontWeight.w900, height: 1.3)),
+              const BinerLocalizedText('ایده‌ات را به محتوا تبدیل کن.', style: TextStyle(fontSize: 23, fontWeight: FontWeight.w900, height: 1.3)),
               const SizedBox(height: 6),
-              Text('۱۰ ابزار کاربردی برای نوشتن، مدیریت متن و ساخت محتوای بهتر.', style: TextStyle(color: Colors.white.withValues(alpha: .68), fontSize: 12, height: 1.6)),
+              BinerLocalizedText('۱۰ ابزار کاربردی برای نوشتن، مدیریت متن و ساخت محتوای بهتر.', style: TextStyle(color: Colors.white.withValues(alpha: .68), fontSize: 12, height: 1.6)),
               const SizedBox(height: 16),
               Row(children: [_metric('پیش‌نویس', '${drafts.length}'), const SizedBox(width: 8), _metric('عبارت آماده', '${snippets.length}'), const SizedBox(width: 8), _metric('فیلتر', '${mutedWords.length}')]),
             ]),
@@ -410,9 +413,9 @@ class _CreatorStudioPageState extends State<CreatorStudioPage> {
                   child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
                     Container(width: 42, height: 42, decoration: BoxDecoration(color: tool.color.withValues(alpha: .13), borderRadius: BorderRadius.circular(14)), child: Icon(tool.icon, color: tool.color)),
                     const Spacer(),
-                    Text(tool.title, maxLines: 2, overflow: TextOverflow.ellipsis, style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w900)),
+                    BinerLocalizedText(tool.title, maxLines: 2, overflow: TextOverflow.ellipsis, style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w900)),
                     const SizedBox(height: 5),
-                    Text(tool.subtitle, maxLines: 2, overflow: TextOverflow.ellipsis, style: TextStyle(fontSize: 10, height: 1.4, color: Theme.of(context).colorScheme.onSurface.withValues(alpha: .58))),
+                    BinerLocalizedText(tool.subtitle, maxLines: 2, overflow: TextOverflow.ellipsis, style: TextStyle(fontSize: 10, height: 1.4, color: Theme.of(context).colorScheme.onSurface.withValues(alpha: .58))),
                   ]),
                 ),
               );

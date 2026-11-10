@@ -1,9 +1,11 @@
+import 'localized_text.dart';
 import 'dart:ui';
 
 import 'package:flutter/foundation.dart';
 
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:shimmer/shimmer.dart';
 import 'app_preferences.dart';
@@ -11,9 +13,15 @@ import 'app_preferences.dart';
 const binerBlue = Color(0xFF54C8FF);
 const binerViolet = Color(0xFF9B8CFF);
 
+Color binerScaffoldBackground(BuildContext context) =>
+    defaultTargetPlatform == TargetPlatform.iOS
+        ? Colors.transparent
+        : Theme.of(context).colorScheme.surface;
+
 /// Shared Material 3 theme with a Persian-friendly typeface and adaptive surfaces.
 ThemeData buildBinerTheme(Brightness brightness, {Color seedColor = binerBlue}) {
   final dark = brightness == Brightness.dark;
+  final ios = defaultTargetPlatform == TargetPlatform.iOS;
   final base = dark ? ThemeData.dark(useMaterial3: true) : ThemeData.light(useMaterial3: true);
   final textColor = dark ? const Color(0xFFF4F7FF) : const Color(0xFF142033);
   final pageSurface = dark ? const Color(0xFF0B111B) : const Color(0xFFF5F8FC);
@@ -28,7 +36,7 @@ ThemeData buildBinerTheme(Brightness brightness, {Color seedColor = binerBlue}) 
   return base.copyWith(
     platform: defaultTargetPlatform,
     brightness: brightness,
-    scaffoldBackgroundColor: pageSurface,
+    scaffoldBackgroundColor: defaultTargetPlatform == TargetPlatform.iOS ? Colors.transparent : pageSurface,
     colorScheme: ColorScheme.fromSeed(
       seedColor: seedColor,
       brightness: brightness,
@@ -64,9 +72,9 @@ ThemeData buildBinerTheme(Brightness brightness, {Color seedColor = binerBlue}) 
       surfaceTintColor: Colors.transparent,
       elevation: 0,
       scrolledUnderElevation: 0,
-      centerTitle: false,
-      toolbarHeight: 62,
-      titleTextStyle: TextStyle(color: textColor, fontSize: 19, fontWeight: FontWeight.w800, letterSpacing: -.2),
+      centerTitle: ios,
+      toolbarHeight: ios ? 52 : 62,
+      titleTextStyle: TextStyle(color: textColor, fontSize: ios ? 17 : 19, fontWeight: FontWeight.w800, letterSpacing: ios ? -.35 : -.2),
       iconTheme: IconThemeData(color: textColor),
     ),
     dividerTheme: DividerThemeData(color: (dark ? Colors.white : const Color(0xFF253B56)).withValues(alpha: .10), thickness: 1, space: 1),
@@ -89,7 +97,7 @@ ThemeData buildBinerTheme(Brightness brightness, {Color seedColor = binerBlue}) 
       modalBackgroundColor: cardSurface,
       surfaceTintColor: Colors.transparent,
       elevation: 0,
-      shape: const RoundedRectangleBorder(borderRadius: BorderRadius.vertical(top: Radius.circular(26))),
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.vertical(top: Radius.circular(ios ? 30 : 26))),
     ),
     listTileTheme: ListTileThemeData(
       iconColor: textColor.withValues(alpha: .78),
@@ -105,8 +113,8 @@ ThemeData buildBinerTheme(Brightness brightness, {Color seedColor = binerBlue}) 
         foregroundColor: seedColor,
         side: BorderSide(color: seedColor.withValues(alpha: .38)),
         minimumSize: const Size(0, 46),
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(15)),
-        textStyle: const TextStyle(fontWeight: FontWeight.w800),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(ios ? 22 : 15)),
+        textStyle: TextStyle(fontWeight: ios ? FontWeight.w700 : FontWeight.w800),
       ),
     ),
     chipTheme: ChipThemeData(
@@ -123,7 +131,7 @@ ThemeData buildBinerTheme(Brightness brightness, {Color seedColor = binerBlue}) 
       backgroundColor: seedColor,
       foregroundColor: dark ? const Color(0xFF071426) : Colors.white,
       elevation: 2,
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(18)),
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(ios ? 22 : 18)),
     ),
     tabBarTheme: TabBarThemeData(
       labelColor: seedColor,
@@ -137,8 +145,8 @@ ThemeData buildBinerTheme(Brightness brightness, {Color seedColor = binerBlue}) 
       style: FilledButton.styleFrom(
         minimumSize: const Size(0, 48),
         padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 12),
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-        textStyle: const TextStyle(fontWeight: FontWeight.w800),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(ios ? 22 : 16)),
+        textStyle: TextStyle(fontWeight: ios ? FontWeight.w700 : FontWeight.w800),
       ),
     ),
     textButtonTheme: TextButtonThemeData(
@@ -149,15 +157,15 @@ ThemeData buildBinerTheme(Brightness brightness, {Color seedColor = binerBlue}) 
       fillColor: subtleSurface,
       contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
       border: OutlineInputBorder(
-        borderRadius: BorderRadius.circular(18),
+        borderRadius: BorderRadius.circular(ios ? 21 : 18),
         borderSide: BorderSide(color: seedColor.withValues(alpha: .34)),
       ),
       enabledBorder: OutlineInputBorder(
-        borderRadius: BorderRadius.circular(18),
+        borderRadius: BorderRadius.circular(ios ? 21 : 18),
         borderSide: BorderSide(color: seedColor.withValues(alpha: .28)),
       ),
       focusedBorder: OutlineInputBorder(
-        borderRadius: BorderRadius.circular(18),
+        borderRadius: BorderRadius.circular(ios ? 21 : 18),
         borderSide: BorderSide(color: seedColor, width: 1.5),
       ),
     ),
@@ -259,10 +267,11 @@ class BinerLiquidGlass extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final dark = Theme.of(context).brightness == Brightness.dark;
+    final ios = defaultTargetPlatform == TargetPlatform.iOS;
     final reduceEffects = BinerPreferences.instance.fastMode;
     final surface = DecoratedBox(
       decoration: BoxDecoration(
-        color: Theme.of(context).colorScheme.surface.withValues(alpha: dark ? .94 : .97),
+        color: Theme.of(context).colorScheme.surface.withValues(alpha: ios ? (dark ? .58 : .68) : (dark ? .94 : .97)),
         borderRadius: borderRadius,
         border: Border.all(
           color: Theme.of(context).colorScheme.outlineVariant.withValues(alpha: .65),
@@ -279,7 +288,7 @@ class BinerLiquidGlass extends StatelessWidget {
           child: reduceEffects
               ? surface
               : BackdropFilter(
-                  filter: ImageFilter.blur(sigmaX: 9, sigmaY: 9),
+                  filter: ImageFilter.blur(sigmaX: ios ? 25 : 9, sigmaY: ios ? 25 : 9),
                   child: surface,
                 ),
         ),
@@ -353,10 +362,11 @@ class BinerSurfaceCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final dark = Theme.of(context).brightness == Brightness.dark;
+    final ios = defaultTargetPlatform == TargetPlatform.iOS;
     final content = Container(
       padding: padding,
       decoration: BoxDecoration(
-        color: Theme.of(context).colorScheme.surfaceContainer,
+        color: Theme.of(context).colorScheme.surfaceContainer.withValues(alpha: ios ? (dark ? .62 : .72) : 1),
         borderRadius: BorderRadius.circular(radius),
         border: Border.all(color: Theme.of(context).colorScheme.outlineVariant.withValues(alpha: .72)),
         boxShadow: [
@@ -369,19 +379,39 @@ class BinerSurfaceCard extends StatelessWidget {
       ),
       child: child,
     );
-    return Padding(
+    final surface = Padding(
       padding: margin,
       child: onTap == null
           ? RepaintBoundary(child: content)
-          : Material(
-              color: Colors.transparent,
-              borderRadius: BorderRadius.circular(radius),
-              child: InkWell(
-                borderRadius: BorderRadius.circular(radius),
-                onTap: onTap,
-                child: RepaintBoundary(child: content),
-              ),
-            ),
+          : ios
+              ? Semantics(
+                  button: true,
+                  child: GestureDetector(
+                    behavior: HitTestBehavior.opaque,
+                    onTap: () {
+                      HapticFeedback.selectionClick();
+                      onTap?.call();
+                    },
+                    child: RepaintBoundary(child: content),
+                  ),
+                )
+              : Material(
+                  color: Colors.transparent,
+                  borderRadius: BorderRadius.circular(radius),
+                  child: InkWell(
+                    borderRadius: BorderRadius.circular(radius),
+                    onTap: onTap,
+                    child: RepaintBoundary(child: content),
+                  ),
+                ),
+    );
+    if (!ios) return surface;
+    return ClipRRect(
+      borderRadius: BorderRadius.circular(radius + 2),
+      child: BackdropFilter(
+        filter: ImageFilter.blur(sigmaX: 20, sigmaY: 20),
+        child: surface,
+      ),
     );
   }
 }
@@ -407,10 +437,10 @@ class BinerSectionHeader extends StatelessWidget {
         Expanded(child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text(title, style: Theme.of(context).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.w900, letterSpacing: -.35)),
+            BinerLocalizedText(title, style: Theme.of(context).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.w900, letterSpacing: -.35)),
             if (subtitle != null && subtitle!.isNotEmpty) ...[
               const SizedBox(height: 4),
-              Text(subtitle!, style: Theme.of(context).textTheme.bodySmall?.copyWith(color: Theme.of(context).colorScheme.onSurfaceVariant, height: 1.45)),
+              BinerLocalizedText(subtitle!, style: Theme.of(context).textTheme.bodySmall?.copyWith(color: Theme.of(context).colorScheme.onSurfaceVariant, height: 1.45)),
             ],
           ],
         )),
@@ -452,10 +482,10 @@ class BinerEmptyState extends StatelessWidget {
             child: Icon(icon, size: 34, color: Theme.of(context).colorScheme.primary),
           ),
           const SizedBox(height: 16),
-          Text(title, textAlign: TextAlign.center, style: const TextStyle(fontSize: 17, fontWeight: FontWeight.w900)),
+          BinerLocalizedText(title, textAlign: TextAlign.center, style: const TextStyle(fontSize: 17, fontWeight: FontWeight.w900)),
           if (description != null) ...[
             const SizedBox(height: 7),
-            Text(description!, textAlign: TextAlign.center, style: TextStyle(color: Theme.of(context).colorScheme.onSurfaceVariant, height: 1.55)),
+            BinerLocalizedText(description!, textAlign: TextAlign.center, style: TextStyle(color: Theme.of(context).colorScheme.onSurfaceVariant, height: 1.55)),
           ],
           if (action != null) ...[const SizedBox(height: 18), action!],
         ],
@@ -470,7 +500,7 @@ class BinerAdaptiveBackButton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) => IconButton(
-    tooltip: 'بازگشت',
+    tooltip: binerText('بازگشت'),
     onPressed: onPressed ?? () => Navigator.maybePop(context),
     icon: Icon(
       Theme.of(context).platform == TargetPlatform.iOS

@@ -1,3 +1,4 @@
+import 'localized_text.dart';
 import 'dart:async';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/cupertino.dart';
@@ -87,7 +88,20 @@ class _BinerLiveAppState extends State<BinerLiveApp> {
     theme: buildBinerTheme(Brightness.light, seedColor: BinerPreferences.instance.accent),
     darkTheme: buildBinerTheme(Brightness.dark, seedColor: BinerPreferences.instance.accent),
     themeMode: themeMode,
-    builder: (context, child) => Directionality(textDirection: BinerPreferences.instance.direction, child: BinerBackdrop(child: child ?? const SizedBox.shrink())),
+    builder: (context, child) {
+      final brightness = Theme.of(context).brightness;
+      return CupertinoTheme(
+        data: CupertinoThemeData(
+          brightness: brightness,
+          primaryColor: BinerPreferences.instance.accent,
+          scaffoldBackgroundColor: Theme.of(context).scaffoldBackgroundColor,
+        ),
+        child: Directionality(
+          textDirection: BinerPreferences.instance.direction,
+          child: BinerBackdrop(child: child ?? const SizedBox.shrink()),
+        ),
+      );
+    },
     home: AnimatedSwitcher(
       duration: const Duration(milliseconds: 320),
       switchInCurve: Curves.easeOutCubic,
@@ -100,7 +114,7 @@ class _BinerLiveAppState extends State<BinerLiveApp> {
         ),
       ),
       child: !ready
-          ? Scaffold(backgroundColor: Theme.of(context).colorScheme.surface,key: const ValueKey('boot'), body: Center(child: CircularProgressIndicator(color: cBlue)))
+          ? Scaffold(backgroundColor: binerScaffoldBackground(context),key: const ValueKey('boot'), body: Center(child: CircularProgressIndicator(color: cBlue)))
           : loggedIn
               ? LiveHome(key: const ValueKey('home'), api: api, logout: logout, onToggleTheme: toggleTheme, isDark: themeMode == ThemeMode.dark)
               : LiveAuth(key: const ValueKey('auth'), api: api, onDone: signedIn),
@@ -134,7 +148,7 @@ class _LiveAuthState extends State<LiveAuth> with TickerProviderStateMixin {
   @override Widget build(BuildContext context) {
     final dark=Theme.of(context).brightness==Brightness.dark;
     final prefs=BinerPreferences.instance;
-    return Scaffold(backgroundColor: Theme.of(context).colorScheme.surface,
+    return Scaffold(backgroundColor: binerScaffoldBackground(context),
       body: Stack(children:[
         Positioned.fill(child: AnimatedBuilder(animation:ambient,builder:(context,_)=>CustomPaint(painter:_AuthGlowPainter(ambient.value,dark)))),
         SafeArea(child: Center(child: SingleChildScrollView(padding:const EdgeInsets.fromLTRB(22,26,22,30),child:ConstrainedBox(
@@ -145,15 +159,15 @@ class _LiveAuthState extends State<LiveAuth> with TickerProviderStateMixin {
             const SizedBox(height:20),
             const Center(child:Brand()),
             const SizedBox(height:8),
-            Text(register?binerText('یک حساب تازه، یک شروع تازه. ',en:'A fresh account. A fresh start.',ar:'حساب جديد وبداية جديدة.',tr:'Yeni hesap, yeni başlangıç.'):binerText('به دنیای BinerMention خوش آمدی',en:'Welcome to BinerMention',ar:'مرحباً بك في BinerMention',tr:'BinerMention dünyasına hoş geldin'),textAlign:TextAlign.center,style:TextStyle(color:dark?const Color(0xFFB6C5D9):const Color(0xFF65758B),fontSize:14)),
+            BinerLocalizedText(register?binerText('یک حساب تازه، یک شروع تازه. ',en:'A fresh account. A fresh start.',ar:'حساب جديد وبداية جديدة.',tr:'Yeni hesap, yeni başlangıç.'):binerText('به دنیای BinerMention خوش آمدی',en:'Welcome to BinerMention',ar:'مرحباً بك في BinerMention',tr:'BinerMention dünyasına hoş geldin'),textAlign:TextAlign.center,style:TextStyle(color:dark?const Color(0xFFB6C5D9):const Color(0xFF65758B),fontSize:14)),
             const SizedBox(height:28),
             BinerLiquidGlass(borderRadius:BorderRadius.circular(30),padding:const EdgeInsets.fromLTRB(20,22,20,18),child:Form(key:form,child:Column(crossAxisAlignment:CrossAxisAlignment.stretch,children:[
               Row(children:[
-                Expanded(child:Text(register?binerText('ساخت حساب',en:'Create account',ar:'إنشاء حساب',tr:'Hesap oluştur'):binerText('ورود',en:'Sign in',ar:'تسجيل الدخول',tr:'Giriş yap'),style:const TextStyle(fontSize:25,fontWeight:FontWeight.w900))),
+                Expanded(child:BinerLocalizedText(register?binerText('ساخت حساب',en:'Create account',ar:'إنشاء حساب',tr:'Hesap oluştur'):binerText('ورود',en:'Sign in',ar:'تسجيل الدخول',tr:'Giriş yap'),style:const TextStyle(fontSize:25,fontWeight:FontWeight.w900))),
                 Container(padding:const EdgeInsets.all(4),decoration:BoxDecoration(color:prefs.accent.withValues(alpha:.12),borderRadius:BorderRadius.circular(15)),child:Icon(Icons.shield_moon_rounded,color:prefs.accent)),
               ]),
               const SizedBox(height:6),
-              Text(register?binerText('اطلاعاتت را وارد کن تا عضو شوی.',en:'Enter your details to join.',ar:'أدخل بياناتك للانضمام.',tr:'Katılmak için bilgilerini gir.'):binerText('برای ادامه وارد حساب خودت شو.',en:'Sign in to continue.',ar:'سجّل الدخول للمتابعة.',tr:'Devam etmek için giriş yap.'),style:const TextStyle(color:cMuted,fontSize:12)),
+              BinerLocalizedText(register?binerText('اطلاعاتت را وارد کن تا عضو شوی.',en:'Enter your details to join.',ar:'أدخل بياناتك للانضمام.',tr:'Katılmak için bilgilerini gir.'):binerText('برای ادامه وارد حساب خودت شو.',en:'Sign in to continue.',ar:'سجّل الدخول للمتابعة.',tr:'Devam etmek için giriş yap.'),style:const TextStyle(color:cMuted,fontSize:12)),
               const SizedBox(height:22),
               AnimatedSize(duration:const Duration(milliseconds:320),curve:Curves.easeInOutCubic,child:Column(children:[
                 if(register) field(TextFormField(controller:displayName,decoration:InputDecoration(labelText:binerText('نام نمایشی',en:'Display name',ar:'الاسم الظاهر',tr:'Görünen ad'),prefixIcon:const Icon(Icons.badge_outlined)),validator:(v)=>v!=null&&v.length>80?binerText('حداکثر ۸۰ نویسه.',en:'Maximum 80 characters.'):null)),
@@ -161,18 +175,18 @@ class _LiveAuthState extends State<LiveAuth> with TickerProviderStateMixin {
                 if(register) field(TextFormField(controller:email,keyboardType:TextInputType.emailAddress,decoration:InputDecoration(labelText:binerText('ایمیل',en:'Email',ar:'البريد الإلكتروني',tr:'E-posta'),prefixIcon:const Icon(Icons.mail_outline_rounded)),validator:(v)=>v==null||!RegExp(r'^[^\s@]+@[^\s@]+\.[^\s@]+$').hasMatch(v.trim())?binerText('ایمیل معتبر وارد کن.',en:'Enter a valid email.',ar:'أدخل بريداً إلكترونياً صالحاً.',tr:'Geçerli bir e-posta gir.'):null)),
                 field(TextFormField(controller:password,obscureText:hide,decoration:InputDecoration(labelText:binerText('رمز عبور',en:'Password',ar:'كلمة المرور',tr:'Şifre'),prefixIcon:const Icon(Icons.lock_outline_rounded),suffixIcon:IconButton(onPressed:()=>setState(()=>hide=!hide),icon:Icon(hide?Icons.visibility_rounded:Icons.visibility_off_rounded))),validator:(v)=>v==null||v.isEmpty?binerText('رمز عبور الزامی است.',en:'Password is required.',ar:'كلمة المرور مطلوبة.',tr:'Şifre gerekli.'):register&&v.length<10?binerText('حداقل ۱۰ نویسه وارد کن.',en:'Use at least 10 characters.',ar:'استخدم 10 أحرف على الأقل.',tr:'En az 10 karakter kullan.'):null,onFieldSubmitted:(_)=>submit())),
               ])),
-              if(error!=null) Padding(padding:const EdgeInsets.only(bottom:12),child:Text(error!,style:const TextStyle(color:Colors.redAccent))),
-              SizedBox(height:54,child:FilledButton(onPressed:busy?null:submit,style:FilledButton.styleFrom(backgroundColor:prefs.accent,foregroundColor:const Color(0xFF06111D),shape:RoundedRectangleBorder(borderRadius:BorderRadius.circular(18))),child:AnimatedSwitcher(duration:const Duration(milliseconds:180),child:busy?const SizedBox(key:ValueKey('busy'),width:22,height:22,child:CircularProgressIndicator(strokeWidth:2,color:Color(0xFF06111D))):Row(key:const ValueKey('label'),mainAxisAlignment:MainAxisAlignment.center,children:[Text(register?binerText('ثبت‌نام',en:'Create account',ar:'إنشاء حساب',tr:'Kaydol'):binerText('ورود امن',en:'Sign in securely',ar:'دخول آمن',tr:'Güvenli giriş'),style:const TextStyle(fontWeight:FontWeight.w800)),const SizedBox(width:8),const Icon(Icons.arrow_forward_rounded,size:19)])))),
+              if(error!=null) Padding(padding:const EdgeInsets.only(bottom:12),child:BinerLocalizedText(error!,style:const TextStyle(color:Colors.redAccent))),
+              SizedBox(height:54,child:FilledButton(onPressed:busy?null:submit,style:FilledButton.styleFrom(backgroundColor:prefs.accent,foregroundColor:const Color(0xFF06111D),shape:RoundedRectangleBorder(borderRadius:BorderRadius.circular(18))),child:AnimatedSwitcher(duration:const Duration(milliseconds:180),child:busy?const SizedBox(key:ValueKey('busy'),width:22,height:22,child:CircularProgressIndicator(strokeWidth:2,color:Color(0xFF06111D))):Row(key:const ValueKey('label'),mainAxisAlignment:MainAxisAlignment.center,children:[BinerLocalizedText(register?binerText('ثبت‌نام',en:'Create account',ar:'إنشاء حساب',tr:'Kaydol'):binerText('ورود امن',en:'Sign in securely',ar:'دخول آمن',tr:'Güvenli giriş'),style:const TextStyle(fontWeight:FontWeight.w800)),const SizedBox(width:8),const Icon(Icons.arrow_forward_rounded,size:19)])))),
               const SizedBox(height:10),
-              Center(child:TextButton(onPressed:busy?null:()=>setState(() { register = !register; error = null; }),child:Text(register?binerText('حساب داری؟ وارد شو',en:'Already have an account? Sign in',ar:'لديك حساب؟ سجّل الدخول',tr:'Hesabın var mı? Giriş yap'):binerText('حساب نداری؟ ثبت‌نام کن',en:'New here? Create an account',ar:'ليس لديك حساب؟ أنشئ حساباً',tr:'Yeni misin? Hesap oluştur')))),
+              Center(child:TextButton(onPressed:busy?null:()=>setState(() { register = !register; error = null; }),child:BinerLocalizedText(register?binerText('حساب داری؟ وارد شو',en:'Already have an account? Sign in',ar:'لديك حساب؟ سجّل الدخول',tr:'Hesabın var mı? Giriş yap'):binerText('حساب نداری؟ ثبت‌نام کن',en:'New here? Create an account',ar:'ليس لديك حساب؟ أنشئ حساباً',tr:'Yeni misin? Hesap oluştur')))),
             ]))),
             const SizedBox(height:18),
             Center(child:Wrap(alignment:WrapAlignment.center,spacing:8,children:[
               for(final item in const [('fa','فارسی'),('en','English'),('ar','العربية'),('tr','Türkçe')])
-                ChoiceChip(label:Text(item.$2,style:const TextStyle(fontSize:11)),selected:prefs.locale.languageCode==item.$1,onSelected:busy?null:(_)=>prefs.setLanguage(item.$1),visualDensity:VisualDensity.compact),
+                ChoiceChip(label:BinerLocalizedText(item.$2,style:const TextStyle(fontSize:11)),selected:prefs.locale.languageCode==item.$1,onSelected:busy?null:(_)=>prefs.setLanguage(item.$1),visualDensity:VisualDensity.compact),
             ])),
             const SizedBox(height:10),
-            Center(child:Text('BINER / CONNECT WITHOUT LIMITS',style:TextStyle(color:cMuted.withValues(alpha:.7),fontSize:9,letterSpacing:2,fontWeight:FontWeight.w800))),
+            Center(child:BinerLocalizedText('BINER / CONNECT WITHOUT LIMITS',style:TextStyle(color:cMuted.withValues(alpha:.7),fontSize:9,letterSpacing:2,fontWeight:FontWeight.w800))),
           ]).animate().fadeIn(duration:420.ms).slideY(begin:.035,duration:420.ms,curve:Curves.easeOutCubic),
         )))),
       ]),
@@ -292,7 +306,7 @@ class _StorySlideState extends State<_StorySlide> {
       _comment.clear();
       if (mounted) setState(() => _comments = widget.api.storyComments(int.parse(widget.story['id'].toString())));
     } on ApiException catch (e) {
-      if (mounted) ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(e.message)));
+      if (mounted) ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: BinerLocalizedText(e.message)));
     } finally {
       if (mounted) setState(() => _sending = false);
     }
@@ -314,20 +328,20 @@ class _StorySlideState extends State<_StorySlide> {
         child: Column(children: [
           const SizedBox(height: 12),
           Container(width: 42, height: 4, decoration: BoxDecoration(color: cMuted.withValues(alpha: .55), borderRadius: BorderRadius.circular(4))),
-          const Padding(padding: EdgeInsets.all(18), child: Align(alignment: AlignmentDirectional.centerStart, child: Text('پاسخ‌های استوری', style: TextStyle(fontSize: 18, fontWeight: FontWeight.w900)))),
+          const Padding(padding: EdgeInsets.all(18), child: Align(alignment: AlignmentDirectional.centerStart, child: BinerLocalizedText('پاسخ‌های استوری', style: TextStyle(fontSize: 18, fontWeight: FontWeight.w900)))),
           Expanded(child: FutureBuilder<List<Map<String, dynamic>>>(
             future: _comments,
             builder: (context, snapshot) {
               if (snapshot.connectionState == ConnectionState.waiting) return const Center(child: CircularProgressIndicator(color: cBlue));
-              if (snapshot.hasError) return const Center(child: Text('دریافت دیدگاه‌ها انجام نشد.'));
+              if (snapshot.hasError) return const Center(child: BinerLocalizedText('دریافت دیدگاه‌ها انجام نشد.'));
               final rows = snapshot.data ?? [];
               if (rows.isEmpty) return BinerEmptyState(icon: Icons.chat_bubble_outline_rounded, title: 'هنوز پاسخی ثبت نشده');
               return ListView.builder(
                 itemCount: rows.length,
                 itemBuilder: (_, i) => ListTile(
                   leading: const CircleAvatar(child: Icon(Icons.person_outline_rounded)),
-                  title: Text(rows[i]['display_name']?.toString() ?? rows[i]['username']?.toString() ?? 'کاربر', style: const TextStyle(fontWeight: FontWeight.w800)),
-                  subtitle: Text(rows[i]['body']?.toString() ?? ''),
+                  title: BinerLocalizedText(rows[i]['display_name']?.toString() ?? rows[i]['username']?.toString() ?? 'کاربر', style: const TextStyle(fontWeight: FontWeight.w800)),
+                  subtitle: BinerLocalizedText(rows[i]['body']?.toString() ?? ''),
                 ),
               );
             },
@@ -377,19 +391,19 @@ class _StorySlideState extends State<_StorySlide> {
             child: Row(children: [
               CircleAvatar(radius: 18, backgroundColor: const Color(0x3354C8FF), backgroundImage: _storyValue('avatar_url').startsWith('https://') ? NetworkImage(_storyValue('avatar_url')) : null, child: _storyValue('avatar_url').startsWith('https://') ? null : const Icon(Icons.person_rounded, color: Colors.white, size: 20)),
               const SizedBox(width: 10),
-              Expanded(child: Text(name, maxLines: 1, overflow: TextOverflow.ellipsis, style: const TextStyle(color: Colors.white, fontWeight: FontWeight.w900))),
-              Text(widget.story['created_at']?.toString() ?? '', style: const TextStyle(color: Colors.white70, fontSize: 9)),
+              Expanded(child: BinerLocalizedText(name, maxLines: 1, overflow: TextOverflow.ellipsis, style: const TextStyle(color: Colors.white, fontWeight: FontWeight.w900))),
+              BinerLocalizedText(widget.story['created_at']?.toString() ?? '', style: const TextStyle(color: Colors.white70, fontSize: 9)),
               IconButton(onPressed: widget.onClose, icon: const Icon(Icons.close_rounded, color: Colors.white)),
             ]),
           ),
           const Spacer(),
           if ((widget.story['caption']?.toString() ?? '').isNotEmpty)
-            Padding(padding: const EdgeInsets.fromLTRB(20, 8, 20, 12), child: Align(alignment: AlignmentDirectional.centerStart, child: Text(widget.story['caption'].toString(), style: const TextStyle(color: Colors.white, fontSize: 16, fontWeight: FontWeight.w700, height: 1.5)))),
+            Padding(padding: const EdgeInsets.fromLTRB(20, 8, 20, 12), child: Align(alignment: AlignmentDirectional.centerStart, child: BinerLocalizedText(widget.story['caption'].toString(), style: const TextStyle(color: Colors.white, fontSize: 16, fontWeight: FontWeight.w700, height: 1.5)))),
           Padding(
             padding: const EdgeInsets.fromLTRB(14, 4, 14, 12),
             child: Row(children: [
               IconButton(onPressed: _toggleLike, icon: Icon(_liked ? Icons.favorite_rounded : Icons.favorite_border_rounded, color: _liked ? Colors.pinkAccent : Colors.white, size: 27)),
-              Text('$_likes', style: const TextStyle(color: Colors.white, fontWeight: FontWeight.w800)),
+              BinerLocalizedText('$_likes', style: const TextStyle(color: Colors.white, fontWeight: FontWeight.w800)),
               const SizedBox(width: 12),
               IconButton(onPressed: _showComments, icon: const Icon(Icons.chat_bubble_outline_rounded, color: Colors.white)),
               const Spacer(),
@@ -406,7 +420,7 @@ class _StorySlideState extends State<_StorySlide> {
                   style: const TextStyle(color: Colors.white),
                   minLines: 1, maxLines: 3,
                   decoration: InputDecoration(
-                    hintText: 'به این استوری پاسخ بده…',
+                    hintText: binerText('به این استوری پاسخ بده…'),
                     hintStyle: const TextStyle(color: Colors.white60),
                     filled: true, fillColor: const Color(0xCC171B27),
                     border: OutlineInputBorder(borderRadius: BorderRadius.circular(22), borderSide: BorderSide.none),
@@ -431,7 +445,8 @@ class LiveHome extends StatefulWidget {
   @override State<LiveHome> createState() => _LiveHomeState();
 }
 class _LiveHomeState extends State<LiveHome> with WidgetsBindingObserver {
-  int tab = 0; bool loading = true, posting = false, followingFeed = false; String? error;
+  int tab = 0;
+  int _tabDirection = 1; bool loading = true, posting = false, followingFeed = false; String? error;
   final posts = <Map<String, dynamic>>[];
   final storyItems = <Map<String, dynamic>>[];
   final savedPosts = <Map<String, dynamic>>[];
@@ -476,10 +491,10 @@ class _LiveHomeState extends State<LiveHome> with WidgetsBindingObserver {
         child: Column(mainAxisSize: MainAxisSize.min, children: [
           Container(width: 42, height: 4, decoration: BoxDecoration(color: cMuted.withValues(alpha: .5), borderRadius: BorderRadius.circular(4))),
           const SizedBox(height: 14),
-          const Text('استوری‌های تو', style: TextStyle(fontSize: 18, fontWeight: FontWeight.w900)),
+          const BinerLocalizedText('استوری‌های تو', style: TextStyle(fontSize: 18, fontWeight: FontWeight.w900)),
           const SizedBox(height: 8),
-          ListTile(leading: const Icon(Icons.play_circle_outline_rounded, color: cBlue), title: const Text('مشاهده استوری‌های من'), onTap: () => Navigator.pop(ctx, 'view')),
-          ListTile(leading: const Icon(Icons.add_circle_outline_rounded, color: cBlue), title: const Text('افزودن استوری جدید'), onTap: () => Navigator.pop(ctx, 'add')),
+          ListTile(leading: const Icon(Icons.play_circle_outline_rounded, color: cBlue), title: const BinerLocalizedText('مشاهده استوری‌های من'), onTap: () => Navigator.pop(ctx, 'view')),
+          ListTile(leading: const Icon(Icons.add_circle_outline_rounded, color: cBlue), title: const BinerLocalizedText('افزودن استوری جدید'), onTap: () => Navigator.pop(ctx, 'add')),
         ]),
       ),
     );
@@ -537,13 +552,13 @@ class _LiveHomeState extends State<LiveHome> with WidgetsBindingObserver {
               ),
             ]),
           ),
-          const SizedBox(height:6),Text(binerText('استوری من',en:'Your story',ar:'قصتك',tr:'Hikayen'),maxLines:1,overflow:TextOverflow.ellipsis,style:const TextStyle(fontSize:10,fontWeight:FontWeight.w700)),
+          const SizedBox(height:6),BinerLocalizedText(binerText('استوری من',en:'Your story',ar:'قصتك',tr:'Hikayen'),maxLines:1,overflow:TextOverflow.ellipsis,style:const TextStyle(fontSize:10,fontWeight:FontWeight.w700)),
         ]))),
         ...storyItems.map((story) {
           final name=value(story,'display_name',value(story,'username','کاربر'));
           return GestureDetector(onTap:()=>openStory(story),child:SizedBox(width:76,child:Column(children:[
             Container(width:58,height:58,padding:const EdgeInsets.all(3),decoration:const BoxDecoration(shape:BoxShape.circle,gradient:LinearGradient(colors:[cBlue,Color(0xFF9B8CFF),Color(0xFFFF78B8)])),child:CircleAvatar(backgroundColor:dark?const Color(0xFF111722):Colors.white,backgroundImage:value(story,'avatar_url').startsWith('https://')?NetworkImage(value(story,'avatar_url')):null,child:value(story,'avatar_url').startsWith('https://')?null:Icon(value(story,'mime_type').startsWith('video/')?Icons.play_arrow_rounded:Icons.photo_rounded,color:cBlue))),
-            const SizedBox(height:6),Text(name,maxLines:1,overflow:TextOverflow.ellipsis,style:const TextStyle(fontSize:10,fontWeight:FontWeight.w600)),
+            const SizedBox(height:6),BinerLocalizedText(name,maxLines:1,overflow:TextOverflow.ellipsis,style:const TextStyle(fontSize:10,fontWeight:FontWeight.w600)),
           ])));
         }),
       ],
@@ -621,7 +636,7 @@ class _LiveHomeState extends State<LiveHome> with WidgetsBindingObserver {
     final trending = tags.entries.toList()..sort((a, b) => b.value.compareTo(a.value));
     return ListView(padding: const EdgeInsets.only(bottom: 20), children: [
       Padding(padding: const EdgeInsets.fromLTRB(18, 18, 18, 10), child: Row(children: [
-        Expanded(child: Text(showingSaved ? binerText('پست‌های ذخیره‌شده',en:'Saved posts',ar:'المنشورات المحفوظة',tr:'Kaydedilen gönderiler') : binerText('کاوش و ترندها',en:'Explore & trends',ar:'استكشاف والاتجاهات',tr:'Keşfet ve gündem'), style: const TextStyle(fontSize: 25, fontWeight: FontWeight.w900))),
+        Expanded(child: BinerLocalizedText(showingSaved ? binerText('پست‌های ذخیره‌شده',en:'Saved posts',ar:'المنشورات المحفوظة',tr:'Kaydedilen gönderiler') : binerText('کاوش و ترندها',en:'Explore & trends',ar:'استكشاف والاتجاهات',tr:'Keşfet ve gündem'), style: const TextStyle(fontSize: 25, fontWeight: FontWeight.w900))),
         IconButton(tooltip: showingSaved ? binerText('نمایش کاوش',en:'Show Explore',ar:'عرض الاستكشاف',tr:'Keşfeti göster') : binerText('ذخیره‌ها',en:'Saved posts',ar:'المحفوظات',tr:'Kaydedilenler'), onPressed: () => setState(() { showingSaved = !showingSaved; exploreQuery = ''; exploreResults = null; }), icon: Icon(showingSaved ? Icons.explore_rounded : Icons.bookmarks_rounded, color: cBlue)),
       ])),
       if (!showingSaved) Padding(padding: const EdgeInsets.symmetric(horizontal: 16), child: TextField(
@@ -637,31 +652,31 @@ class _LiveHomeState extends State<LiveHome> with WidgetsBindingObserver {
         ),
       )),
       if (showingSaved) ...[
-        if (savedPosts.isEmpty) Padding(padding: const EdgeInsets.all(34), child: Center(child: Text(binerText('هنوز پستی ذخیره نکردی.',en:'You have no saved posts yet.',ar:'لا توجد منشورات محفوظة بعد.',tr:'Henüz kaydedilmiş gönderin yok.')))),
+        if (savedPosts.isEmpty) Padding(padding: const EdgeInsets.all(34), child: Center(child: BinerLocalizedText(binerText('هنوز پستی ذخیره نکردی.',en:'You have no saved posts yet.',ar:'لا توجد منشورات محفوظة بعد.',tr:'Henüz kaydedilmiş gönderin yok.')))),
         ...savedPosts.map(card),
       ] else if (exploreQuery.isEmpty) ...[
         Padding(padding: const EdgeInsets.fromLTRB(18, 22, 18, 10), child: Row(children: [
           const Icon(Icons.local_fire_department_rounded, color: Color(0xFFFF8A4C)),
           const SizedBox(width: 8),
-          Text(binerText('هشتگ‌های داغ',en:'Hot hashtags',ar:'الوسوم الرائجة',tr:'Popüler etiketler'), style: TextStyle(fontSize: 18, fontWeight: FontWeight.w800)),
+          BinerLocalizedText(binerText('هشتگ‌های داغ',en:'Hot hashtags',ar:'الوسوم الرائجة',tr:'Popüler etiketler'), style: TextStyle(fontSize: 18, fontWeight: FontWeight.w800)),
           const Spacer(),
-          Text(binerText('از پست‌های بارگذاری‌شده',en:'From recent posts',ar:'من المنشورات الحديثة',tr:'Son gönderilerden'), style: TextStyle(color: cMuted, fontSize: 11)),
+          BinerLocalizedText(binerText('از پست‌های بارگذاری‌شده',en:'From recent posts',ar:'من المنشورات الحديثة',tr:'Son gönderilerden'), style: TextStyle(color: cMuted, fontSize: 11)),
         ])),
         if (trending.isEmpty)
-          Padding(padding: const EdgeInsets.fromLTRB(18, 4, 18, 18), child: Text(binerText('با انتشار پست‌های دارای هشتگ، این بخش پر می‌شود.',en:'Posts with hashtags will appear here.',ar:'ستظهر هنا المنشورات التي تحتوي على وسوم.',tr:'Etiket içeren gönderiler burada görünür.'), style: const TextStyle(color: cMuted)))
+          Padding(padding: const EdgeInsets.fromLTRB(18, 4, 18, 18), child: BinerLocalizedText(binerText('با انتشار پست‌های دارای هشتگ، این بخش پر می‌شود.',en:'Posts with hashtags will appear here.',ar:'ستظهر هنا المنشورات التي تحتوي على وسوم.',tr:'Etiket içeren gönderiler burada görünür.'), style: const TextStyle(color: cMuted)))
         else
           Padding(padding: const EdgeInsets.symmetric(horizontal: 16), child: Wrap(
             spacing: 8, runSpacing: 8,
             children: trending.take(12).map((entry) => ActionChip(
               avatar: const Icon(Icons.tag_rounded, size: 17, color: cBlue),
-              label: Text(entry.key),
+              label: BinerLocalizedText(entry.key),
               onPressed: () => updateExploreQuery(entry.key),
             )).toList(),
           )),
         Padding(padding: const EdgeInsets.fromLTRB(18, 24, 18, 8), child: Row(children: [
           Icon(Icons.bolt_rounded, color: cBlue),
           SizedBox(width: 8),
-          Text(binerText('پست‌های پیشنهادی',en:'Suggested posts',ar:'منشورات مقترحة',tr:'Önerilen gönderiler'), style: TextStyle(fontSize: 18, fontWeight: FontWeight.w800)),
+          BinerLocalizedText(binerText('پست‌های پیشنهادی',en:'Suggested posts',ar:'منشورات مقترحة',tr:'Önerilen gönderiler'), style: TextStyle(fontSize: 18, fontWeight: FontWeight.w800)),
         ])),
         ...posts.map(card),
       ] else if (exploreResults != null)
@@ -669,21 +684,21 @@ class _LiveHomeState extends State<LiveHome> with WidgetsBindingObserver {
           future: exploreResults,
           builder: (context, snapshot) {
             if (snapshot.connectionState == ConnectionState.waiting) return const Padding(padding: EdgeInsets.all(32), child: Center(child: CircularProgressIndicator(color: cBlue)));
-            if (snapshot.hasError) return Padding(padding: const EdgeInsets.all(24), child: Text('${binerText('جست‌وجو انجام نشد',en:'Search failed',ar:'فشل البحث',tr:'Arama başarısız')}: ${snapshot.error}', textAlign: TextAlign.center));
+            if (snapshot.hasError) return Padding(padding: const EdgeInsets.all(24), child: BinerLocalizedText('${binerText('جست‌وجو انجام نشد',en:'Search failed',ar:'فشل البحث',tr:'Arama başarısız')}: ${snapshot.error}', textAlign: TextAlign.center));
             final users = snapshot.data != null && snapshot.data!.isNotEmpty ? snapshot.data![0] as List<Map<String, dynamic>> : <Map<String, dynamic>>[];
             final foundPosts = snapshot.data != null && snapshot.data!.length > 1 ? snapshot.data![1] as List<Map<String, dynamic>> : <Map<String, dynamic>>[];
             return Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
-              if (users.isNotEmpty) Padding(padding: const EdgeInsets.fromLTRB(18, 18, 18, 4), child: Text(binerText('آدم‌ها',en:'People',ar:'الأشخاص',tr:'Kişiler'), style: TextStyle(fontSize: 18, fontWeight: FontWeight.w800))),
+              if (users.isNotEmpty) Padding(padding: const EdgeInsets.fromLTRB(18, 18, 18, 4), child: BinerLocalizedText(binerText('آدم‌ها',en:'People',ar:'الأشخاص',tr:'Kişiler'), style: TextStyle(fontSize: 18, fontWeight: FontWeight.w800))),
               ...users.take(8).map((user) => ListTile(
                 leading: avatar(value(user, 'display_name', value(user, 'username', 'کاربر')), user, 22),
-                title: Text(value(user, 'display_name', value(user, 'username', 'کاربر'))),
-                subtitle: Text('@${value(user, 'username')}', style: const TextStyle(color: cMuted)),
+                title: BinerLocalizedText(value(user, 'display_name', value(user, 'username', 'کاربر'))),
+                subtitle: BinerLocalizedText('@${value(user, 'username')}', style: const TextStyle(color: cMuted)),
                 trailing: const Icon(Icons.chevron_right_rounded, color: cBlue),
                 onTap: () => openUserProfile(value(user, 'username')),
               )),
-              if (foundPosts.isNotEmpty) Padding(padding: const EdgeInsets.fromLTRB(18, 18, 18, 4), child: Text(binerText('پست‌ها',en:'Posts',ar:'المنشورات',tr:'Gönderiler'), style: TextStyle(fontSize: 18, fontWeight: FontWeight.w800))),
+              if (foundPosts.isNotEmpty) Padding(padding: const EdgeInsets.fromLTRB(18, 18, 18, 4), child: BinerLocalizedText(binerText('پست‌ها',en:'Posts',ar:'المنشورات',tr:'Gönderiler'), style: TextStyle(fontSize: 18, fontWeight: FontWeight.w800))),
               ...foundPosts.map(card),
-              if (users.isEmpty && foundPosts.isEmpty) Padding(padding: const EdgeInsets.all(32), child: Center(child: Text(binerText('نتیجه‌ای پیدا نشد.',en:'No results found.',ar:'لم يتم العثور على نتائج.',tr:'Sonuç bulunamadı.')))),
+              if (users.isEmpty && foundPosts.isEmpty) Padding(padding: const EdgeInsets.all(32), child: Center(child: BinerLocalizedText(binerText('نتیجه‌ای پیدا نشد.',en:'No results found.',ar:'لم يتم العثور على نتائج.',tr:'Sonuç bulunamadı.')))),
             ]);
           },
         ),
@@ -787,7 +802,7 @@ class _LiveHomeState extends State<LiveHome> with WidgetsBindingObserver {
     on ApiException catch (e) { if (mounted) setState(() => error = e.message); }
     finally { if (mounted) setState(() => loading = false); }
   }
-  void toast(String s) => ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(s), behavior: SnackBarBehavior.floating, backgroundColor: const Color(0xF21A1A20), elevation: 0, shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(18), side: BorderSide(color: cLine.withValues(alpha: .65))), margin: const EdgeInsets.fromLTRB(16, 0, 16, 12)));
+  void toast(String s) => ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: BinerLocalizedText(s), behavior: SnackBarBehavior.floating, backgroundColor: const Color(0xF21A1A20), elevation: 0, shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(18), side: BorderSide(color: cLine.withValues(alpha: .65))), margin: const EdgeInsets.fromLTRB(16, 0, 16, 12)));
   Future<void> openBinerAI() async {
     await Navigator.of(context).push(MaterialPageRoute<void>(builder: (_) => BinerAIPage(api: widget.api)));
   }
@@ -843,7 +858,7 @@ class _LiveHomeState extends State<LiveHome> with WidgetsBindingObserver {
             child: Row(children: [
               const Icon(Icons.tag_rounded, color: cBlue),
               const SizedBox(width: 8),
-              Expanded(child: Text('#$query', style: const TextStyle(fontSize: 22, fontWeight: FontWeight.w800))),
+              Expanded(child: BinerLocalizedText('#$query', style: const TextStyle(fontSize: 22, fontWeight: FontWeight.w800))),
             ]),
           ),
           Expanded(
@@ -851,9 +866,9 @@ class _LiveHomeState extends State<LiveHome> with WidgetsBindingObserver {
               future: widget.api.searchPosts(query),
               builder: (context, snapshot) {
                 if (snapshot.connectionState == ConnectionState.waiting) return const Center(child: CircularProgressIndicator(color: cBlue));
-                if (snapshot.hasError) return Center(child: Padding(padding: const EdgeInsets.all(20), child: Text(snapshot.error.toString(), textAlign: TextAlign.center)));
+                if (snapshot.hasError) return Center(child: Padding(padding: const EdgeInsets.all(20), child: BinerLocalizedText(snapshot.error.toString(), textAlign: TextAlign.center)));
                 final found = snapshot.data ?? const <Map<String, dynamic>>[];
-                if (found.isEmpty) return const Center(child: Text('پستی با این هشتگ پیدا نشد.'));
+                if (found.isEmpty) return const Center(child: BinerLocalizedText('پستی با این هشتگ پیدا نشد.'));
                 return ListView.builder(itemCount: found.length, itemBuilder: (_, i) => card(found[i]));
               },
             ),
@@ -878,7 +893,7 @@ class _LiveHomeState extends State<LiveHome> with WidgetsBindingObserver {
         baseline: TextBaseline.alphabetic,
         child: GestureDetector(
           onTap: () => isGroup ? openGroupInvite(value) : isTag ? openHashtag(value) : openUserProfile(value),
-          child: Text(token, style: TextStyle(color: isGroup ? cBlue : isTag ? const Color(0xFF35A7F5) : const Color(0xFF9B8CFF), fontWeight: FontWeight.w800, decoration: isGroup ? TextDecoration.underline : TextDecoration.none)),
+          child: BinerLocalizedText(token, style: TextStyle(color: isGroup ? cBlue : isTag ? const Color(0xFF35A7F5) : const Color(0xFF9B8CFF), fontWeight: FontWeight.w800, decoration: isGroup ? TextDecoration.underline : TextDecoration.none)),
         ),
       ));
       cursor = match.end;
@@ -914,17 +929,17 @@ class _LiveHomeState extends State<LiveHome> with WidgetsBindingObserver {
             mainAxisSize: MainAxisSize.min,
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
-              Text(replyToId == null ? 'پست جدید' : 'پاسخ به پست #$replyToId',
+              BinerLocalizedText(replyToId == null ? 'پست جدید' : 'پاسخ به پست #$replyToId',
                   style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
               TextField(controller: controller, autofocus: true, minLines: 3, maxLines: 5, maxLength: 280,
-                  decoration: const InputDecoration(hintText: 'چه خبر؟  #هشتگ  @منشن', border: InputBorder.none)),
+                  decoration: InputDecoration(hintText: binerText('چه خبر؟  #هشتگ  @منشن'), border: InputBorder.none)),
               if (pollEnabled) ...[
                 const SizedBox(height: 8),
-                Row(children: [const Icon(Icons.poll_outlined, color: cBlue), const SizedBox(width: 8), Expanded(child: Text(binerText('گزینه‌های نظرسنجی',en:'Poll options',ar:'خيارات الاستطلاع',tr:'Anket seçenekleri'), style: const TextStyle(fontWeight: FontWeight.w700))), IconButton(onPressed: () { if (pollControllers.length < 4) sheetSetState(() => pollControllers.add(TextEditingController())); }, icon: const Icon(Icons.add_circle_outline, color: cBlue))]),
+                Row(children: [const Icon(Icons.poll_outlined, color: cBlue), const SizedBox(width: 8), Expanded(child: BinerLocalizedText(binerText('گزینه‌های نظرسنجی',en:'Poll options',ar:'خيارات الاستطلاع',tr:'Anket seçenekleri'), style: const TextStyle(fontWeight: FontWeight.w700))), IconButton(onPressed: () { if (pollControllers.length < 4) sheetSetState(() => pollControllers.add(TextEditingController())); }, icon: const Icon(Icons.add_circle_outline, color: cBlue))]),
                 ...List.generate(pollControllers.length, (index) => Padding(padding: const EdgeInsets.only(bottom: 6), child: TextField(controller: pollControllers[index], maxLength: 80, decoration: InputDecoration(counterText: '', hintText: binerText('گزینه ${index + 1}',en:'Option ${index + 1}',ar:'الخيار ${index + 1}',tr:'Seçenek ${index + 1}'), prefixIcon: const Icon(Icons.radio_button_unchecked, size: 18), suffixIcon: pollControllers.length > 2 ? IconButton(onPressed: () => sheetSetState(() { pollControllers.removeAt(index).dispose(); }), icon: const Icon(Icons.close, size: 18)) : null)))),
               ],
               if (attachment != null)
-                ListTile(leading: const Icon(Icons.image, color: cBlue), title: Text(attachment!.name, maxLines: 1, overflow: TextOverflow.ellipsis),
+                ListTile(leading: const Icon(Icons.image, color: cBlue), title: BinerLocalizedText(attachment!.name, maxLines: 1, overflow: TextOverflow.ellipsis),
                   trailing: IconButton(icon: const Icon(Icons.close), onPressed: () => sheetSetState(() => attachment = null))),
               Row(children: [
                 IconButton(tooltip: binerText('افزودن هشتگ',en:'Add hashtag',ar:'إضافة وسم',tr:'Etiket ekle'), onPressed: () => insertToken('#'), icon: const Icon(Icons.tag_rounded, color: cBlue)),
@@ -944,7 +959,7 @@ class _LiveHomeState extends State<LiveHome> with WidgetsBindingObserver {
                 ),
                 const Spacer(),
                 FilledButton(onPressed: () => Navigator.pop(ctx, {'text': controller.text.trim(), 'attachment': attachment, 'poll_options': pollEnabled ? pollControllers.map((c) => c.text.trim()).where((v) => v.isNotEmpty).toList() : null}),
-                    child: Text(binerText('انتشار',en:'Publish',ar:'نشر',tr:'Paylaş'))),
+                    child: BinerLocalizedText(binerText('انتشار',en:'Publish',ar:'نشر',tr:'Paylaş'))),
               ]),
             ],
           ),
@@ -983,11 +998,11 @@ class _LiveHomeState extends State<LiveHome> with WidgetsBindingObserver {
     final text = await showDialog<String>(
       context: context,
       builder: (ctx) => AlertDialog(
-        title: Text(binerText('ویرایش پست',en:'Edit post',ar:'تعديل المنشور',tr:'Gönderiyi düzenle')),
+        title: BinerLocalizedText(binerText('ویرایش پست',en:'Edit post',ar:'تعديل المنشور',tr:'Gönderiyi düzenle')),
         content: TextField(controller: controller, autofocus: true, minLines: 3, maxLines: 6, maxLength: 280),
         actions: [
-          TextButton(onPressed: () => Navigator.pop(ctx), child: const Text('انصراف')),
-          FilledButton(onPressed: () => Navigator.pop(ctx, controller.text.trim()), child: const Text('ذخیره')),
+          TextButton(onPressed: () => Navigator.pop(ctx), child: const BinerLocalizedText('انصراف')),
+          FilledButton(onPressed: () => Navigator.pop(ctx, controller.text.trim()), child: const BinerLocalizedText('ذخیره')),
         ],
       ),
     );
@@ -1009,11 +1024,11 @@ class _LiveHomeState extends State<LiveHome> with WidgetsBindingObserver {
     final confirmed = await showDialog<bool>(
       context: context,
       builder: (ctx) => AlertDialog(
-        title: Text(binerText('حذف پست؟',en:'Delete post?',ar:'حذف المنشور؟',tr:'Gönderi silinsin mi?')),
-        content: Text(binerText('این کار پست را از فید حذف می‌کند.',en:'This will remove the post from the feed.',ar:'سيؤدي هذا إلى إزالة المنشور من الموجز.',tr:'Bu işlem gönderiyi akıştan kaldırır.')),
+        title: BinerLocalizedText(binerText('حذف پست؟',en:'Delete post?',ar:'حذف المنشور؟',tr:'Gönderi silinsin mi?')),
+        content: BinerLocalizedText(binerText('این کار پست را از فید حذف می‌کند.',en:'This will remove the post from the feed.',ar:'سيؤدي هذا إلى إزالة المنشور من الموجز.',tr:'Bu işlem gönderiyi akıştan kaldırır.')),
         actions: [
-          TextButton(onPressed: () => Navigator.pop(ctx, false), child: const Text('لغو')),
-          FilledButton(onPressed: () => Navigator.pop(ctx, true), child: const Text('حذف')),
+          TextButton(onPressed: () => Navigator.pop(ctx, false), child: const BinerLocalizedText('لغو')),
+          FilledButton(onPressed: () => Navigator.pop(ctx, true), child: const BinerLocalizedText('حذف')),
         ],
       ),
     );
@@ -1057,7 +1072,7 @@ class _LiveHomeState extends State<LiveHome> with WidgetsBindingObserver {
         radius: radius,
         backgroundColor: Theme.of(context).brightness == Brightness.dark ? const Color(0xFF17334F) : const Color(0xFFE6EFFB),
         backgroundImage: url.startsWith('https://') ? NetworkImage(url) : null,
-        child: url.startsWith('https://') ? null : Text(n.isEmpty ? '?' : n[0].toUpperCase(), style: TextStyle(fontWeight: FontWeight.bold, color: Theme.of(context).colorScheme.onSurface)),
+        child: url.startsWith('https://') ? null : BinerLocalizedText(n.isEmpty ? '?' : n[0].toUpperCase(), style: TextStyle(fontWeight: FontWeight.bold, color: Theme.of(context).colorScheme.onSurface)),
       ),
     );
   }
@@ -1087,8 +1102,8 @@ class _LiveHomeState extends State<LiveHome> with WidgetsBindingObserver {
           const SizedBox(height: 12),
           Container(width: 42, height: 4, decoration: BoxDecoration(color: cMuted.withValues(alpha: .5), borderRadius: BorderRadius.circular(4))),
           Padding(padding: const EdgeInsets.fromLTRB(18, 16, 18, 10), child: Row(children: [
-            const Expanded(child: Text('کامنت‌های این پست', style: TextStyle(fontSize: 21, fontWeight: FontWeight.w800))),
-            Text(fmt(post['replies_count'] ?? 0) + ' کامنت', style: const TextStyle(color: cMuted)),
+            const Expanded(child: BinerLocalizedText('کامنت‌های این پست', style: TextStyle(fontSize: 21, fontWeight: FontWeight.w800))),
+            BinerLocalizedText(fmt(post['replies_count'] ?? 0) + ' کامنت', style: const TextStyle(color: cMuted)),
           ])),
           Container(
             constraints: BoxConstraints(maxHeight: MediaQuery.of(ctx).size.height * .27),
@@ -1100,9 +1115,9 @@ class _LiveHomeState extends State<LiveHome> with WidgetsBindingObserver {
               future: commentsFuture,
               builder: (context, snap) {
                 if (snap.connectionState == ConnectionState.waiting) return const Center(child: CircularProgressIndicator(color: cBlue));
-                if (snap.hasError) return Center(child: Padding(padding: const EdgeInsets.all(20), child: Text(snap.error.toString(), textAlign: TextAlign.center)));
+                if (snap.hasError) return Center(child: Padding(padding: const EdgeInsets.all(20), child: BinerLocalizedText(snap.error.toString(), textAlign: TextAlign.center)));
                 final comments = snap.data ?? [];
-                if (comments.isEmpty) return const Center(child: Text('هنوز کامنتی ثبت نشده؛ اولین نفر باش.', style: TextStyle(color: cMuted)));
+                if (comments.isEmpty) return const Center(child: BinerLocalizedText('هنوز کامنتی ثبت نشده؛ اولین نفر باش.', style: TextStyle(color: cMuted)));
                 return ListView.builder(
                   padding: const EdgeInsets.only(bottom: 12),
                   itemCount: comments.length,
@@ -1116,7 +1131,7 @@ class _LiveHomeState extends State<LiveHome> with WidgetsBindingObserver {
             child: SizedBox(width: double.infinity, child: FilledButton.icon(
               onPressed: () { Navigator.pop(ctx); compose(replyToId: id); },
               icon: const Icon(Icons.mode_comment_outlined),
-              label: Text(binerText('نوشتن کامنت',en:'Write a comment',ar:'اكتب تعليقاً',tr:'Yorum yaz')),
+              label: BinerLocalizedText(binerText('نوشتن کامنت',en:'Write a comment',ar:'اكتب تعليقاً',tr:'Yorum yaz')),
             )),
           )),
         ]),
@@ -1132,10 +1147,10 @@ class _LiveHomeState extends State<LiveHome> with WidgetsBindingObserver {
     final selected = int.tryParse((poll['my_vote_option_id'] ?? '').toString());
     final pollId = int.tryParse((poll['id'] ?? '').toString());
     return Container(margin: const EdgeInsets.only(top: 12), padding: const EdgeInsets.all(12), decoration: BoxDecoration(color: Theme.of(context).brightness == Brightness.dark ? const Color(0x8839C5FF) : const Color(0xEEF1F7FF), borderRadius: BorderRadius.circular(16), border: Border.all(color: cLine)), child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-      Row(children: [const Icon(Icons.poll_outlined, color: cBlue, size: 18), const SizedBox(width: 7), Text(binerText('نظرسنجی',en:'Poll',ar:'استطلاع',tr:'Anket'), style: const TextStyle(fontWeight: FontWeight.w800))]),
+      Row(children: [const Icon(Icons.poll_outlined, color: cBlue, size: 18), const SizedBox(width: 7), BinerLocalizedText(binerText('نظرسنجی',en:'Poll',ar:'استطلاع',tr:'Anket'), style: const TextStyle(fontWeight: FontWeight.w800))]),
       const SizedBox(height: 8),
-      ...options.map((option) { final id = int.tryParse((option['id'] ?? '').toString()); final votes = int.tryParse((option['votes_count'] ?? 0).toString()) ?? 0; final ratio = total == 0 ? 0.0 : votes / total; final chosen = selected != null && selected == id; return Padding(padding: const EdgeInsets.only(bottom: 7), child: InkWell(onTap: selected != null || id == null || pollId == null ? null : () async { try { final updated = await widget.api.votePoll(pollId, id); if (mounted) setState(() { p['poll'] = updated; }); } on ApiException catch (e) { if (mounted) toast(e.message); } }, borderRadius: BorderRadius.circular(12), child: Container(padding: const EdgeInsets.all(10), decoration: BoxDecoration(borderRadius: BorderRadius.circular(12), border: Border.all(color: chosen ? cBlue : cLine.withValues(alpha: .65))), child: Column(children: [Row(children: [Expanded(child: Text(option['option_text']?.toString() ?? '', style: TextStyle(fontWeight: chosen ? FontWeight.w800 : FontWeight.w500))), if (selected != null) Text('${(ratio * 100).round()}%', style: const TextStyle(color: cBlue, fontWeight: FontWeight.w800))]), if (selected != null) Padding(padding: const EdgeInsets.only(top: 7), child: ClipRRect(borderRadius: BorderRadius.circular(8), child: LinearProgressIndicator(value: ratio, minHeight: 6, backgroundColor: cMuted.withValues(alpha: .18), color: chosen ? const Color(0xFF00BA7C) : cBlue))) ])))); }),
-      Row(children: [Text('$total ${binerText('رأی',en:'votes',ar:'أصوات',tr:'oy')} ', style: const TextStyle(color: cMuted, fontSize: 12)), const Spacer(), Text(selected == null ? binerText('برای رأی دادن انتخاب کن',en:'Select an option to vote',ar:'اختر خيارًا للتصويت',tr:'Oy vermek için seç') : binerText('رأی ثبت شد',en:'Vote recorded',ar:'تم تسجيل التصويت',tr:'Oyun kaydedildi'), style: const TextStyle(color: cMuted, fontSize: 12))]),
+      ...options.map((option) { final id = int.tryParse((option['id'] ?? '').toString()); final votes = int.tryParse((option['votes_count'] ?? 0).toString()) ?? 0; final ratio = total == 0 ? 0.0 : votes / total; final chosen = selected != null && selected == id; return Padding(padding: const EdgeInsets.only(bottom: 7), child: InkWell(onTap: selected != null || id == null || pollId == null ? null : () async { try { final updated = await widget.api.votePoll(pollId, id); if (mounted) setState(() { p['poll'] = updated; }); } on ApiException catch (e) { if (mounted) toast(e.message); } }, borderRadius: BorderRadius.circular(12), child: Container(padding: const EdgeInsets.all(10), decoration: BoxDecoration(borderRadius: BorderRadius.circular(12), border: Border.all(color: chosen ? cBlue : cLine.withValues(alpha: .65))), child: Column(children: [Row(children: [Expanded(child: BinerLocalizedText(option['option_text']?.toString() ?? '', style: TextStyle(fontWeight: chosen ? FontWeight.w800 : FontWeight.w500))), if (selected != null) BinerLocalizedText('${(ratio * 100).round()}%', style: const TextStyle(color: cBlue, fontWeight: FontWeight.w800))]), if (selected != null) Padding(padding: const EdgeInsets.only(top: 7), child: ClipRRect(borderRadius: BorderRadius.circular(8), child: LinearProgressIndicator(value: ratio, minHeight: 6, backgroundColor: cMuted.withValues(alpha: .18), color: chosen ? const Color(0xFF00BA7C) : cBlue))) ])))); }),
+      Row(children: [BinerLocalizedText('$total ${binerText('رأی',en:'votes',ar:'أصوات',tr:'oy')} ', style: const TextStyle(color: cMuted, fontSize: 12)), const Spacer(), BinerLocalizedText(selected == null ? binerText('برای رأی دادن انتخاب کن',en:'Select an option to vote',ar:'اختر خيارًا للتصويت',tr:'Oy vermek için seç') : binerText('رأی ثبت شد',en:'Vote recorded',ar:'تم تسجيل التصويت',tr:'Oyun kaydedildi'), style: const TextStyle(color: cMuted, fontSize: 12))]),
     ]));
   }
 
@@ -1147,9 +1162,9 @@ class _LiveHomeState extends State<LiveHome> with WidgetsBindingObserver {
       GestureDetector(onTap: () => openUserProfile(value(p, 'username')), child: avatar(name, p, 21)), const SizedBox(width: 10), Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
         Row(children: [
           Expanded(child: Wrap(crossAxisAlignment: WrapCrossAlignment.center, spacing: 3, children: [
-            GestureDetector(onTap: () => openUserProfile(value(p, 'username')), child: Text(name, style: const TextStyle(fontWeight: FontWeight.w800, fontSize: 14))),
+            GestureDetector(onTap: () => openUserProfile(value(p, 'username')), child: BinerLocalizedText(name, style: const TextStyle(fontWeight: FontWeight.w800, fontSize: 14))),
             blueTick(p),
-            GestureDetector(onTap: () => openUserProfile(value(p, 'username')), child: Text('@' + value(p, 'username', 'user'), style: const TextStyle(color: Color(0xFF8496AC), fontSize: 12))),
+            GestureDetector(onTap: () => openUserProfile(value(p, 'username')), child: BinerLocalizedText('@' + value(p, 'username', 'user'), style: const TextStyle(color: Color(0xFF8496AC), fontSize: 12))),
           ])),
           if (value(p, 'user_id') == value(me ?? {}, 'id'))
             PopupMenuButton<String>(
@@ -1161,8 +1176,8 @@ class _LiveHomeState extends State<LiveHome> with WidgetsBindingObserver {
                 if (action == 'delete') deletePost(id);
               },
               itemBuilder: (_) => [
-                PopupMenuItem(value: 'edit', child: Text(binerText('ویرایش پست',en:'Edit post',ar:'تعديل المنشور',tr:'Gönderiyi düzenle'))),
-                const PopupMenuItem(value: 'delete', child: Text('حذف پست')),
+                PopupMenuItem(value: 'edit', child: BinerLocalizedText(binerText('ویرایش پست',en:'Edit post',ar:'تعديل المنشور',tr:'Gönderiyi düzenle'))),
+                const PopupMenuItem(value: 'delete', child: BinerLocalizedText('حذف پست')),
               ],
             ),
         ]),
@@ -1180,10 +1195,10 @@ class _LiveHomeState extends State<LiveHome> with WidgetsBindingObserver {
           )),
         const SizedBox(height: 10),
         Wrap(alignment: WrapAlignment.spaceBetween, crossAxisAlignment: WrapCrossAlignment.center, runSpacing: 0, children: [
-          TextButton.icon(style: TextButton.styleFrom(foregroundColor: cMuted, visualDensity: VisualDensity.compact, padding: const EdgeInsets.symmetric(horizontal: 5)), onPressed: () => showReplies(p), icon: const Icon(Icons.chat_bubble_outline, size: 17), label: Text(fmt(p['replies_count'] ?? 0))),
-          TextButton.icon(style: TextButton.styleFrom(foregroundColor: reposted ? const Color(0xFF00BA7C) : cMuted, visualDensity: VisualDensity.compact, padding: const EdgeInsets.symmetric(horizontal: 7)), onPressed: () => toggle(p, 'repost'), icon: const Icon(Icons.repeat, size: 17), label: Text(fmt(p['reposts_count'] ?? 0))),
-          TextButton.icon(style: TextButton.styleFrom(foregroundColor: liked ? const Color(0xFFF91880) : cMuted, visualDensity: VisualDensity.compact, padding: const EdgeInsets.symmetric(horizontal: 7)), onPressed: () => toggle(p, 'like'), icon: Icon(liked ? Icons.favorite : Icons.favorite_border, size: 17), label: Text(fmt(p['likes_count'] ?? 0))),
-          IconButton(tooltip: savedPosts.any((item) => value(item, 'id') == value(p, 'id')) ? 'حذف از ذخیره‌ها' : 'ذخیره پست', visualDensity: VisualDensity.compact, onPressed: () => toggleSavedPost(p), icon: Icon(savedPosts.any((item) => value(item, 'id') == value(p, 'id')) ? Icons.bookmark_rounded : Icons.bookmark_border_rounded, color: savedPosts.any((item) => value(item, 'id') == value(p, 'id')) ? cBlue : cMuted, size: 20)),
+          TextButton.icon(style: TextButton.styleFrom(foregroundColor: cMuted, visualDensity: VisualDensity.compact, padding: const EdgeInsets.symmetric(horizontal: 5)), onPressed: () => showReplies(p), icon: const Icon(Icons.chat_bubble_outline, size: 17), label: BinerLocalizedText(fmt(p['replies_count'] ?? 0))),
+          TextButton.icon(style: TextButton.styleFrom(foregroundColor: reposted ? const Color(0xFF00BA7C) : cMuted, visualDensity: VisualDensity.compact, padding: const EdgeInsets.symmetric(horizontal: 7)), onPressed: () => toggle(p, 'repost'), icon: const Icon(Icons.repeat, size: 17), label: BinerLocalizedText(fmt(p['reposts_count'] ?? 0))),
+          TextButton.icon(style: TextButton.styleFrom(foregroundColor: liked ? const Color(0xFFF91880) : cMuted, visualDensity: VisualDensity.compact, padding: const EdgeInsets.symmetric(horizontal: 7)), onPressed: () => toggle(p, 'like'), icon: Icon(liked ? Icons.favorite : Icons.favorite_border, size: 17), label: BinerLocalizedText(fmt(p['likes_count'] ?? 0))),
+          IconButton(tooltip: savedPosts.any((item) => value(item, 'id') == value(p, 'id')) ? binerText('حذف از ذخیره‌ها') : binerText('ذخیره پست'), visualDensity: VisualDensity.compact, onPressed: () => toggleSavedPost(p), icon: Icon(savedPosts.any((item) => value(item, 'id') == value(p, 'id')) ? Icons.bookmark_rounded : Icons.bookmark_border_rounded, color: savedPosts.any((item) => value(item, 'id') == value(p, 'id')) ? cBlue : cMuted, size: 20)),
           IconButton(tooltip: binerText('کپی متن پست',en:'Copy post text',ar:'نسخ نص المنشور',tr:'Gönderi metnini kopyala'), visualDensity: VisualDensity.compact, onPressed: () => copyPost(p), icon: const Icon(Icons.content_copy_rounded, color: cMuted, size: 18)),
         ]),
       ])),
@@ -1198,12 +1213,12 @@ class _LiveHomeState extends State<LiveHome> with WidgetsBindingObserver {
           const Brand(),
           const Spacer(),
           IconButton(
-            tooltip: 'جست‌وجوی کاربر',
+            tooltip: binerText('جست‌وجوی کاربر'),
             onPressed: searchUser,
             icon: const Icon(Icons.search_rounded),
           ),
           PopupMenuButton<String>(
-            tooltip: 'ابزارها و تنظیمات',
+            tooltip: binerText('ابزارها و تنظیمات'),
             onSelected: (action) {
               switch (action) {
                 case 'ai':
@@ -1227,7 +1242,7 @@ class _LiveHomeState extends State<LiveHome> with WidgetsBindingObserver {
                   dense: true,
                   contentPadding: EdgeInsets.zero,
                   leading: Icon(Icons.auto_awesome_rounded, color: Color(0xFF9B8CFF)),
-                  title: Text('BinerAI'),
+                  title: BinerLocalizedText('BinerAI'),
                 ),
               ),
               const PopupMenuItem(
@@ -1236,7 +1251,7 @@ class _LiveHomeState extends State<LiveHome> with WidgetsBindingObserver {
                   dense: true,
                   contentPadding: EdgeInsets.zero,
                   leading: Icon(Icons.insights_rounded, color: cBlue),
-                  title: Text('آمار حساب'),
+                  title: BinerLocalizedText('آمار حساب'),
                 ),
               ),
               const PopupMenuItem(
@@ -1245,7 +1260,7 @@ class _LiveHomeState extends State<LiveHome> with WidgetsBindingObserver {
                   dense: true,
                   contentPadding: EdgeInsets.zero,
                   leading: Icon(Icons.auto_awesome_mosaic_rounded, color: Color(0xFF66D6B2)),
-                  title: Text('Creator Studio · ۱۰ ابزار'),
+                  title: BinerLocalizedText('Creator Studio · ۱۰ ابزار'),
                 ),
               ),
               PopupMenuItem(
@@ -1254,7 +1269,7 @@ class _LiveHomeState extends State<LiveHome> with WidgetsBindingObserver {
                   dense: true,
                   contentPadding: EdgeInsets.zero,
                   leading: Icon(widget.isDark ? Icons.light_mode_rounded : Icons.dark_mode_rounded),
-                  title: Text(widget.isDark ? 'حالت روشن' : 'حالت تیره'),
+                  title: BinerLocalizedText(widget.isDark ? 'حالت روشن' : 'حالت تیره'),
                 ),
               ),
             ],
@@ -1290,14 +1305,14 @@ class _LiveHomeState extends State<LiveHome> with WidgetsBindingObserver {
         Expanded(child: InkWell(
           onTap: () { if (followingFeed) { setState(() => followingFeed = false); refresh(); } },
           child: Column(children: [
-            Padding(padding: const EdgeInsets.symmetric(vertical: 12), child: Text(binerText('برای تو', en:'For you', ar:'لك', tr:'Sana özel'), style: TextStyle(fontWeight: FontWeight.bold, color: followingFeed ? cMuted : Theme.of(context).colorScheme.onSurface))),
+            Padding(padding: const EdgeInsets.symmetric(vertical: 12), child: BinerLocalizedText(binerText('برای تو', en:'For you', ar:'لك', tr:'Sana özel'), style: TextStyle(fontWeight: FontWeight.bold, color: followingFeed ? cMuted : Theme.of(context).colorScheme.onSurface))),
             Container(height: 3, width: 82, decoration: BoxDecoration(color: followingFeed ? Colors.transparent : cBlue, borderRadius: BorderRadius.circular(3))),
           ]),
         )),
         Expanded(child: InkWell(
           onTap: () { if (!followingFeed) { setState(() => followingFeed = true); refresh(); } },
           child: Column(children: [
-            Padding(padding: const EdgeInsets.symmetric(vertical: 12), child: Text(binerText('دنبال‌شونده‌ها', en:'Following', ar:'المتابَعون', tr:'Takip edilenler'), style: TextStyle(fontWeight: FontWeight.bold, color: followingFeed ? Theme.of(context).colorScheme.onSurface : cMuted))),
+            Padding(padding: const EdgeInsets.symmetric(vertical: 12), child: BinerLocalizedText(binerText('دنبال‌شونده‌ها', en:'Following', ar:'المتابَعون', tr:'Takip edilenler'), style: TextStyle(fontWeight: FontWeight.bold, color: followingFeed ? Theme.of(context).colorScheme.onSurface : cMuted))),
             Container(height: 3, width: 112, decoration: BoxDecoration(color: followingFeed ? cBlue : Colors.transparent, borderRadius: BorderRadius.circular(3))),
           ]),
         )),
@@ -1320,9 +1335,9 @@ class _LiveHomeState extends State<LiveHome> with WidgetsBindingObserver {
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
-              Text(error!, textAlign: TextAlign.center),
+              BinerLocalizedText(error!, textAlign: TextAlign.center),
               const SizedBox(height: 12),
-              OutlinedButton(onPressed: refresh, child: Text(binerText('تلاش دوباره',en:'Try again',ar:'حاول مرة أخرى',tr:'Tekrar dene'))),
+              OutlinedButton(onPressed: refresh, child: BinerLocalizedText(binerText('تلاش دوباره',en:'Try again',ar:'حاول مرة أخرى',tr:'Tekrar dene'))),
             ],
           ),
         ),
@@ -1334,7 +1349,7 @@ class _LiveHomeState extends State<LiveHome> with WidgetsBindingObserver {
         child: ListView(children: [
           storyStrip(),
           const SizedBox(height: 70),
-          Center(child: Text('هنوز پستی وجود ندارد.')),
+          Center(child: BinerLocalizedText('هنوز پستی وجود ندارد.')),
         ]),
       );
     }
@@ -1402,11 +1417,11 @@ class _LiveHomeState extends State<LiveHome> with WidgetsBindingObserver {
               avatar(name, {'avatar_url': value(item, 'actor_avatar_url')}, 22),
               const SizedBox(width: 12),
               Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-                Text(name, maxLines: 1, overflow: TextOverflow.ellipsis, style: const TextStyle(fontWeight: FontWeight.w900, fontSize: 13)),
+                BinerLocalizedText(name, maxLines: 1, overflow: TextOverflow.ellipsis, style: const TextStyle(fontWeight: FontWeight.w900, fontSize: 13)),
                 const SizedBox(height: 3),
-                Text(labels[kind] ?? 'تعامل جدید', style: TextStyle(color: Theme.of(context).colorScheme.onSurfaceVariant, fontSize: 11)),
+                BinerLocalizedText(labels[kind] ?? 'تعامل جدید', style: TextStyle(color: Theme.of(context).colorScheme.onSurfaceVariant, fontSize: 11)),
                 const SizedBox(height: 4),
-                Text(value(item, 'created_at'), style: TextStyle(color: Theme.of(context).colorScheme.onSurfaceVariant.withValues(alpha: .7), fontSize: 9)),
+                BinerLocalizedText(value(item, 'created_at'), style: TextStyle(color: Theme.of(context).colorScheme.onSurfaceVariant.withValues(alpha: .7), fontSize: 9)),
               ])),
               Container(width: 34, height: 34, decoration: BoxDecoration(color: cBlue.withValues(alpha: .10), borderRadius: BorderRadius.circular(12)), child: Icon(icons[kind] ?? Icons.notifications_active_outlined, color: cBlue, size: 18)),
             ]),
@@ -1419,11 +1434,11 @@ class _LiveHomeState extends State<LiveHome> with WidgetsBindingObserver {
   Future<void> startConversation() async {
     final controller = TextEditingController();
     final username = await showDialog<String>(context: context, builder: (ctx) => AlertDialog(
-      title: Text(binerText('پیام جدید',en:'New message',ar:'رسالة جديدة',tr:'Yeni mesaj')),
+      title: BinerLocalizedText(binerText('پیام جدید',en:'New message',ar:'رسالة جديدة',tr:'Yeni mesaj')),
       content: TextField(controller: controller, autocorrect: false, decoration: InputDecoration(labelText: binerText('نام کاربری گیرنده',en:'Recipient username',ar:'اسم المستخدم للمستلم',tr:'Alıcının kullanıcı adı'))),
       actions: [
-        TextButton(onPressed: () => Navigator.pop(ctx), child: const Text('انصراف')),
-        FilledButton(onPressed: () => Navigator.pop(ctx, controller.text.trim()), child: const Text('ادامه')),
+        TextButton(onPressed: () => Navigator.pop(ctx), child: const BinerLocalizedText('انصراف')),
+        FilledButton(onPressed: () => Navigator.pop(ctx, controller.text.trim()), child: const BinerLocalizedText('ادامه')),
       ],
     ));
     controller.dispose();
@@ -1471,8 +1486,8 @@ class _LiveHomeState extends State<LiveHome> with WidgetsBindingObserver {
                 title: 'پیام‌ها',
                 subtitle: 'گفتگوهای خصوصی و اتاق‌های گروهی',
                 trailing: Row(mainAxisSize: MainAxisSize.min, children: [
-                  IconButton(tooltip: 'اتاق‌های گفتگو', onPressed: openGroupRooms, icon: const Icon(Icons.groups_rounded)),
-                  IconButton(tooltip: 'پیام جدید', onPressed: startConversation, icon: const Icon(Icons.edit_square)),
+                  IconButton(tooltip: binerText('اتاق‌های گفتگو'), onPressed: openGroupRooms, icon: const Icon(Icons.groups_rounded)),
+                  IconButton(tooltip: binerText('پیام جدید'), onPressed: startConversation, icon: const Icon(Icons.edit_square)),
                 ]),
               ),
             );
@@ -1510,9 +1525,9 @@ class _LiveHomeState extends State<LiveHome> with WidgetsBindingObserver {
               avatar(display, person, 24),
               const SizedBox(width: 12),
               Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-                Text(display, maxLines: 1, overflow: TextOverflow.ellipsis, style: const TextStyle(fontWeight: FontWeight.w900, fontSize: 14)),
+                BinerLocalizedText(display, maxLines: 1, overflow: TextOverflow.ellipsis, style: const TextStyle(fontWeight: FontWeight.w900, fontSize: 14)),
                 const SizedBox(height: 4),
-                Text(
+                BinerLocalizedText(
                   (username.isNotEmpty ? '@$username · ' : '') + value(conversation, 'last_message', 'گفتگوی تازه'),
                   maxLines: 1, overflow: TextOverflow.ellipsis,
                   style: TextStyle(color: Theme.of(context).colorScheme.onSurfaceVariant, fontSize: 11),
@@ -1547,7 +1562,7 @@ class _LiveHomeState extends State<LiveHome> with WidgetsBindingObserver {
           child: Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
             Center(child: Container(width: 42, height: 4, decoration: BoxDecoration(color: cMuted.withValues(alpha: .5), borderRadius: BorderRadius.circular(4)))),
             const SizedBox(height: 16),
-            Text(binerText('کشف آدم‌های جدید',en:'Discover people',ar:'اكتشف أشخاصاً جدد',tr:'Yeni kişileri keşfet'), style: TextStyle(fontSize: 22, fontWeight: FontWeight.w800)),
+            BinerLocalizedText(binerText('کشف آدم‌های جدید',en:'Discover people',ar:'اكتشف أشخاصاً جدد',tr:'Yeni kişileri keşfet'), style: TextStyle(fontSize: 22, fontWeight: FontWeight.w800)),
             const SizedBox(height: 12),
             TextField(
               controller: controller,
@@ -1557,7 +1572,7 @@ class _LiveHomeState extends State<LiveHome> with WidgetsBindingObserver {
                 results = q.trim().replaceFirst(RegExp(r'^@'), '').length >= 2 ? widget.api.searchUsers(q.trim()) : null;
               }),
               decoration: InputDecoration(
-                hintText: 'نام کاربری یا نام نمایشی…',
+                hintText: binerText('نام کاربری یا نام نمایشی…'),
                 prefixIcon: const Icon(Icons.search_rounded, color: cBlue),
                 filled: true, fillColor: Theme.of(ctx).inputDecorationTheme.fillColor,
                 border: OutlineInputBorder(borderRadius: BorderRadius.circular(18), borderSide: const BorderSide(color: cLine)),
@@ -1567,14 +1582,14 @@ class _LiveHomeState extends State<LiveHome> with WidgetsBindingObserver {
             const SizedBox(height: 12),
             Expanded(
               child: results == null
-                ? const Center(child: Text('برای شروع، حداقل ۲ حرف بنویس.', style: TextStyle(color: cMuted)))
+                ? const Center(child: BinerLocalizedText('برای شروع، حداقل ۲ حرف بنویس.', style: TextStyle(color: cMuted)))
                 : FutureBuilder<List<Map<String, dynamic>>>(
                     future: results,
                     builder: (context, snap) {
                       if (snap.connectionState == ConnectionState.waiting) return const Center(child: CircularProgressIndicator(color: cBlue));
-                      if (snap.hasError) return Center(child: Text(snap.error.toString(), textAlign: TextAlign.center));
+                      if (snap.hasError) return Center(child: BinerLocalizedText(snap.error.toString(), textAlign: TextAlign.center));
                       final users = snap.data ?? [];
-                      if (users.isEmpty) return const Center(child: Text('کاربری پیدا نشد.'));
+                      if (users.isEmpty) return const Center(child: BinerLocalizedText('کاربری پیدا نشد.'));
                       return ListView.separated(
                         itemCount: users.length,
                         separatorBuilder: (_, __) => const Divider(color: cLine, height: 1),
@@ -1585,10 +1600,10 @@ class _LiveHomeState extends State<LiveHome> with WidgetsBindingObserver {
                             contentPadding: const EdgeInsets.symmetric(horizontal: 2, vertical: 4),
                             leading: avatar(display, user, 24),
                             title: Row(children: [
-                              Flexible(child: Text(display, maxLines: 1, overflow: TextOverflow.ellipsis, style: const TextStyle(fontWeight: FontWeight.bold))),
+                              Flexible(child: BinerLocalizedText(display, maxLines: 1, overflow: TextOverflow.ellipsis, style: const TextStyle(fontWeight: FontWeight.bold))),
                               blueTick(user),
                             ]),
-                            subtitle: Text('@' + value(user, 'username') + (value(user, 'bio').isNotEmpty ? ' · ' + value(user, 'bio') : ''), maxLines: 2, overflow: TextOverflow.ellipsis, style: const TextStyle(color: cMuted)),
+                            subtitle: BinerLocalizedText('@' + value(user, 'username') + (value(user, 'bio').isNotEmpty ? ' · ' + value(user, 'bio') : ''), maxLines: 2, overflow: TextOverflow.ellipsis, style: const TextStyle(color: cMuted)),
                             trailing: const Icon(Icons.arrow_outward_rounded, color: cBlue, size: 18),
                             onTap: () => Navigator.pop(ctx, user),
                           );
@@ -1617,7 +1632,7 @@ class _LiveHomeState extends State<LiveHome> with WidgetsBindingObserver {
           Container(height: 118, decoration: BoxDecoration(borderRadius: BorderRadius.circular(22), gradient: const LinearGradient(begin: Alignment.topLeft, end: Alignment.bottomRight, colors: [Color(0xFF101018), Color(0xFF101F35), Color(0xFF17102B)]), border: Border.all(color: cLine.withValues(alpha: .6))),
             child: Stack(children: [
               Positioned(right: 18, top: 12, child: Icon(Icons.blur_on_rounded, size: 84, color: cBlue.withValues(alpha: .16))),
-              Positioned(left: 18, bottom: 10, child: Text('BINER / IDENTITY', style: TextStyle(color: cBlue.withValues(alpha: .75), fontSize: 10, letterSpacing: 2, fontWeight: FontWeight.w800))),
+              Positioned(left: 18, bottom: 10, child: BinerLocalizedText('BINER / IDENTITY', style: TextStyle(color: cBlue.withValues(alpha: .75), fontSize: 10, letterSpacing: 2, fontWeight: FontWeight.w800))),
               const Center(child: Icon(Icons.bolt_rounded, color: cBlue, size: 54)),
             ]),
           ),
@@ -1625,13 +1640,13 @@ class _LiveHomeState extends State<LiveHome> with WidgetsBindingObserver {
           Row(children: [
             avatar(display, u, 34), const SizedBox(width: 13),
             Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-              Row(children: [Flexible(child: Text(display, maxLines: 1, overflow: TextOverflow.ellipsis, style: const TextStyle(fontSize: 21, fontWeight: FontWeight.w900))), blueTick(u)]),
-              const SizedBox(height: 3), Text('@$username', style: const TextStyle(color: cMuted, fontSize: 13)),
+              Row(children: [Flexible(child: BinerLocalizedText(display, maxLines: 1, overflow: TextOverflow.ellipsis, style: const TextStyle(fontSize: 21, fontWeight: FontWeight.w900))), blueTick(u)]),
+              const SizedBox(height: 3), BinerLocalizedText('@$username', style: const TextStyle(color: cMuted, fontSize: 13)),
             ])),
-            IconButton(tooltip: 'ویرایش پروفایل', onPressed: () => editProfile(u), icon: const Icon(Icons.edit_rounded, color: cBlue)),
+            IconButton(tooltip: binerText('ویرایش پروفایل'), onPressed: () => editProfile(u), icon: const Icon(Icons.edit_rounded, color: cBlue)),
           ]),
-          if (bio.isNotEmpty) ...[const SizedBox(height: 16), Text(bio, style: const TextStyle(fontSize: 14, height: 1.7))],
-          if (website.isNotEmpty) ...[const SizedBox(height: 10), Row(children: [const Icon(Icons.link_rounded, color: cBlue, size: 18), const SizedBox(width: 8), Expanded(child: Text(website, style: const TextStyle(color: cBlue), maxLines: 2, overflow: TextOverflow.ellipsis))])],
+          if (bio.isNotEmpty) ...[const SizedBox(height: 16), BinerLocalizedText(bio, style: const TextStyle(fontSize: 14, height: 1.7))],
+          if (website.isNotEmpty) ...[const SizedBox(height: 10), Row(children: [const Icon(Icons.link_rounded, color: cBlue, size: 18), const SizedBox(width: 8), Expanded(child: BinerLocalizedText(website, style: const TextStyle(color: cBlue), maxLines: 2, overflow: TextOverflow.ellipsis))])],
           const SizedBox(height: 18),
           Row(children: [
             Expanded(child: _profileMetric('پست‌ها', value(u, 'posts_count', '0'))), const SizedBox(width: 8),
@@ -1643,13 +1658,13 @@ class _LiveHomeState extends State<LiveHome> with WidgetsBindingObserver {
       const SizedBox(height: 14),
       BinerLiquidGlass(borderRadius: BorderRadius.circular(22), padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
         child: Column(children: [
-          ListTile(leading: const Icon(Icons.tune_rounded, color: cBlue), title: Text(binerText('شخصی‌سازی پروفایل',en:'Customize profile',ar:'تخصيص الملف الشخصي',tr:'Profili özelleştir')), subtitle: const Text('نام، تصویر، بیو و لینک‌ها'), trailing: const Icon(Icons.chevron_right_rounded), onTap: () => editProfile(u)),
+          ListTile(leading: const Icon(Icons.tune_rounded, color: cBlue), title: BinerLocalizedText(binerText('شخصی‌سازی پروفایل',en:'Customize profile',ar:'تخصيص الملف الشخصي',tr:'Profili özelleştir')), subtitle: const BinerLocalizedText('نام، تصویر، بیو و لینک‌ها'), trailing: const Icon(Icons.chevron_right_rounded), onTap: () => editProfile(u)),
           Divider(height: 1, color: cLine.withValues(alpha: .35)),
-          ListTile(leading: const Icon(Icons.shield_outlined, color: cBlue), title: Text(binerText('حریم خصوصی و امنیت',en:'Privacy & security',ar:'الخصوصية والأمان',tr:'Gizlilik ve güvenlik')), subtitle: Text(binerText('تنظیمات حساب و محافظت از آن',en:'Account settings and protection',ar:'إعدادات الحساب وحمايته',tr:'Hesap ayarları ve koruması')), trailing: const Icon(Icons.chevron_right_rounded), onTap: () => toast('تنظیمات امنیتی در حال آماده‌سازی است.')),
+          ListTile(leading: const Icon(Icons.shield_outlined, color: cBlue), title: BinerLocalizedText(binerText('حریم خصوصی و امنیت',en:'Privacy & security',ar:'الخصوصية والأمان',tr:'Gizlilik ve güvenlik')), subtitle: BinerLocalizedText(binerText('تنظیمات حساب و محافظت از آن',en:'Account settings and protection',ar:'إعدادات الحساب وحمايته',tr:'Hesap ayarları ve koruması')), trailing: const Icon(Icons.chevron_right_rounded), onTap: () => toast('تنظیمات امنیتی در حال آماده‌سازی است.')),
           Divider(height: 1, color: cLine.withValues(alpha: .35)),
-          ListTile(leading: const Icon(Icons.palette_outlined, color: cBlue), title: Text(binerText('زبان، رنگ و عملکرد', en:'Language, color & performance', ar:'اللغة واللون والأداء', tr:'Dil, renk ve performans')), subtitle: Text(binerText('فارسی، انگلیسی، عربی، ترکی و حالت سریع', en:'Persian, English, Arabic, Turkish and fast mode', ar:'الفارسية والإنجليزية والعربية والتركية والوضع السريع', tr:'Farsça, İngilizce, Arapça, Türkçe ve hızlı mod')), trailing: const Icon(Icons.chevron_right_rounded), onTap: openAppSettings),
+          ListTile(leading: const Icon(Icons.palette_outlined, color: cBlue), title: BinerLocalizedText(binerText('زبان، رنگ و عملکرد', en:'Language, color & performance', ar:'اللغة واللون والأداء', tr:'Dil, renk ve performans')), subtitle: BinerLocalizedText(binerText('فارسی، انگلیسی، عربی، ترکی و حالت سریع', en:'Persian, English, Arabic, Turkish and fast mode', ar:'الفارسية والإنجليزية والعربية والتركية والوضع السريع', tr:'Farsça, İngilizce, Arapça, Türkçe ve hızlı mod')), trailing: const Icon(Icons.chevron_right_rounded), onTap: openAppSettings),
           Divider(height: 1, color: cLine.withValues(alpha: .35)),
-          ListTile(leading: const Icon(Icons.logout_rounded, color: Color(0xFFFF7185)), title: Text(binerText('خروج از حساب',en:'Sign out',ar:'تسجيل الخروج',tr:'Çıkış yap')), subtitle: Text(binerText('پایان نشست فعلی',en:'End current session',ar:'إنهاء الجلسة الحالية',tr:'Geçerli oturumu kapat')), onTap: () async => widget.logout()),
+          ListTile(leading: const Icon(Icons.logout_rounded, color: Color(0xFFFF7185)), title: BinerLocalizedText(binerText('خروج از حساب',en:'Sign out',ar:'تسجيل الخروج',tr:'Çıkış yap')), subtitle: BinerLocalizedText(binerText('پایان نشست فعلی',en:'End current session',ar:'إنهاء الجلسة الحالية',tr:'Geçerli oturumu kapat')), onTap: () async => widget.logout()),
         ]),
       ),
     ]);
@@ -1673,23 +1688,23 @@ class _LiveHomeState extends State<LiveHome> with WidgetsBindingObserver {
           child: SingleChildScrollView(child: Column(mainAxisSize: MainAxisSize.min, crossAxisAlignment: CrossAxisAlignment.stretch, children: [
             Center(child: Container(width: 42, height: 4, decoration: BoxDecoration(color: cMuted.withValues(alpha: .6), borderRadius: BorderRadius.circular(4)))),
             const SizedBox(height: 18),
-            Text(binerText('تنظیمات ظاهری و عملکرد', en:'Appearance & performance', ar:'المظهر والأداء', tr:'Görünüm ve performans'), style: const TextStyle(fontSize: 21, fontWeight: FontWeight.w900)),
+            BinerLocalizedText(binerText('تنظیمات ظاهری و عملکرد', en:'Appearance & performance', ar:'المظهر والأداء', tr:'Görünüm ve performans'), style: const TextStyle(fontSize: 21, fontWeight: FontWeight.w900)),
             const SizedBox(height: 16),
-            Text(binerText('زبان برنامه', en:'App language', ar:'لغة التطبيق', tr:'Uygulama dili'), style: const TextStyle(fontWeight: FontWeight.w700)),
+            BinerLocalizedText(binerText('زبان برنامه', en:'App language', ar:'لغة التطبيق', tr:'Uygulama dili'), style: const TextStyle(fontWeight: FontWeight.w700)),
             const SizedBox(height: 8),
             Wrap(spacing: 8, runSpacing: 8, children: [
               for (final item in const [('fa','فارسی'),('en','English'),('ar','العربية'),('tr','Türkçe')])
-                ChoiceChip(label: Text(item.$2), selected: prefs.locale.languageCode == item.$1, onSelected: (_) => prefs.setLanguage(item.$1)),
+                ChoiceChip(label: BinerLocalizedText(item.$2), selected: prefs.locale.languageCode == item.$1, onSelected: (_) => prefs.setLanguage(item.$1)),
             ]),
             const SizedBox(height: 16),
-            Text(binerText('فونت برنامه', en:'App font', ar:'خط التطبيق', tr:'Uygulama yazı tipi'), style: const TextStyle(fontWeight: FontWeight.w700)),
+            BinerLocalizedText(binerText('فونت برنامه', en:'App font', ar:'خط التطبيق', tr:'Uygulama yazı tipi'), style: const TextStyle(fontWeight: FontWeight.w700)),
             const SizedBox(height: 8),
             Wrap(spacing: 8, runSpacing: 8, children: [
               for (final item in const [('system','فونت گوشی'),('vazir','وزیرمتن'),('noto','فونت اصلی')])
-                ChoiceChip(label: Text(item.$2), selected: prefs.fontFamily == item.$1, onSelected: (_) => prefs.setFontFamily(item.$1)),
+                ChoiceChip(label: BinerLocalizedText(item.$2), selected: prefs.fontFamily == item.$1, onSelected: (_) => prefs.setFontFamily(item.$1)),
             ]),
             const SizedBox(height: 16),
-            Text(binerText('رنگ اصلی', en:'Accent color', ar:'اللون الأساسي', tr:'Vurgu rengi'), style: const TextStyle(fontWeight: FontWeight.w700)),
+            BinerLocalizedText(binerText('رنگ اصلی', en:'Accent color', ar:'اللون الأساسي', tr:'Vurgu rengi'), style: const TextStyle(fontWeight: FontWeight.w700)),
             const SizedBox(height: 9),
             Wrap(spacing: 13, children: [
               for (final color in const [Color(0xFF54C8FF),Color(0xFF8B7CFF),Color(0xFF36D6A0),Color(0xFFFF8A65),Color(0xFFFF6FAE),Color(0xFFFFC857)])
@@ -1700,8 +1715,8 @@ class _LiveHomeState extends State<LiveHome> with WidgetsBindingObserver {
               contentPadding: EdgeInsets.zero, value: prefs.fastMode,
               onChanged: prefs.setFastMode,
               secondary: const Icon(Icons.speed_rounded, color: cBlue),
-              title: Text(binerText('حالت سریع برای گوشی‌های ضعیف', en:'Fast mode for low-end phones', ar:'الوضع السريع للهواتف الضعيفة', tr:'Düşük donanımlı telefonlar için hızlı mod')),
-              subtitle: Text(binerText('کاهش افکت‌های سنگین و محوشدگی برای روان‌تر شدن برنامه', en:'Reduce heavy effects and blur for smoother performance', ar:'تقليل المؤثرات الثقيلة والضبابية لتحسين الأداء', tr:'Daha akıcı kullanım için ağır efektleri ve bulanıklığı azaltır')),
+              title: BinerLocalizedText(binerText('حالت سریع برای گوشی‌های ضعیف', en:'Fast mode for low-end phones', ar:'الوضع السريع للهواتف الضعيفة', tr:'Düşük donanımlı telefonlar için hızlı mod')),
+              subtitle: BinerLocalizedText(binerText('کاهش افکت‌های سنگین و محوشدگی برای روان‌تر شدن برنامه', en:'Reduce heavy effects and blur for smoother performance', ar:'تقليل المؤثرات الثقيلة والضبابية لتحسين الأداء', tr:'Daha akıcı kullanım için ağır efektleri ve bulanıklığı azaltır')),
             ),
           ])),
         ),
@@ -1713,9 +1728,9 @@ class _LiveHomeState extends State<LiveHome> with WidgetsBindingObserver {
     padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 6),
     radius: 16,
     child: Column(children: [
-      Text(count, style: TextStyle(fontSize: 19, fontWeight: FontWeight.w900, color: Theme.of(context).colorScheme.onSurface)),
+      BinerLocalizedText(count, style: TextStyle(fontSize: 19, fontWeight: FontWeight.w900, color: Theme.of(context).colorScheme.onSurface)),
       const SizedBox(height: 4),
-      Text(label, style: TextStyle(fontSize: 11, color: Theme.of(context).colorScheme.onSurfaceVariant)),
+      BinerLocalizedText(label, style: TextStyle(fontSize: 11, color: Theme.of(context).colorScheme.onSurfaceVariant)),
     ]),
   );
 
@@ -1730,7 +1745,7 @@ class _LiveHomeState extends State<LiveHome> with WidgetsBindingObserver {
         builder: (ctx, dialogSetState) => AlertDialog(
           backgroundColor: Theme.of(ctx).colorScheme.surface,
           shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(26), side: const BorderSide(color: cLine)),
-          title: Text(binerText('شخصی‌سازی پروفایل',en:'Customize profile',ar:'تخصيص الملف الشخصي',tr:'Profili özelleştir')),
+          title: BinerLocalizedText(binerText('شخصی‌سازی پروفایل',en:'Customize profile',ar:'تخصيص الملف الشخصي',tr:'Profili özelleştir')),
           content: SingleChildScrollView(child: Column(mainAxisSize: MainAxisSize.min, children: [
             Container(
               padding: const EdgeInsets.all(3),
@@ -1750,15 +1765,15 @@ class _LiveHomeState extends State<LiveHome> with WidgetsBindingObserver {
                 if (picked != null) dialogSetState(() => avatarFile = picked);
               },
               icon: const Icon(Icons.add_a_photo_outlined),
-              label: Text(avatarFile == null ? 'انتخاب عکس پروفایل' : 'تغییر عکس انتخاب‌شده'),
+              label: BinerLocalizedText(avatarFile == null ? 'انتخاب عکس پروفایل' : 'تغییر عکس انتخاب‌شده'),
             ),
             TextField(controller: name, maxLength: 80, decoration: InputDecoration(labelText: binerText('نام نمایشی',en:'Display name',ar:'الاسم الظاهر',tr:'Görünen ad'), prefixIcon: Icon(Icons.badge_outlined))),
             TextField(controller: bio, maxLength: 280, maxLines: 3, decoration: InputDecoration(labelText: binerText('بیوگرافی',en:'Bio',ar:'نبذة',tr:'Biyografi'), prefixIcon: Icon(Icons.edit_note))),
             TextField(controller: website, keyboardType: TextInputType.url, decoration: InputDecoration(labelText: binerText('وب‌سایت یا لینک شخصی',en:'Website or personal link',ar:'الموقع أو رابط شخصي',tr:'Web sitesi veya kişisel bağlantı'), prefixIcon: Icon(Icons.link))),
           ])),
           actions: [
-            TextButton(onPressed: () => Navigator.pop(ctx, false), child: const Text('انصراف')),
-            FilledButton(onPressed: () => Navigator.pop(ctx, true), child: Text(binerText('ذخیره تغییرات',en:'Save changes',ar:'حفظ التغييرات',tr:'Değişiklikleri kaydet'))),
+            TextButton(onPressed: () => Navigator.pop(ctx, false), child: const BinerLocalizedText('انصراف')),
+            FilledButton(onPressed: () => Navigator.pop(ctx, true), child: BinerLocalizedText(binerText('ذخیره تغییرات',en:'Save changes',ar:'حفظ التغييرات',tr:'Değişiklikleri kaydet'))),
           ],
         ),
       ),
@@ -1805,6 +1820,7 @@ class _LiveHomeState extends State<LiveHome> with WidgetsBindingObserver {
         const Icon(Icons.person_rounded, color: cBlue),
       ];
       void selectTab(int index) => setState(() {
+        if (index != tab) _tabDirection = index > tab ? 1 : -1;
         tab = index;
         if (index == 2) _notificationsFuture = widget.api.notifications();
         if (index == 3) _conversationsFuture = widget.api.conversations();
@@ -1815,7 +1831,7 @@ class _LiveHomeState extends State<LiveHome> with WidgetsBindingObserver {
           final destinations = List.generate(5, (i) => NavigationDestination(
             icon: icons[i], selectedIcon: selectedIcons[i], label: labels[i],
           ));
-          return Scaffold(backgroundColor: Theme.of(context).colorScheme.surface,
+          return Scaffold(backgroundColor: binerScaffoldBackground(context),
             body: desktop
                 ? Row(children: [
                     Padding(
@@ -1831,7 +1847,7 @@ class _LiveHomeState extends State<LiveHome> with WidgetsBindingObserver {
                           labelType: NavigationRailLabelType.all,
                           groupAlignment: -.8,
                           destinations: List.generate(5, (i) => NavigationRailDestination(
-                            icon: icons[i], selectedIcon: selectedIcons[i], label: Text(labels[i]),
+                            icon: icons[i], selectedIcon: selectedIcons[i], label: BinerLocalizedText(labels[i]),
                           )),
                         ),
                       ),
@@ -1839,7 +1855,36 @@ class _LiveHomeState extends State<LiveHome> with WidgetsBindingObserver {
                     const SizedBox(width: 14),
                     Expanded(child: SafeArea(child: IndexedStack(index: tab, children: pages))),
                   ])
-                : SafeArea(child: IndexedStack(index: tab, children: pages)),
+                : SafeArea(
+                    child: AnimatedSwitcher(
+                      duration: const Duration(milliseconds: 300),
+                      reverseDuration: const Duration(milliseconds: 260),
+                      switchInCurve: Curves.easeOutCubic,
+                      switchOutCurve: Curves.easeInCubic,
+                      transitionBuilder: (child, animation) {
+                        final incoming = animation.status != AnimationStatus.reverse;
+                        final offset = incoming ? _tabDirection * .075 : -_tabDirection * .075;
+                        final slide = Tween<Offset>(
+                          begin: Offset(offset, 0),
+                          end: Offset.zero,
+                        ).animate(CurvedAnimation(
+                          parent: animation,
+                          curve: Curves.easeOutCubic,
+                        ));
+                        return FadeTransition(
+                          opacity: animation,
+                          child: SlideTransition(
+                            position: slide,
+                            child: child,
+                          ),
+                        );
+                      },
+                      child: KeyedSubtree(
+                        key: ValueKey<int>(tab),
+                        child: SizedBox.expand(child: pages[tab]),
+                      ),
+                    ),
+                  ),
             floatingActionButton: tab == 0
                 ? FloatingActionButton(
                     onPressed: posting ? null : compose,
@@ -1914,17 +1959,17 @@ class _ChatPageState extends State<ChatPage> {
               }
               if (!mounted || id == null) return;
               if (group == null) {
-                ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('به گروه اضافه شدی.')));
+                ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: BinerLocalizedText('به گروه اضافه شدی.')));
                 return;
               }
               await Navigator.of(context).push(MaterialPageRoute<void>(
                 builder: (_) => GroupChatPage(api: widget.api, groupId: id, title: group!['title']?.toString() ?? 'گروه'),
               ));
             } on ApiException catch (e) {
-              if (mounted) ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(e.message)));
+              if (mounted) ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: BinerLocalizedText(e.message)));
             }
           },
-          child: Text(token, style: const TextStyle(color: cBlue, fontWeight: FontWeight.w800, decoration: TextDecoration.underline)),
+          child: BinerLocalizedText(token, style: const TextStyle(color: cBlue, fontWeight: FontWeight.w800, decoration: TextDecoration.underline)),
         ),
       ));
       cursor = match.end;
@@ -1932,7 +1977,7 @@ class _ChatPageState extends State<ChatPage> {
     if (cursor < body.length) spans.add(TextSpan(text: body.substring(cursor)));
     return RichText(text: TextSpan(style: const TextStyle(fontSize: 15, height: 1.42), children: spans));
   }
-  void toast(String message) => ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(message), behavior: SnackBarBehavior.floating, shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(18))));
+  void toast(String message) => ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: BinerLocalizedText(message), behavior: SnackBarBehavior.floating, shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(18))));
   bool loading = true, sending = false;
   String? error;
   Map<String, dynamic>? replyingTo;
@@ -1986,7 +2031,7 @@ class _ChatPageState extends State<ChatPage> {
         if (scroll.hasClients) scroll.animateTo(scroll.position.maxScrollExtent, duration: const Duration(milliseconds: 220), curve: Curves.easeOut);
       });
     } on ApiException catch (e) {
-      if (mounted) { controller.text = raw; ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(e.message), behavior: SnackBarBehavior.floating, shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(18)))); }
+      if (mounted) { controller.text = raw; ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: BinerLocalizedText(e.message), behavior: SnackBarBehavior.floating, shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(18)))); }
     } finally {
       if (mounted) setState(() => sending = false);
     }
@@ -1998,11 +2043,11 @@ class _ChatPageState extends State<ChatPage> {
       final reason = await showDialog<String>(
         context: context,
         builder: (ctx) => AlertDialog(
-          title: Text(binerText('گزارش گفت‌وگو',en:'Report conversation',ar:'الإبلاغ عن المحادثة',tr:'Sohbeti bildir')),
-          content: TextField(controller: reasonController, maxLength: 500, maxLines: 3, decoration: const InputDecoration(hintText: 'دلیل گزارش را بنویس…')),
+          title: BinerLocalizedText(binerText('گزارش گفت‌وگو',en:'Report conversation',ar:'الإبلاغ عن المحادثة',tr:'Sohbeti bildir')),
+          content: TextField(controller: reasonController, maxLength: 500, maxLines: 3, decoration: InputDecoration(hintText: binerText('دلیل گزارش را بنویس…'))),
           actions: [
-            TextButton(onPressed: () => Navigator.pop(ctx), child: const Text('انصراف')),
-            FilledButton(onPressed: () => Navigator.pop(ctx, reasonController.text.trim().isEmpty ? 'محتوای نامناسب' : reasonController.text.trim()), child: Text(binerText('ارسال گزارش',en:'Submit report',ar:'إرسال البلاغ',tr:'Bildirimi gönder'))),
+            TextButton(onPressed: () => Navigator.pop(ctx), child: const BinerLocalizedText('انصراف')),
+            FilledButton(onPressed: () => Navigator.pop(ctx, reasonController.text.trim().isEmpty ? 'محتوای نامناسب' : reasonController.text.trim()), child: BinerLocalizedText(binerText('ارسال گزارش',en:'Submit report',ar:'إرسال البلاغ',tr:'Bildirimi gönder'))),
           ],
         ),
       );
@@ -2010,25 +2055,25 @@ class _ChatPageState extends State<ChatPage> {
       if (reason == null || !mounted) return;
       try {
         await widget.api.reportConversation(widget.conversationId, reason);
-        if (mounted) ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('گزارش ثبت شد. ممنون که اطلاع دادی.')));
-      } on ApiException catch (e) { if (mounted) ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(e.message))); }
+        if (mounted) ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: BinerLocalizedText('گزارش ثبت شد. ممنون که اطلاع دادی.')));
+      } on ApiException catch (e) { if (mounted) ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: BinerLocalizedText(e.message))); }
     } else if (action == 'block') {
       final confirmed = await showDialog<bool>(
         context: context,
         builder: (ctx) => AlertDialog(
-          title: Text(binerText('مسدود کردن کاربر؟',en:'Block user?',ar:'حظر المستخدم؟',tr:'Kullanıcı engellensin mi?')),
-          content: const Text('پس از مسدودسازی، ارسال پیام در این گفت‌وگو متوقف می‌شود.'),
+          title: BinerLocalizedText(binerText('مسدود کردن کاربر؟',en:'Block user?',ar:'حظر المستخدم؟',tr:'Kullanıcı engellensin mi?')),
+          content: const BinerLocalizedText('پس از مسدودسازی، ارسال پیام در این گفت‌وگو متوقف می‌شود.'),
           actions: [
-            TextButton(onPressed: () => Navigator.pop(ctx, false), child: const Text('انصراف')),
-            FilledButton(onPressed: () => Navigator.pop(ctx, true), child: Text(binerText('مسدود کن',en:'Block',ar:'حظر',tr:'Engelle'))),
+            TextButton(onPressed: () => Navigator.pop(ctx, false), child: const BinerLocalizedText('انصراف')),
+            FilledButton(onPressed: () => Navigator.pop(ctx, true), child: BinerLocalizedText(binerText('مسدود کن',en:'Block',ar:'حظر',tr:'Engelle'))),
           ],
         ),
       );
       if (confirmed != true || !mounted) return;
       try {
         await widget.api.blockConversationUser(widget.conversationId);
-        if (mounted) ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('کاربر مسدود شد.')));
-      } on ApiException catch (e) { if (mounted) ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(e.message))); }
+        if (mounted) ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: BinerLocalizedText('کاربر مسدود شد.')));
+      } on ApiException catch (e) { if (mounted) ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: BinerLocalizedText(e.message))); }
     }
   }
 
@@ -2040,9 +2085,9 @@ class _ChatPageState extends State<ChatPage> {
       if (!mounted) return;
       Navigator.of(context, rootNavigator: true).pop();
       await showDialog<void>(context: context, builder: (ctx) => AlertDialog(
-        title: Text(translate ? binerText(binerText('ترجمه پیام',en:'Translate message',ar:'ترجمة الرسالة',tr:'Mesajı çevir'),en:'Message translation',ar:'ترجمة الرسالة',tr:'Mesaj çevirisi') : binerText('خلاصه پیام',en:'Message summary',ar:'ملخص الرسالة',tr:'Mesaj özeti')),
+        title: BinerLocalizedText(translate ? binerText(binerText('ترجمه پیام',en:'Translate message',ar:'ترجمة الرسالة',tr:'Mesajı çevir'),en:'Message translation',ar:'ترجمة الرسالة',tr:'Mesaj çevirisi') : binerText('خلاصه پیام',en:'Message summary',ar:'ملخص الرسالة',tr:'Mesaj özeti')),
         content: SelectableText(result),
-        actions: [TextButton(onPressed: () => Navigator.pop(ctx), child: Text(binerText('بستن',en:'Close',ar:'إغلاق',tr:'Kapat')))],
+        actions: [TextButton(onPressed: () => Navigator.pop(ctx), child: BinerLocalizedText(binerText('بستن',en:'Close',ar:'إغلاق',tr:'Kapat')))],
       ));
     } catch (e) {
       if (mounted) { Navigator.of(context, rootNavigator: true).pop(); toast('پردازش متن انجام نشد: $e'); }
@@ -2062,11 +2107,11 @@ class _ChatPageState extends State<ChatPage> {
             child: Column(mainAxisSize: MainAxisSize.min, children: [
               Container(width: 42, height: 4, decoration: BoxDecoration(color: cMuted.withValues(alpha: .6), borderRadius: BorderRadius.circular(5))),
               const SizedBox(height: 12),
-              ListTile(leading: const Icon(Icons.reply_rounded, color: cBlue), title: Text(binerText('پاسخ به پیام',en:'Reply to message',ar:'الرد على الرسالة',tr:'Mesajı yanıtla')), subtitle: Text((item['body'] ?? '').toString(), maxLines: 1, overflow: TextOverflow.ellipsis), onTap: () => Navigator.pop(ctx, 'reply')),
-              ListTile(leading: const Icon(Icons.forward_rounded, color: Color(0xFF9B8CFF)), title: Text(binerText('بازارسال به گفت‌وگوی دیگر',en:'Forward to another chat',ar:'إعادة التوجيه إلى محادثة أخرى',tr:'Başka sohbete ilet')), subtitle: const Text('انتخاب مقصد'), onTap: () => Navigator.pop(ctx, 'forward')),
-              ListTile(leading: const Icon(Icons.copy_rounded, color: cMuted), title: Text(binerText('کپی متن پیام',en:'Copy message text',ar:'نسخ نص الرسالة',tr:'Mesaj metnini kopyala')), onTap: () => Navigator.pop(ctx, 'copy')),
-               ListTile(leading: const Icon(Icons.summarize_rounded, color: cBlue), title: Text(binerText('خلاصه‌سازی پیام',en:'Summarize message',ar:'تلخيص الرسالة',tr:'Mesajı özetle')), onTap: () => Navigator.pop(ctx, 'summary')),
-               ListTile(leading: const Icon(Icons.translate_rounded, color: Color(0xFF9B8CFF)), title: Text(binerText('ترجمه پیام',en:'Translate message',ar:'ترجمة الرسالة',tr:'Mesajı çevir')), onTap: () => Navigator.pop(ctx, 'translate')),
+              ListTile(leading: const Icon(Icons.reply_rounded, color: cBlue), title: BinerLocalizedText(binerText('پاسخ به پیام',en:'Reply to message',ar:'الرد على الرسالة',tr:'Mesajı yanıtla')), subtitle: BinerLocalizedText((item['body'] ?? '').toString(), maxLines: 1, overflow: TextOverflow.ellipsis), onTap: () => Navigator.pop(ctx, 'reply')),
+              ListTile(leading: const Icon(Icons.forward_rounded, color: Color(0xFF9B8CFF)), title: BinerLocalizedText(binerText('بازارسال به گفت‌وگوی دیگر',en:'Forward to another chat',ar:'إعادة التوجيه إلى محادثة أخرى',tr:'Başka sohbete ilet')), subtitle: const BinerLocalizedText('انتخاب مقصد'), onTap: () => Navigator.pop(ctx, 'forward')),
+              ListTile(leading: const Icon(Icons.copy_rounded, color: cMuted), title: BinerLocalizedText(binerText('کپی متن پیام',en:'Copy message text',ar:'نسخ نص الرسالة',tr:'Mesaj metnini kopyala')), onTap: () => Navigator.pop(ctx, 'copy')),
+               ListTile(leading: const Icon(Icons.summarize_rounded, color: cBlue), title: BinerLocalizedText(binerText('خلاصه‌سازی پیام',en:'Summarize message',ar:'تلخيص الرسالة',tr:'Mesajı özetle')), onTap: () => Navigator.pop(ctx, 'summary')),
+               ListTile(leading: const Icon(Icons.translate_rounded, color: Color(0xFF9B8CFF)), title: BinerLocalizedText(binerText('ترجمه پیام',en:'Translate message',ar:'ترجمة الرسالة',tr:'Mesajı çevir')), onTap: () => Navigator.pop(ctx, 'translate')),
             ]),
           ),
         ),
@@ -2079,7 +2124,7 @@ class _ChatPageState extends State<ChatPage> {
       FocusScope.of(context).requestFocus(FocusNode());
     } else if (action == 'copy') {
       await Clipboard.setData(ClipboardData(text: body));
-      if (mounted) ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('متن پیام کپی شد.')));
+      if (mounted) ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: BinerLocalizedText('متن پیام کپی شد.')));
     } else if (action == 'summary') {
       await showTextTool(body, translate: false);
     } else if (action == 'translate') {
@@ -2106,7 +2151,7 @@ class _ChatPageState extends State<ChatPage> {
                 padding: const EdgeInsets.fromLTRB(12, 14, 12, 22),
                 child: Column(mainAxisSize: MainAxisSize.min, children: [
                   Container(width: 40, height: 4, decoration: BoxDecoration(color: cMuted.withValues(alpha: .55), borderRadius: BorderRadius.circular(4))),
-                  const Padding(padding: EdgeInsets.all(14), child: Text('انتخاب مقصد بازارسال', style: TextStyle(fontSize: 18, fontWeight: FontWeight.w800))),
+                  const Padding(padding: EdgeInsets.all(14), child: BinerLocalizedText('انتخاب مقصد بازارسال', style: TextStyle(fontSize: 18, fontWeight: FontWeight.w800))),
                   ConstrainedBox(constraints: BoxConstraints(maxHeight: MediaQuery.of(ctx).size.height * .55), child: ListView(
                     shrinkWrap: true,
                     children: destinations.map((c) {
@@ -2114,8 +2159,8 @@ class _ChatPageState extends State<ChatPage> {
                       final name = value(c, 'other_display_name', value(c, 'other_username', 'گفت‌وگو'));
                       return ListTile(
                         leading: const CircleAvatar(backgroundColor: Color(0x2239C5FF), child: Icon(Icons.person_rounded, color: cBlue)),
-                        title: Text(name),
-                        subtitle: Text(value(c, 'last_message', binerText('گفت‌وگوی جدید',en:'New conversation',ar:'محادثة جديدة',tr:'Yeni sohbet')), maxLines: 1, overflow: TextOverflow.ellipsis),
+                        title: BinerLocalizedText(name),
+                        subtitle: BinerLocalizedText(value(c, 'last_message', binerText('گفت‌وگوی جدید',en:'New conversation',ar:'محادثة جديدة',tr:'Yeni sohbet')), maxLines: 1, overflow: TextOverflow.ellipsis),
                         trailing: const Icon(Icons.arrow_forward_rounded, color: cBlue),
                         onTap: id == null ? null : () => Navigator.pop(ctx, id),
                       );
@@ -2162,9 +2207,9 @@ class _ChatPageState extends State<ChatPage> {
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
-              Text(error!, textAlign: TextAlign.center),
+              BinerLocalizedText(error!, textAlign: TextAlign.center),
               const SizedBox(height: 10),
-              OutlinedButton(onPressed: loadMessages, child: Text(binerText('تلاش دوباره',en:'Try again',ar:'حاول مرة أخرى',tr:'Tekrar dene'))),
+              OutlinedButton(onPressed: loadMessages, child: BinerLocalizedText(binerText('تلاش دوباره',en:'Try again',ar:'حاول مرة أخرى',tr:'Tekrar dene'))),
             ],
           ),
         ),
@@ -2187,7 +2232,7 @@ class _ChatPageState extends State<ChatPage> {
             child: Center(child: Container(
               padding: const EdgeInsets.symmetric(horizontal: 13, vertical: 6),
               decoration: BoxDecoration(color: Theme.of(context).colorScheme.surface, borderRadius: BorderRadius.circular(30), border: Border.all(color: Theme.of(context).dividerColor.withValues(alpha: .45))),
-              child: Text(_chatDateLabel(currentDate), style: TextStyle(color: Theme.of(context).colorScheme.onSurfaceVariant, fontSize: 10, fontWeight: FontWeight.w800)),
+              child: BinerLocalizedText(_chatDateLabel(currentDate), style: TextStyle(color: Theme.of(context).colorScheme.onSurfaceVariant, fontSize: 10, fontWeight: FontWeight.w800)),
             )),
           ),
           Align(
@@ -2239,7 +2284,7 @@ class _ChatPageState extends State<ChatPage> {
                 ],
                 if ((item['body']?.toString() ?? '').isNotEmpty) messageBody(item['body']?.toString() ?? ''),
                 const SizedBox(height: 4),
-                Text(_chatTimeLabel(item['created_at']?.toString() ?? ''), style: const TextStyle(color: cMuted, fontSize: 10)),
+                BinerLocalizedText(_chatTimeLabel(item['created_at']?.toString() ?? ''), style: const TextStyle(color: cMuted, fontSize: 10)),
               ],
             ),
             ),
@@ -2256,17 +2301,17 @@ class _ChatPageState extends State<ChatPage> {
     builder: (context, _) => _buildChat(),
   );
 
-  Widget _buildChat() => Scaffold(backgroundColor: Theme.of(context).colorScheme.surface,
+  Widget _buildChat() => Scaffold(backgroundColor: binerScaffoldBackground(context),
     appBar: AppBar(
       backgroundColor: Colors.transparent,
       foregroundColor: Theme.of(context).colorScheme.onSurface,
-      title: Row(children: [Container(width: 34, height: 34, decoration: BoxDecoration(shape: BoxShape.circle, color: cBlue.withValues(alpha: .12), border: Border.all(color: cLine)), child: const Icon(Icons.person_rounded, color: cBlue, size: 20)), const SizedBox(width: 10), Expanded(child: Text(widget.title, maxLines: 1, overflow: TextOverflow.ellipsis, style: const TextStyle(fontWeight: FontWeight.w800, fontSize: 17)))]),
+      title: Row(children: [Container(width: 34, height: 34, decoration: BoxDecoration(shape: BoxShape.circle, color: cBlue.withValues(alpha: .12), border: Border.all(color: cLine)), child: const Icon(Icons.person_rounded, color: cBlue, size: 20)), const SizedBox(width: 10), Expanded(child: BinerLocalizedText(widget.title, maxLines: 1, overflow: TextOverflow.ellipsis, style: const TextStyle(fontWeight: FontWeight.w800, fontSize: 17)))]),
       actions: [
         IconButton(tooltip: 'BinerAI', onPressed: () => Navigator.of(context).push(MaterialPageRoute<void>(builder: (_) => BinerAIPage(api: widget.api))), icon: const Icon(Icons.auto_awesome_rounded, color: Color(0xFF9B8CFF))),
         IconButton(tooltip: binerText('بارگذاری دوباره',en:'Refresh',ar:'تحديث',tr:'Yenile'), onPressed: loadMessages, icon: const Icon(Icons.refresh_rounded)),
         PopupMenuButton<String>(tooltip: binerText('گزینه‌های گفت‌وگو',en:'Chat options',ar:'خيارات المحادثة',tr:'Sohbet seçenekleri'), onSelected: handleChatSafetyAction, itemBuilder: (_) => const [
-          PopupMenuItem(value: 'report', child: ListTile(dense: true, contentPadding: EdgeInsets.zero, leading: Icon(Icons.flag_outlined), title: Text('گزارش گفت‌وگو'))),
-          PopupMenuItem(value: 'block', child: ListTile(dense: true, contentPadding: EdgeInsets.zero, leading: Icon(Icons.block_rounded, color: Color(0xFFFF7185)), title: Text('مسدود کردن کاربر'))),
+          PopupMenuItem(value: 'report', child: ListTile(dense: true, contentPadding: EdgeInsets.zero, leading: Icon(Icons.flag_outlined), title: BinerLocalizedText('گزارش گفت‌وگو'))),
+          PopupMenuItem(value: 'block', child: ListTile(dense: true, contentPadding: EdgeInsets.zero, leading: Icon(Icons.block_rounded, color: Color(0xFFFF7185)), title: BinerLocalizedText('مسدود کردن کاربر'))),
         ]),
       ],
     ),
@@ -2326,7 +2371,7 @@ class Brand extends StatelessWidget {
   const Brand({super.key});
   @override Widget build(BuildContext context) => ShaderMask(
     shaderCallback: (bounds) => const LinearGradient(colors: [Color(0xFFF7FBFF), cBlue, Color(0xFF9B8CFF)]).createShader(bounds),
-    child: const Text('BinerMention', style: TextStyle(fontSize: 21, fontWeight: FontWeight.w900, letterSpacing: -.45, color: Colors.white)),
+    child: const BinerLocalizedText('BinerMention', style: TextStyle(fontSize: 21, fontWeight: FontWeight.w900, letterSpacing: -.45, color: Colors.white)),
   ).animate().fadeIn(duration: 350.ms).slideX(begin: -.04, duration: 350.ms);
 }
 
@@ -2363,14 +2408,14 @@ class _BinerFloatingNavBar extends StatelessWidget {
           child: ClipRRect(
             borderRadius: BorderRadius.circular(38),
             child: BackdropFilter(
-              filter: ImageFilter.blur(sigmaX: 26, sigmaY: 26),
+              filter: ImageFilter.blur(sigmaX: 32, sigmaY: 32),
               child: Container(
-                height: 62,
-                padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 7),
+                height: 70,
+                padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 6),
                 decoration: BoxDecoration(
                   color: dark
-                      ? const Color(0xD91B1B20)
-                      : const Color(0xEAF7F8FC),
+                      ? const Color(0x991B1B20)
+                      : const Color(0xAAF7F8FC),
                   borderRadius: BorderRadius.circular(38),
                   border: Border.all(
                     color: dark
@@ -2423,16 +2468,44 @@ class _BinerFloatingNavBar extends StatelessWidget {
                               ),
                               child: Center(
                                 child: AnimatedScale(
-                                  scale: selected ? 1.08 : 1,
+                                  scale: selected ? 1.06 : 1,
                                   duration: const Duration(milliseconds: 220),
-                                  child: Icon(
-                                    _icons[index],
-                                    size: 21,
-                                    color: selected
-                                        ? (dark
-                                            ? Colors.white
-                                            : const Color(0xFF172033))
-                                        : foreground.withValues(alpha: .72),
+                                  child: Column(
+                                    mainAxisSize: MainAxisSize.min,
+                                    mainAxisAlignment: MainAxisAlignment.center,
+                                    children: [
+                                      Icon(
+                                        _icons[index],
+                                        size: 20,
+                                        color: selected
+                                            ? (dark
+                                                ? Colors.white
+                                                : const Color(0xFF172033))
+                                            : foreground.withValues(alpha: .72),
+                                      ),
+                                      AnimatedSize(
+                                        duration: const Duration(milliseconds: 180),
+                                        curve: Curves.easeOutCubic,
+                                        child: selected
+                                            ? Padding(
+                                                padding: const EdgeInsets.only(top: 2),
+                                                child: BinerLocalizedText(
+                                                  labels[index],
+                                                  maxLines: 1,
+                                                  overflow: TextOverflow.ellipsis,
+                                                  style: TextStyle(
+                                                    fontSize: 9,
+                                                    height: 1,
+                                                    fontWeight: FontWeight.w700,
+                                                    color: dark
+                                                        ? Colors.white
+                                                        : const Color(0xFF172033),
+                                                  ),
+                                                ),
+                                              )
+                                            : const SizedBox(height: 0, width: 0),
+                                      ),
+                                    ],
                                   ),
                                 ),
                               ),

@@ -1,3 +1,5 @@
+import 'app_preferences.dart';
+import 'localized_text.dart';
 import 'package:flutter/material.dart';
 import 'package:video_player/video_player.dart';
 
@@ -85,20 +87,20 @@ class _BinerMediaViewerPageState extends State<_BinerMediaViewerPage> {
       appBar: AppBar(
         backgroundColor: const Color(0xFF05070B),
         foregroundColor: Theme.of(context).colorScheme.onSurface,
-        title: Text(widget.title, style: Theme.of(context).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w800)),
+        title: BinerLocalizedText(widget.title, style: Theme.of(context).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w800)),
         actions: [
           if (widget.isVideo && _ready)
             PopupMenuButton<double>(
-              tooltip: 'سرعت پخش',
+              tooltip: binerText('سرعت پخش'),
               initialValue: _speed,
               onSelected: _setSpeed,
               itemBuilder: (_) => const [
-                PopupMenuItem(value: 1, child: Text('1×')),
-                PopupMenuItem(value: 1.5, child: Text('1.5×')),
-                PopupMenuItem(value: 2, child: Text('2×')),
-                PopupMenuItem(value: 3, child: Text('3×')),
+                PopupMenuItem(value: 1, child: BinerLocalizedText('1×')),
+                PopupMenuItem(value: 1.5, child: BinerLocalizedText('1.5×')),
+                PopupMenuItem(value: 2, child: BinerLocalizedText('2×')),
+                PopupMenuItem(value: 3, child: BinerLocalizedText('3×')),
               ],
-              child: Padding(padding: const EdgeInsets.symmetric(horizontal: 14), child: Center(child: Text('${_speed}×', style: const TextStyle(color: Colors.white, fontWeight: FontWeight.w800)))),
+              child: Padding(padding: const EdgeInsets.symmetric(horizontal: 14), child: Center(child: BinerLocalizedText('${_speed}×', style: const TextStyle(color: Colors.white, fontWeight: FontWeight.w800)))),
             ),
         ],
       ),
@@ -109,7 +111,7 @@ class _BinerMediaViewerPageState extends State<_BinerMediaViewerPage> {
                     ? const Column(mainAxisSize: MainAxisSize.min, children: [
                         Icon(Icons.error_outline_rounded, color: Colors.white70, size: 42),
                         SizedBox(height: 10),
-                        Text('پخش ویدیو ممکن نشد.', style: TextStyle(color: Colors.white70)),
+                        BinerLocalizedText('پخش ویدیو ممکن نشد.', style: TextStyle(color: Colors.white70)),
                       ])
                     : const CircularProgressIndicator(color: Color(0xFF54C8FF)))
                 : AspectRatio(
@@ -154,11 +156,11 @@ class _BinerMediaViewerPageState extends State<_BinerMediaViewerPage> {
                 child: Padding(
                   padding: const EdgeInsets.fromLTRB(14, 8, 14, 14),
                   child: Row(children: [
-                    Text(_time(current.position), style: const TextStyle(color: Colors.white70, fontSize: 11)),
+                    BinerLocalizedText(_time(current.position), style: const TextStyle(color: Colors.white70, fontSize: 11)),
                     Expanded(
                       child: VideoProgressIndicator(controller, allowScrubbing: true, padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 12), colors: const VideoProgressColors(playedColor: Color(0xFF54C8FF), bufferedColor: Colors.white24, backgroundColor: Colors.white12)),
                     ),
-                    Text(_time(current.duration), style: const TextStyle(color: Colors.white70, fontSize: 11)),
+                    BinerLocalizedText(_time(current.duration), style: const TextStyle(color: Colors.white70, fontSize: 11)),
                     IconButton(
                       onPressed: () => current.isPlaying ? controller.pause() : controller.play(),
                       color: const Color(0xFF54C8FF),

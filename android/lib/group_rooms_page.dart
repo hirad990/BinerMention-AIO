@@ -1,4 +1,6 @@
+import 'localized_text.dart';
 import 'package:flutter/material.dart';
+import 'app_preferences.dart';
 import 'package:flutter/services.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:intl/intl.dart';
@@ -25,7 +27,7 @@ class _GroupRoomsPageState extends State<GroupRoomsPage> {
   }
 
   void _message(String text) {
-    ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(text), behavior: SnackBarBehavior.floating));
+    ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: BinerLocalizedText(text), behavior: SnackBarBehavior.floating));
   }
 
   Future<void> _create() async {
@@ -33,11 +35,11 @@ class _GroupRoomsPageState extends State<GroupRoomsPage> {
     final title = await showDialog<String>(
       context: context,
       builder: (ctx) => AlertDialog(
-        title: const Text('ساخت اتاق گفتگو'),
-        content: TextField(controller: controller, autofocus: true, maxLength: 80, decoration: const InputDecoration(labelText: 'نام گروه')),
+        title: const BinerLocalizedText('ساخت اتاق گفتگو'),
+        content: TextField(controller: controller, autofocus: true, maxLength: 80, decoration: InputDecoration(labelText: binerText('نام گروه'))),
         actions: [
-          TextButton(onPressed: () => Navigator.pop(ctx), child: const Text('انصراف')),
-          FilledButton(onPressed: () => Navigator.pop(ctx, controller.text.trim()), child: const Text('ساخت گروه')),
+          TextButton(onPressed: () => Navigator.pop(ctx), child: const BinerLocalizedText('انصراف')),
+          FilledButton(onPressed: () => Navigator.pop(ctx, controller.text.trim()), child: const BinerLocalizedText('ساخت گروه')),
         ],
       ),
     );
@@ -52,11 +54,11 @@ class _GroupRoomsPageState extends State<GroupRoomsPage> {
     final link = await showDialog<String>(
       context: context,
       builder: (ctx) => AlertDialog(
-        title: const Text('ورود به گروه'),
+        title: const BinerLocalizedText('ورود به گروه'),
         content: TextField(controller: controller, autofocus: true, autocorrect: false, decoration: const InputDecoration(hintText: 'bm:xxxxxxxxxxxxxxxx')),
         actions: [
-          TextButton(onPressed: () => Navigator.pop(ctx), child: const Text('انصراف')),
-          FilledButton(onPressed: () => Navigator.pop(ctx, controller.text.trim()), child: const Text('ورود')),
+          TextButton(onPressed: () => Navigator.pop(ctx), child: const BinerLocalizedText('انصراف')),
+          FilledButton(onPressed: () => Navigator.pop(ctx, controller.text.trim()), child: const BinerLocalizedText('ورود')),
         ],
       ),
     );
@@ -67,12 +69,12 @@ class _GroupRoomsPageState extends State<GroupRoomsPage> {
   }
 
   @override
-  Widget build(BuildContext context) => Scaffold(backgroundColor: Theme.of(context).colorScheme.surface,
+  Widget build(BuildContext context) => Scaffold(backgroundColor: binerScaffoldBackground(context),
     appBar: AppBar(
-      title: const Text('اتاق‌های گفتگو'),
+      title: const BinerLocalizedText('اتاق‌های گفتگو'),
       actions: [
-        IconButton(tooltip: 'ورود با لینک', onPressed: _join, icon: const Icon(Icons.link_rounded)),
-        IconButton(tooltip: 'ساخت گروه', onPressed: _create, icon: const Icon(Icons.add_circle_outline_rounded)),
+        IconButton(tooltip: binerText('ورود با لینک'), onPressed: _join, icon: const Icon(Icons.link_rounded)),
+        IconButton(tooltip: binerText('ساخت گروه'), onPressed: _create, icon: const Icon(Icons.add_circle_outline_rounded)),
       ],
     ),
     body: FutureBuilder<List<Map<String, dynamic>>>(
@@ -86,7 +88,7 @@ class _GroupRoomsPageState extends State<GroupRoomsPage> {
             icon: Icons.cloud_off_rounded,
             title: 'گروه‌ها بارگذاری نشدند',
             description: 'اتصال API را بررسی کن و دوباره تلاش کن.',
-            action: FilledButton.icon(onPressed: _reload, icon: const Icon(Icons.refresh_rounded), label: const Text('تلاش دوباره')),
+            action: FilledButton.icon(onPressed: _reload, icon: const Icon(Icons.refresh_rounded), label: const BinerLocalizedText('تلاش دوباره')),
           );
         }
         final groups = snapshot.data ?? const <Map<String, dynamic>>[];
@@ -96,8 +98,8 @@ class _GroupRoomsPageState extends State<GroupRoomsPage> {
             title: 'هنوز عضو گروهی نیستی',
             description: 'یک اتاق گفتگو بساز یا با لینک داخلی bm: به گروهی بپیوند.',
             action: Wrap(spacing: 10, children: [
-              FilledButton.icon(onPressed: _create, icon: const Icon(Icons.add_rounded), label: const Text('ساخت گروه')),
-              OutlinedButton.icon(onPressed: _join, icon: const Icon(Icons.link_rounded), label: const Text('ورود با لینک')),
+              FilledButton.icon(onPressed: _create, icon: const Icon(Icons.add_rounded), label: const BinerLocalizedText('ساخت گروه')),
+              OutlinedButton.icon(onPressed: _join, icon: const Icon(Icons.link_rounded), label: const BinerLocalizedText('ورود با لینک')),
             ]),
           );
         }
@@ -134,12 +136,12 @@ class _GroupRoomsPageState extends State<GroupRoomsPage> {
                   ),
                   const SizedBox(width: 12),
                   Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-                    Text(title, maxLines: 1, overflow: TextOverflow.ellipsis, style: const TextStyle(fontWeight: FontWeight.w900, fontSize: 14)),
+                    BinerLocalizedText(title, maxLines: 1, overflow: TextOverflow.ellipsis, style: const TextStyle(fontWeight: FontWeight.w900, fontSize: 14)),
                     const SizedBox(height: 4),
-                    Text('${group['members_count'] ?? 0} عضو  ·  ${group['last_message'] ?? 'گفت‌وگوی تازه'}', maxLines: 1, overflow: TextOverflow.ellipsis, style: TextStyle(fontSize: 11, color: Theme.of(context).colorScheme.onSurfaceVariant)),
+                    BinerLocalizedText('${group['members_count'] ?? 0} عضو  ·  ${group['last_message'] ?? 'گفت‌وگوی تازه'}', maxLines: 1, overflow: TextOverflow.ellipsis, style: TextStyle(fontSize: 11, color: Theme.of(context).colorScheme.onSurfaceVariant)),
                   ])),
                   IconButton(
-                    tooltip: 'کپی لینک گروه',
+                    tooltip: binerText('کپی لینک گروه'),
                     onPressed: invite.isEmpty ? null : () async {
                       await Clipboard.setData(ClipboardData(text: invite));
                       if (context.mounted) _message('لینک گروه کپی شد.');
@@ -192,12 +194,12 @@ class _GroupChatPageState extends State<GroupChatPage> {
     } on ApiException catch (e) {
       if (mounted) {
         setState(() => _loading = false);
-        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(e.message)));
+        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: BinerLocalizedText(e.message)));
       }
     } catch (_) {
       if (mounted) {
         setState(() => _loading = false);
-        ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('بارگذاری پیام‌های گروه انجام نشد.')));
+        ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: BinerLocalizedText('بارگذاری پیام‌های گروه انجام نشد.')));
       }
     }
   }
@@ -228,9 +230,9 @@ class _GroupChatPageState extends State<GroupChatPage> {
         }
       });
     } on ApiException catch (e) {
-      if (mounted) ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(e.message)));
+      if (mounted) ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: BinerLocalizedText(e.message)));
     } catch (_) {
-      if (mounted) ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('ارسال پیام انجام نشد. دوباره تلاش کن.')));
+      if (mounted) ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: BinerLocalizedText('ارسال پیام انجام نشد. دوباره تلاش کن.')));
     } finally {
       if (mounted) setState(() => _sending = false);
     }
@@ -249,7 +251,7 @@ class _GroupChatPageState extends State<GroupChatPage> {
       if (group == null || !mounted) return;
       await Navigator.of(context).push(MaterialPageRoute<void>(builder: (_) => GroupChatPage(api: widget.api, groupId: id, title: group!['title']?.toString() ?? 'گروه')));
     } on ApiException catch (e) {
-      if (mounted) ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(e.message)));
+      if (mounted) ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: BinerLocalizedText(e.message)));
     }
   }
 
@@ -266,7 +268,7 @@ class _GroupChatPageState extends State<GroupChatPage> {
         baseline: TextBaseline.alphabetic,
         child: GestureDetector(
           onTap: () => _openInvite(code),
-          child: Text(token, style: TextStyle(color: Theme.of(context).colorScheme.primary, fontWeight: FontWeight.w900, decoration: TextDecoration.underline)),
+          child: BinerLocalizedText(token, style: TextStyle(color: Theme.of(context).colorScheme.primary, fontWeight: FontWeight.w900, decoration: TextDecoration.underline)),
         ),
       ));
       cursor = match.end;
@@ -309,7 +311,7 @@ class _GroupChatPageState extends State<GroupChatPage> {
           border: Border.all(color: mine ? const Color(0x6654C8FF) : Theme.of(context).dividerColor.withValues(alpha: .4)),
         ),
         child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-          if (!mine) Padding(padding: const EdgeInsets.only(bottom: 5), child: Text(message['display_name']?.toString() ?? message['username']?.toString() ?? 'کاربر', style: const TextStyle(color: Color(0xFF54C8FF), fontSize: 11, fontWeight: FontWeight.w900))),
+          if (!mine) Padding(padding: const EdgeInsets.only(bottom: 5), child: BinerLocalizedText(message['display_name']?.toString() ?? message['username']?.toString() ?? 'کاربر', style: const TextStyle(color: Color(0xFF54C8FF), fontSize: 11, fontWeight: FontWeight.w900))),
           if (mediaUrl.startsWith('https://')) ...[
             GestureDetector(
               onTap: () => BinerMediaViewer.open(context, url: mediaUrl, mimeType: mime, title: widget.title),
@@ -324,26 +326,26 @@ class _GroupChatPageState extends State<GroupChatPage> {
           ],
           if ((message['body']?.toString() ?? '').isNotEmpty) _messageBody(message['body']?.toString() ?? ''),
           const SizedBox(height: 5),
-          Align(alignment: AlignmentDirectional.centerEnd, child: Text(time == null ? '' : DateFormat('HH:mm').format(time.toLocal()), style: TextStyle(color: mine ? Colors.white60 : Theme.of(context).colorScheme.onSurfaceVariant, fontSize: 9))),
+          Align(alignment: AlignmentDirectional.centerEnd, child: BinerLocalizedText(time == null ? '' : DateFormat('HH:mm').format(time.toLocal()), style: TextStyle(color: mine ? Colors.white60 : Theme.of(context).colorScheme.onSurfaceVariant, fontSize: 9))),
         ]),
       ),
     );
   }
 
   @override
-  Widget build(BuildContext context) => Scaffold(backgroundColor: Theme.of(context).colorScheme.surface,
+  Widget build(BuildContext context) => Scaffold(backgroundColor: binerScaffoldBackground(context),
     appBar: AppBar(
       title: Row(children: [
         Container(width: 38, height: 38, decoration: BoxDecoration(gradient: const LinearGradient(colors: [Color(0xFF54C8FF), Color(0xFF7868E8)]), borderRadius: BorderRadius.circular(13)), child: Icon(Icons.groups_rounded, color: Theme.of(context).colorScheme.onPrimary)),
         const SizedBox(width: 10),
         Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-          Text(widget.title, maxLines: 1, overflow: TextOverflow.ellipsis, style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w900)),
-          Text('${_items.length} پیام اخیر', style: TextStyle(fontSize: 10, color: Theme.of(context).colorScheme.onSurfaceVariant)),
+          BinerLocalizedText(widget.title, maxLines: 1, overflow: TextOverflow.ellipsis, style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w900)),
+          BinerLocalizedText('${_items.length} پیام اخیر', style: TextStyle(fontSize: 10, color: Theme.of(context).colorScheme.onSurfaceVariant)),
         ])),
       ]),
       actions: [
         IconButton(tooltip: 'BinerAI', onPressed: () => Navigator.of(context).push(MaterialPageRoute<void>(builder: (_) => BinerAIPage(api: widget.api))), icon: const Icon(Icons.auto_awesome_rounded, color: Color(0xFF9B8CFF))),
-        IconButton(tooltip: 'به‌روزرسانی', onPressed: () => _load(showLoading: true), icon: const Icon(Icons.refresh_rounded)),
+        IconButton(tooltip: binerText('به‌روزرسانی'), onPressed: () => _load(showLoading: true), icon: const Icon(Icons.refresh_rounded)),
       ],
     ),
     body: Column(children: [
@@ -359,7 +361,7 @@ class _GroupChatPageState extends State<GroupChatPage> {
                   itemCount: _items.length + 1,
                   itemBuilder: (context, index) {
                     if (index == 0) {
-                      return const Padding(padding: EdgeInsets.only(bottom: 12), child: Center(child: Text('پیام‌ها برای اعضای گروه قابل مشاهده‌اند.', style: TextStyle(color: Colors.grey, fontSize: 11))));
+                      return const Padding(padding: EdgeInsets.only(bottom: 12), child: Center(child: BinerLocalizedText('پیام‌ها برای اعضای گروه قابل مشاهده‌اند.', style: TextStyle(color: Colors.grey, fontSize: 11))));
                     }
                     final item = _items[index - 1];
                     final mine = item['sender_id']?.toString() == _myId?.toString();
@@ -372,7 +374,7 @@ class _GroupChatPageState extends State<GroupChatPage> {
                         child: Container(
                           padding: const EdgeInsets.symmetric(horizontal: 13, vertical: 6),
                           decoration: BoxDecoration(color: Theme.of(context).colorScheme.surface.withValues(alpha: .8), borderRadius: BorderRadius.circular(30), border: Border.all(color: Theme.of(context).dividerColor.withValues(alpha: .5))),
-                          child: Text(_dayLabel(currentDate), style: TextStyle(fontSize: 10, fontWeight: FontWeight.w800, color: Theme.of(context).colorScheme.onSurfaceVariant)),
+                          child: BinerLocalizedText(_dayLabel(currentDate), style: TextStyle(fontSize: 10, fontWeight: FontWeight.w800, color: Theme.of(context).colorScheme.onSurfaceVariant)),
                         ),
                       ),
                       _message(item, mine),
@@ -390,7 +392,7 @@ class _GroupChatPageState extends State<GroupChatPage> {
             radius: 24,
             child: Row(crossAxisAlignment: CrossAxisAlignment.end, children: [
               IconButton(
-                tooltip: 'ارسال عکس یا ویدیو',
+                tooltip: binerText('ارسال عکس یا ویدیو'),
                 onPressed: _sending ? null : () async {
                   final file = await BinerMediaEditor.pickMedia();
                   if (file != null && mounted) await _send(attachment: file);
@@ -401,7 +403,7 @@ class _GroupChatPageState extends State<GroupChatPage> {
                 controller: _controller,
                 minLines: 1, maxLines: 5,
                 onSubmitted: (_) => _send(),
-                decoration: const InputDecoration(hintText: 'پیام گروه…', filled: false, border: InputBorder.none, contentPadding: EdgeInsets.symmetric(horizontal: 8, vertical: 12)),
+                decoration: InputDecoration(hintText: binerText('پیام گروه…'), filled: false, border: InputBorder.none, contentPadding: EdgeInsets.symmetric(horizontal: 8, vertical: 12)),
               )),
               const SizedBox(width: 5),
               IconButton.filled(
