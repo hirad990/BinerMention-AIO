@@ -357,7 +357,7 @@ class _StorySlideState extends State<_StorySlide> {
         else
           Center(child: InteractiveViewer(
             minScale: .8, maxScale: 4,
-            child: Image.network(widget.story['media_url']?.toString() ?? '', fit: BoxFit.contain, errorBuilder: (_, __, ___) => const Icon(Icons.broken_image_outlined, color: Colors.white, size: 46)),
+            child: Image.network(widget.story['media_url']?.toString() ?? '', cacheWidth: 1080, fit: BoxFit.contain, errorBuilder: (_, __, ___) => const Icon(Icons.broken_image_outlined, color: Colors.white, size: 46)),
           )),
         const IgnorePointer(child: DecoratedBox(decoration: BoxDecoration(gradient: LinearGradient(begin: Alignment.topCenter, end: Alignment.center, colors: [Color(0xCC000000), Colors.transparent])))),
         const IgnorePointer(child: Align(alignment: Alignment.bottomCenter, child: SizedBox(height: 260, child: DecoratedBox(decoration: BoxDecoration(gradient: LinearGradient(begin: Alignment.bottomCenter, end: Alignment.topCenter, colors: [Color(0xE6000000), Colors.transparent])))))),
