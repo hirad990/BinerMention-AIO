@@ -100,7 +100,7 @@ class _BinerLiveAppState extends State<BinerLiveApp> {
         ),
       ),
       child: !ready
-          ? const Scaffold(key: ValueKey('boot'), body: Center(child: CircularProgressIndicator(color: cBlue)))
+          ? const Scaffold(backgroundColor: Theme.of(context).colorScheme.surface,key: ValueKey('boot'), body: Center(child: CircularProgressIndicator(color: cBlue)))
           : loggedIn
               ? LiveHome(key: const ValueKey('home'), api: api, logout: logout, onToggleTheme: toggleTheme, isDark: themeMode == ThemeMode.dark)
               : LiveAuth(key: const ValueKey('auth'), api: api, onDone: signedIn),
@@ -134,7 +134,7 @@ class _LiveAuthState extends State<LiveAuth> with TickerProviderStateMixin {
   @override Widget build(BuildContext context) {
     final dark=Theme.of(context).brightness==Brightness.dark;
     final prefs=BinerPreferences.instance;
-    return Scaffold(
+    return Scaffold(backgroundColor: Theme.of(context).colorScheme.surface,
       body: Stack(children:[
         Positioned.fill(child: AnimatedBuilder(animation:ambient,builder:(context,_)=>CustomPaint(painter:_AuthGlowPainter(ambient.value,dark)))),
         SafeArea(child: Center(child: SingleChildScrollView(padding:const EdgeInsets.fromLTRB(22,26,22,30),child:ConstrainedBox(
@@ -207,7 +207,7 @@ class _StoryViewerState extends State<_StoryViewer> {
   @override void dispose() { _page.dispose(); super.dispose(); }
 
   @override
-  Widget build(BuildContext context) => Scaffold(
+  Widget build(BuildContext context) => Scaffold(backgroundColor: Theme.of(context).colorScheme.surface,
     backgroundColor: const Color(0xFF05070B),
     body: PageView.builder(
       controller: _page,
@@ -1815,7 +1815,7 @@ class _LiveHomeState extends State<LiveHome> with WidgetsBindingObserver {
           final destinations = List.generate(5, (i) => NavigationDestination(
             icon: icons[i], selectedIcon: selectedIcons[i], label: labels[i],
           ));
-          return Scaffold(
+          return Scaffold(backgroundColor: Theme.of(context).colorScheme.surface,
             body: desktop
                 ? Row(children: [
                     Padding(
@@ -2268,7 +2268,7 @@ class _ChatPageState extends State<ChatPage> {
     builder: (context, _) => _buildChat(),
   );
 
-  Widget _buildChat() => Scaffold(
+  Widget _buildChat() => Scaffold(backgroundColor: Theme.of(context).colorScheme.surface,
     appBar: AppBar(
       backgroundColor: Colors.transparent,
       foregroundColor: Theme.of(context).colorScheme.onSurface,
