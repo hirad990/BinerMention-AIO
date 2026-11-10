@@ -367,6 +367,8 @@ const Map<String, List<String>> _uiTranslations = {
   'مسدود کن': ['Block', 'حظر', 'Engelle'],
   'بازگشت': ['Back', 'رجوع', 'Geri'],
   'سرعت پخش': ['Playback speed', 'سرعة التشغيل', 'Oynatma hızı'],
+  'آمار از رویدادهای ثبت‌شده در BinerMention محاسبه می‌شود؛ هر شاخص باید قابل ردیابی و توضیح باشد.': ['Statistics are calculated from recorded BinerMention events; every metric should be traceable and explainable.', 'تُحسب الإحصاءات من أحداث BinerMention المسجلة؛ ويجب أن يكون كل مؤشر قابلاً للتتبع والتفسير.', 'İstatistikler kaydedilen BinerMention olaylarından hesaplanır; her ölçüm izlenebilir ve açıklanabilir olmalıdır.'],
+  'انتخاب مقصد': ['Choose destination', 'اختر الوجهة', 'Hedef seç'],
 };
 
 String? _translateDynamicUiText(String value, String language) {
