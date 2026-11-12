@@ -149,7 +149,7 @@ class _BinerMediaViewerPageState extends State<_BinerMediaViewerPage> {
                   child: Row(children: [
                     Text(_time(current.position), style: const TextStyle(color: Colors.white70, fontSize: 11)),
                     Expanded(
-                      child: VideoProgressIndicator(controller, allowScrubbing: true, padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 12), colors: const VideoProgressColors(playedColor: Color(0xFF54C8FF), bufferedColor: Colors.white24, backgroundColor: Colors.white12)),
+                      child: VideoProgressIndicator(controller, allowScrubbing: true, padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 12), colors: VideoProgressColors(playedColor: BinerPreferences.instance.accent, bufferedColor: Colors.white24, backgroundColor: Colors.white12)),
                     ),
                     Text(_time(current.duration), style: const TextStyle(color: Colors.white70, fontSize: 11)),
                     IconButton(
