@@ -95,11 +95,11 @@ class _InsightsPageState extends State<InsightsPage> {
         final top = (data['top_posts'] as List? ?? const []).whereType<Map>().toList();
         final entries = <(String, String, IconData, Color)>[
           ('پست‌های منتشرشده', 'posts', Icons.article_outlined, BinerPreferences.instance.accent),
-          ('دنبال‌کنندگان', 'followers', Icons.people_alt_outlined, const Color(0xFF9B8CFF)),
+          ('دنبال‌کنندگان', 'followers', Icons.people_alt_outlined, BinerPreferences.instance.accent),
           ('لایک دریافتی', 'likes_received', Icons.favorite_border_rounded, const Color(0xFFFF78B8)),
           ('بازنشر دریافتی', 'reposts_received', Icons.repeat_rounded, const Color(0xFF27C995)),
           ('کامنت دریافتی', 'comments_received', Icons.chat_bubble_outline_rounded, const Color(0xFFFFB45E)),
-          ('بازدید ثبت‌شده', 'views', Icons.visibility_outlined, const Color(0xFF54C8FF)),
+          ('بازدید ثبت‌شده', 'views', Icons.visibility_outlined, BinerPreferences.instance.accent),
         ];
         return RefreshIndicator(
           onRefresh: _reload,
@@ -108,7 +108,7 @@ class _InsightsPageState extends State<InsightsPage> {
             padding: const EdgeInsets.fromLTRB(16, 8, 16, 28),
             children: [
               BinerSurfaceCard(
-                radius: 26, padding: const EdgeInsets.all(10), accent: const Color(0xFF54C8FF),
+                radius: 26, padding: EdgeInsets.all(10), accent: BinerPreferences.instance.accent,
                 child: Container(
                   decoration: const BoxDecoration(gradient: LinearGradient(begin: Alignment.topLeft, end: Alignment.bottomRight, colors: [Color(0xFF102B45), Color(0xFF211A45)]), borderRadius: BorderRadius.all(Radius.circular(18))),
                   padding: const EdgeInsets.all(18),
@@ -131,7 +131,7 @@ class _InsightsPageState extends State<InsightsPage> {
               const SizedBox(height: 18),
               BinerSectionHeader(title: 'زمان مطالعه', subtitle: 'مجموع زمان تعامل ثبت‌شده با پست‌های عمومی تو'),
               BinerSurfaceCard(child: Row(children: [
-                Container(width: 44, height: 44, decoration: BoxDecoration(color: const Color(0xFF9B8CFF).withValues(alpha: .12), borderRadius: BorderRadius.circular(14)), child: const Icon(Icons.schedule_rounded, color: Color(0xFF9B8CFF))),
+                Container(width: 44, height: 44, decoration: BoxDecoration(color: BinerPreferences.instance.accent.withValues(alpha: .12), borderRadius: BorderRadius.circular(14)), child: Icon(Icons.schedule_rounded, color: Color(0xFF9B8CFF))),
                 const SizedBox(width: 12),
                 Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
                   Text(_readingTime(stats['reading_time_ms']), style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w900)),
@@ -143,7 +143,7 @@ class _InsightsPageState extends State<InsightsPage> {
               if (top.isEmpty) BinerEmptyState(icon: Icons.query_stats_rounded, title: 'هنوز دادهٔ کافی نداریم', description: 'با انتشار پست و دریافت تعامل، این بخش به‌تدریج کامل می‌شود.')
               else ...top.asMap().entries.map((entry) => _topPost(entry.value, entry.key)),
               const SizedBox(height: 10),
-              BinerSurfaceCard(accent: const Color(0xFF9B8CFF), child: Row(crossAxisAlignment: CrossAxisAlignment.start, children: [
+              BinerSurfaceCard(accent: BinerPreferences.instance.accent, child: Row(crossAxisAlignment: CrossAxisAlignment.start, children: [
                 const Icon(Icons.verified_user_outlined, color: Color(0xFF9B8CFF), size: 20),
                 const SizedBox(width: 10),
                 Expanded(child: Text(data['transparency_note']?.toString() ?? 'آمار فقط از داده‌های ذخیره‌شده در سامانه محاسبه می‌شود.', style: TextStyle(color: Theme.of(context).colorScheme.onSurfaceVariant, fontSize: 11, height: 1.65))),
