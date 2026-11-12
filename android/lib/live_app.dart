@@ -112,7 +112,7 @@ class _LiveAuthState extends State<LiveAuth> with TickerProviderStateMixin {
     final prefs=BinerPreferences.instance;
     return Scaffold(
       body: Stack(children:[
-        Positioned.fill(child: AnimatedBuilder(animation:ambient,builder:(context,_)=>CustomPaint(painter:_AuthGlowPainter(ambient.value,dark)))),
+        Positioned.fill(child: AnimatedBuilder(animation:ambient,builder:(context,_)=>CustomPaint(painter:_AuthGlowPainter(ambient.value,dark,BinerPreferences.instance.accent)))),
         SafeArea(child: Center(child: SingleChildScrollView(padding:const EdgeInsets.fromLTRB(22,26,22,30),child:ConstrainedBox(
           constraints:const BoxConstraints(maxWidth:440),
           child: Column(crossAxisAlignment:CrossAxisAlignment.stretch,children:[
@@ -156,15 +156,15 @@ class _LiveAuthState extends State<LiveAuth> with TickerProviderStateMixin {
   }
 }
 class _AuthGlowPainter extends CustomPainter {
-  const _AuthGlowPainter(this.phase,this.dark);
-  final double phase; final bool dark;
+  const _AuthGlowPainter(this.phase,this.dark,this.accent);
+  final double phase; final bool dark; final Color accent;
   @override void paint(Canvas canvas,Size size){
-    final p=Paint()..shader=RadialGradient(colors:[BinerPreferences.instance.accent.withValues(alpha:dark ? 0.18 : 0.12),Colors.transparent]).createShader(Rect.fromCircle(center:Offset(size.width*(.15+.7*phase),size.height*.18),radius:size.width*.72));
+    final p=Paint()..shader=RadialGradient(colors:[accent.withValues(alpha:dark ? 0.18 : 0.12),Colors.transparent]).createShader(Rect.fromCircle(center:Offset(size.width*(.15+.7*phase),size.height*.18),radius:size.width*.72));
     canvas.drawCircle(Offset(size.width*(.15+.7*phase),size.height*.18),size.width*.72,p);
-    final v=Paint()..shader=RadialGradient(colors:[const Color(0xFF9B8CFF).withValues(alpha:dark ? 0.12 : 0.08),Colors.transparent]).createShader(Rect.fromCircle(center:Offset(size.width*.08,size.height*.9),radius:size.width*.5));
+    final v=Paint()..shader=RadialGradient(colors:[accent.withValues(alpha:dark ? 0.12 : 0.08),Colors.transparent]).createShader(Rect.fromCircle(center:Offset(size.width*.08,size.height*.9),radius:size.width*.5));
     canvas.drawCircle(Offset(size.width*.08,size.height*.9),size.width*.5,v);
   }
-  @override bool shouldRepaint(covariant _AuthGlowPainter old)=>old.phase!=phase||old.dark!=dark;
+  @override bool shouldRepaint(covariant _AuthGlowPainter old)=>old.phase!=phase||old.dark!=dark||old.accent!=accent;
 }
 
 
