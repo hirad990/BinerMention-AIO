@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:video_player/video_player.dart';
+import 'app_preferences.dart';
 
 class BinerMediaViewer {
   const BinerMediaViewer._();
@@ -153,7 +154,7 @@ class _BinerMediaViewerPageState extends State<_BinerMediaViewerPage> {
                     Text(_time(current.duration), style: const TextStyle(color: Colors.white70, fontSize: 11)),
                     IconButton(
                       onPressed: () => current.isPlaying ? controller.pause() : controller.play(),
-                      color: const Color(0xFF54C8FF),
+                      color: BinerPreferences.instance.accent,
                       icon: Icon(current.isPlaying ? Icons.pause_rounded : Icons.play_arrow_rounded),
                     ),
                   ]),
