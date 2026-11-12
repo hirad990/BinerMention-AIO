@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'api_client.dart';
 import 'ui_kit.dart';
+import 'app_preferences.dart';
 
 class InsightsPage extends StatefulWidget {
   const InsightsPage({super.key, required this.api});
@@ -93,7 +94,7 @@ class _InsightsPageState extends State<InsightsPage> {
         final stats = data['stats'] is Map ? Map<String, dynamic>.from(data['stats'] as Map) : <String, dynamic>{};
         final top = (data['top_posts'] as List? ?? const []).whereType<Map>().toList();
         final entries = <(String, String, IconData, Color)>[
-          ('پست‌های منتشرشده', 'posts', Icons.article_outlined, const Color(0xFF54C8FF)),
+          ('پست‌های منتشرشده', 'posts', Icons.article_outlined, BinerPreferences.instance.accent),
           ('دنبال‌کنندگان', 'followers', Icons.people_alt_outlined, const Color(0xFF9B8CFF)),
           ('لایک دریافتی', 'likes_received', Icons.favorite_border_rounded, const Color(0xFFFF78B8)),
           ('بازنشر دریافتی', 'reposts_received', Icons.repeat_rounded, const Color(0xFF27C995)),
