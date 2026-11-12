@@ -112,8 +112,8 @@ class _InsightsPageState extends State<InsightsPage> {
                 child: Container(
                   decoration: const BoxDecoration(gradient: LinearGradient(begin: Alignment.topLeft, end: Alignment.bottomRight, colors: [Color(0xFF102B45), Color(0xFF211A45)]), borderRadius: BorderRadius.all(Radius.circular(18))),
                   padding: const EdgeInsets.all(18),
-                  child: const Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-                    Row(children: [Icon(Icons.insights_rounded, color: Color(0xFF54C8FF)), SizedBox(width: 9), Text('نمای کلی حساب', style: TextStyle(color: Colors.white, fontSize: 18, fontWeight: FontWeight.w900))]),
+                  child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+                    Row(children: [Icon(Icons.insights_rounded, color: BinerPreferences.instance.accent), SizedBox(width: 9), Text('نمای کلی حساب', style: TextStyle(color: Colors.white, fontSize: 18, fontWeight: FontWeight.w900))]),
                     SizedBox(height: 8),
                     Text('آمار از رویدادهای ثبت‌شده در BinerMention محاسبه می‌شود؛ هر شاخص باید قابل ردیابی و توضیح باشد.', style: TextStyle(color: Colors.white70, height: 1.6, fontSize: 12)),
                   ]),
