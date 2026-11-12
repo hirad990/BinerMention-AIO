@@ -4,7 +4,6 @@ import 'api_client.dart';
 import 'ui_kit.dart';
 import 'app_preferences.dart';
 
-const _violet = Color(0xFF9B8CFF);
 
 class BinerAIPage extends StatefulWidget {
   const BinerAIPage({super.key, required this.api});
@@ -107,11 +106,11 @@ class _BinerAIPageState extends State<BinerAIPage> {
 
   @override
   Widget build(BuildContext context) => Scaffold(
-    appBar: AppBar(title: const Row(children: [Icon(Icons.auto_awesome_rounded, color: _violet), SizedBox(width: 9), Text('BinerAI', style: TextStyle(fontWeight: FontWeight.w900))]), actions: [IconButton(tooltip: 'گفت‌وگوی تازه', onPressed: _busy ? null : () => setState(_history.clear), icon: const Icon(Icons.add_comment_outlined))]),
+    appBar: AppBar(title: Row(children: [Icon(Icons.auto_awesome_rounded, color: BinerPreferences.instance.accent), SizedBox(width: 9), Text('BinerAI', style: TextStyle(fontWeight: FontWeight.w900))]), actions: [IconButton(tooltip: 'گفت‌وگوی تازه', onPressed: _busy ? null : () => setState(_history.clear), icon: Icon(Icons.add_comment_outlined))]),
     body: Column(children: [
       Expanded(child: _history.isEmpty ? ListView(physics: const AlwaysScrollableScrollPhysics(parent: BouncingScrollPhysics()), padding: const EdgeInsets.all(20), children: [
         const SizedBox(height: 28),
-        Center(child: Container(width: 82, height: 82, decoration: BoxDecoration(shape: BoxShape.circle, gradient: LinearGradient(colors: [BinerPreferences.instance.accent, _violet]), boxShadow: [BoxShadow(color: BinerPreferences.instance.accent.withValues(alpha: .25), blurRadius: 30)]), child: Icon(Icons.auto_awesome_rounded, color: Color(0xFF071426), size: 42))).animate().scale(curve: Curves.easeOutBack),
+        Center(child: Container(width: 82, height: 82, decoration: BoxDecoration(shape: BoxShape.circle, gradient: LinearGradient(colors: [BinerPreferences.instance.accent, BinerPreferences.instance.accent]), boxShadow: [BoxShadow(color: BinerPreferences.instance.accent.withValues(alpha: .25), blurRadius: 30)]), child: Icon(Icons.auto_awesome_rounded, color: Color(0xFF071426), size: 42))).animate().scale(curve: Curves.easeOutBack),
         const SizedBox(height: 18),
         const Center(child: Text('پرسش کن؛ داده‌ها را شفاف ببین.', style: TextStyle(fontSize: 20, fontWeight: FontWeight.w900))),
         const SizedBox(height: 8),
