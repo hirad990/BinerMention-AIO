@@ -1751,10 +1751,10 @@ class _LiveHomeState extends State<LiveHome> with WidgetsBindingObserver {
                               child: Row(
                                 children: [
                                   for (final item in [
-                                    (0, Icons.home_outlined, Icons.home_rounded, binerText('خانه', en: 'Home', ar: 'الرئيسية', tr: 'Ana sayfa')),
-                                    (2, Icons.notifications_none_rounded, Icons.notifications_rounded, binerText('اعلان‌ها', en: 'Alerts', ar: 'التنبيهات', tr: 'Bildirimler')),
-                                    (3, Icons.chat_bubble_outline_rounded, Icons.chat_bubble_rounded, binerText('پیام‌ها', en: 'Messages', ar: 'الرسائل', tr: 'Mesajlar')),
-                                    (4, Icons.person_outline_rounded, Icons.person_rounded, binerText('پروفایل', en: 'Profile', ar: 'الملف الشخصي', tr: 'Profil')),
+                                    (0, CupertinoIcons.house, CupertinoIcons.house_fill, binerText('خانه', en: 'Home', ar: 'الرئيسية', tr: 'Ana sayfa')),
+                                    (2, CupertinoIcons.bell, CupertinoIcons.bell_fill, binerText('اعلان‌ها', en: 'Alerts', ar: 'التنبيهات', tr: 'Bildirimler')),
+                                    (3, CupertinoIcons.chat_bubble_2, CupertinoIcons.chat_bubble_2_fill, binerText('پیام‌ها', en: 'Messages', ar: 'الرسائل', tr: 'Mesajlar')),
+                                    (4, CupertinoIcons.person_crop_circle, CupertinoIcons.person_crop_circle_fill, binerText('پروفایل', en: 'Profile', ar: 'الملف الشخصي', tr: 'Profil')),
 
                                   ])
                                     Expanded(
@@ -1800,7 +1800,7 @@ class _LiveHomeState extends State<LiveHome> with WidgetsBindingObserver {
                               child: IconButton(
                                 tooltip: binerText('کاوش', en: 'Explore', ar: 'استكشاف', tr: 'Keşfet'),
                                 onPressed: () => selectTab(1),
-                                icon: Icon(Icons.search_rounded, size: 25, color: tab == 1 ? cBlue : Theme.of(context).colorScheme.onSurface),
+                                icon: Icon(CupertinoIcons.search, size: 25, color: tab == 1 ? cBlue : Theme.of(context).colorScheme.onSurface),
                               ),
                             ),
                           ),
