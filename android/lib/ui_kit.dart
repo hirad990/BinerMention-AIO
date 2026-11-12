@@ -30,7 +30,7 @@ ThemeData buildBinerTheme(Brightness brightness, {Color seedColor = binerBlue}) 
       seedColor: seedColor,
       brightness: brightness,
       surface: dark ? const Color(0xFF08080B) : const Color(0xFFF8FAFF),
-      secondary: binerViolet,
+      secondary: seedColor,
     ),
     textTheme: selectedTextTheme.apply(
       bodyColor: textColor,
