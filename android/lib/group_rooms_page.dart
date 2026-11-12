@@ -293,10 +293,10 @@ class _GroupChatPageState extends State<GroupChatPage> {
             topLeft: const Radius.circular(18), topRight: const Radius.circular(18),
             bottomLeft: Radius.circular(mine ? 18 : 5), bottomRight: Radius.circular(mine ? 5 : 18),
           ),
-          border: Border.all(color: mine ? const Color(0x6654C8FF) : Theme.of(context).dividerColor.withValues(alpha: .4)),
+          border: Border.all(color: mine ? BinerPreferences.instance.accent.withValues(alpha: .4) : Theme.of(context).dividerColor.withValues(alpha: .4)),
         ),
         child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-          if (!mine) Padding(padding: const EdgeInsets.only(bottom: 5), child: Text(message['display_name']?.toString() ?? message['username']?.toString() ?? 'کاربر', style: const TextStyle(color: Color(0xFF54C8FF), fontSize: 11, fontWeight: FontWeight.w900))),
+          if (!mine) Padding(padding: EdgeInsets.only(bottom: 5), child: Text(message['display_name']?.toString() ?? message['username']?.toString() ?? 'کاربر', style: TextStyle(color: BinerPreferences.instance.accent, fontSize: 11, fontWeight: FontWeight.w900))),
           if (mediaUrl.startsWith('https://')) ...[
             GestureDetector(
               onTap: () => BinerMediaViewer.open(context, url: mediaUrl, mimeType: mime, title: widget.title),
@@ -321,7 +321,7 @@ class _GroupChatPageState extends State<GroupChatPage> {
   Widget build(BuildContext context) => Scaffold(
     appBar: AppBar(
       title: Row(children: [
-        Container(width: 38, height: 38, decoration: BoxDecoration(gradient: LinearGradient(colors: [Color(0xFF54C8FF), BinerPreferences.instance.accent]), borderRadius: BorderRadius.circular(13)), child: Icon(Icons.groups_rounded, color: Color(0xFF071426))),
+        Container(width: 38, height: 38, decoration: BoxDecoration(gradient: LinearGradient(colors: [BinerPreferences.instance.accent, BinerPreferences.instance.accent.withValues(alpha: .72)]), borderRadius: BorderRadius.circular(13)), child: Icon(Icons.groups_rounded, color: Color(0xFF071426))),
         const SizedBox(width: 10),
         Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
           Text(widget.title, maxLines: 1, overflow: TextOverflow.ellipsis, style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w900)),
@@ -329,14 +329,14 @@ class _GroupChatPageState extends State<GroupChatPage> {
         ])),
       ]),
       actions: [
-        IconButton(tooltip: 'BinerAI', onPressed: () => Navigator.of(context).push(MaterialPageRoute<void>(builder: (_) => BinerAIPage(api: widget.api))), icon: const Icon(Icons.auto_awesome_rounded, color: Color(0xFF9B8CFF))),
+        IconButton(tooltip: 'BinerAI', onPressed: () => Navigator.of(context).push(MaterialPageRoute<void>(builder: (_) => BinerAIPage(api: widget.api))), icon: Icon(Icons.auto_awesome_rounded, color: BinerPreferences.instance.accent)),
         IconButton(tooltip: 'به‌روزرسانی', onPressed: () => _load(showLoading: true), icon: const Icon(Icons.refresh_rounded)),
       ],
     ),
     body: Column(children: [
       Expanded(
         child: _loading
-            ? const Center(child: CircularProgressIndicator(color: Color(0xFF54C8FF)))
+            ? Center(child: CircularProgressIndicator(color: BinerPreferences.instance.accent))
             : RefreshIndicator(
                 onRefresh: () => _load(),
                 child: ListView.builder(
@@ -393,7 +393,7 @@ class _GroupChatPageState extends State<GroupChatPage> {
               const SizedBox(width: 5),
               IconButton.filled(
                 onPressed: _sending ? null : _send,
-                style: IconButton.styleFrom(backgroundColor: const Color(0xFF54C8FF), foregroundColor: const Color(0xFF071426)),
+                style: IconButton.styleFrom(backgroundColor: BinerPreferences.instance.accent, foregroundColor: Color(0xFF071426)),
                 icon: _sending ? const SizedBox(width: 17, height: 17, child: CircularProgressIndicator(strokeWidth: 2)) : const Icon(Icons.arrow_upward_rounded),
               ),
             ]),
