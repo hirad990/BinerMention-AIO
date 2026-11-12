@@ -105,7 +105,7 @@ class _BinerMediaViewerPageState extends State<_BinerMediaViewerPage> {
       body: Center(
         child: widget.isVideo
             ? (controller == null || !_ready || !controller.value.isInitialized
-                ? const CircularProgressIndicator(color: Color(0xFF54C8FF))
+                ? CircularProgressIndicator(color: BinerPreferences.instance.accent)
                 : AspectRatio(
                     aspectRatio: controller.value.aspectRatio > 0 ? controller.value.aspectRatio : 16 / 9,
                     child: Stack(alignment: Alignment.center, children: [
@@ -133,7 +133,7 @@ class _BinerMediaViewerPageState extends State<_BinerMediaViewerPage> {
                     filterQuality: FilterQuality.medium,
                     loadingBuilder: (context, child, progress) => progress == null
                         ? child
-                        : const Center(child: CircularProgressIndicator(color: Color(0xFF54C8FF))),
+                        : Center(child: CircularProgressIndicator(color: BinerPreferences.instance.accent)),
                     errorBuilder: (_, __, ___) => const Icon(Icons.broken_image_outlined, color: Colors.white70, size: 48),
                   ),
                 ),
