@@ -18,7 +18,7 @@ concurrency:
 jobs:
   build-web:
     name: Build adaptive Flutter Web
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     timeout-minutes: 45
     steps:
       - name: Checkout repository
