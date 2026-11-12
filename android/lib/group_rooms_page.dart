@@ -7,6 +7,7 @@ import 'biner_ai_page.dart';
 import 'media_editor.dart';
 import 'media_viewer.dart';
 import 'ui_kit.dart';
+import 'app_preferences.dart';
 
 class GroupRoomsPage extends StatefulWidget {
   const GroupRoomsPage({super.key, required this.api});
@@ -128,7 +129,7 @@ class _GroupRoomsPageState extends State<GroupRoomsPage> {
                     width: 48, height: 48,
                     decoration: BoxDecoration(
                       borderRadius: BorderRadius.circular(16),
-                      gradient: const LinearGradient(begin: Alignment.topLeft, end: Alignment.bottomRight, colors: [Color(0xFF54C8FF), Color(0xFF7868E8)]),
+                      gradient: LinearGradient(begin: Alignment.topLeft, end: Alignment.bottomRight, colors: [BinerPreferences.instance.accent, Color(0xFF7868E8)]),
                     ),
                     child: const Icon(Icons.groups_rounded, color: Color(0xFF071426), size: 25),
                   ),
