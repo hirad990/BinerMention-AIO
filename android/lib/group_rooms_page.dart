@@ -129,7 +129,7 @@ class _GroupRoomsPageState extends State<GroupRoomsPage> {
                     width: 48, height: 48,
                     decoration: BoxDecoration(
                       borderRadius: BorderRadius.circular(16),
-                      gradient: LinearGradient(begin: Alignment.topLeft, end: Alignment.bottomRight, colors: [BinerPreferences.instance.accent, Color(0xFF7868E8)]),
+                      gradient: LinearGradient(begin: Alignment.topLeft, end: Alignment.bottomRight, colors: [BinerPreferences.instance.accent, BinerPreferences.instance.accent]),
                     ),
                     child: const Icon(Icons.groups_rounded, color: Color(0xFF071426), size: 25),
                   ),
@@ -321,7 +321,7 @@ class _GroupChatPageState extends State<GroupChatPage> {
   Widget build(BuildContext context) => Scaffold(
     appBar: AppBar(
       title: Row(children: [
-        Container(width: 38, height: 38, decoration: BoxDecoration(gradient: const LinearGradient(colors: [Color(0xFF54C8FF), Color(0xFF7868E8)]), borderRadius: BorderRadius.circular(13)), child: const Icon(Icons.groups_rounded, color: Color(0xFF071426))),
+        Container(width: 38, height: 38, decoration: BoxDecoration(gradient: LinearGradient(colors: [Color(0xFF54C8FF), BinerPreferences.instance.accent]), borderRadius: BorderRadius.circular(13)), child: Icon(Icons.groups_rounded, color: Color(0xFF071426))),
         const SizedBox(width: 10),
         Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
           Text(widget.title, maxLines: 1, overflow: TextOverflow.ellipsis, style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w900)),
