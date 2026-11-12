@@ -159,7 +159,7 @@ class _AuthGlowPainter extends CustomPainter {
   const _AuthGlowPainter(this.phase,this.dark);
   final double phase; final bool dark;
   @override void paint(Canvas canvas,Size size){
-    final p=Paint()..shader=RadialGradient(colors:[const Color(0xFF54C8FF).withValues(alpha:dark ? 0.18 : 0.12),Colors.transparent]).createShader(Rect.fromCircle(center:Offset(size.width*(.15+.7*phase),size.height*.18),radius:size.width*.72));
+    final p=Paint()..shader=RadialGradient(colors:[BinerPreferences.instance.accent.withValues(alpha:dark ? 0.18 : 0.12),Colors.transparent]).createShader(Rect.fromCircle(center:Offset(size.width*(.15+.7*phase),size.height*.18),radius:size.width*.72));
     canvas.drawCircle(Offset(size.width*(.15+.7*phase),size.height*.18),size.width*.72,p);
     final v=Paint()..shader=RadialGradient(colors:[const Color(0xFF9B8CFF).withValues(alpha:dark ? 0.12 : 0.08),Colors.transparent]).createShader(Rect.fromCircle(center:Offset(size.width*.08,size.height*.9),radius:size.width*.5));
     canvas.drawCircle(Offset(size.width*.08,size.height*.9),size.width*.5,v);
