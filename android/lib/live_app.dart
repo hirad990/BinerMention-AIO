@@ -1740,19 +1740,71 @@ class _LiveHomeState extends State<LiveHome> with WidgetsBindingObserver {
             bottomNavigationBar: desktop ? null : defaultTargetPlatform == TargetPlatform.iOS
                 ? SafeArea(
                     top: false,
-                    child: CupertinoTabBar(
-                      currentIndex: tab,
-                      onTap: selectTab,
-                      activeColor: cBlue,
-                      backgroundColor: Theme.of(context).colorScheme.surface.withValues(alpha: .94),
-                      border: const Border(top: BorderSide(color: cLine)),
-                      items: const [
-                        BottomNavigationBarItem(icon: Icon(CupertinoIcons.house), label: 'Home'),
-                        BottomNavigationBarItem(icon: Icon(CupertinoIcons.search), label: 'Explore'),
-                        BottomNavigationBarItem(icon: Icon(CupertinoIcons.bell), label: 'Alerts'),
-                        BottomNavigationBarItem(icon: Icon(CupertinoIcons.chat_bubble_2), label: 'Messages'),
-                        BottomNavigationBarItem(icon: Icon(CupertinoIcons.person_crop_circle), label: 'Profile'),
-                      ],
+                    child: Padding(
+                      padding: const EdgeInsets.fromLTRB(12, 4, 12, 8),
+                      child: Row(
+                        children: [
+                          Expanded(
+                            child: BinerLiquidGlass(
+                              borderRadius: BorderRadius.circular(40),
+                              padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 5),
+                              child: Row(
+                                children: [
+                                  for (final item in [
+                                    (0, CupertinoIcons.house, CupertinoIcons.house_fill, binerText('خانه', en: 'Home', ar: 'الرئيسية', tr: 'Ana sayfa')),
+                                    (2, CupertinoIcons.bell, CupertinoIcons.bell_fill, binerText('اعلان‌ها', en: 'Alerts', ar: 'التنبيهات', tr: 'Bildirimler')),
+                                    (3, CupertinoIcons.chat_bubble_2, CupertinoIcons.chat_bubble_2_fill, binerText('پیام‌ها', en: 'Messages', ar: 'الرسائل', tr: 'Mesajlar')),
+                                    (4, CupertinoIcons.person_crop_circle, CupertinoIcons.person_crop_circle_fill, binerText('پروفایل', en: 'Profile', ar: 'الملف الشخصي', tr: 'Profil')),
+                                  ])
+                                    Expanded(
+                                      child: Semantics(
+                                        button: true,
+                                        selected: tab == item.$1,
+                                        label: item.$4,
+                                        child: InkWell(
+                                          borderRadius: BorderRadius.circular(30),
+                                          onTap: () => selectTab(item.$1),
+                                          child: SizedBox(
+                                            height: 62,
+                                            child: AnimatedContainer(
+                                              duration: const Duration(milliseconds: 220),
+                                              curve: Curves.easeOutCubic,
+                                              decoration: BoxDecoration(
+                                                color: tab == item.$1 ? cBlue.withValues(alpha: .16) : Colors.transparent,
+                                                borderRadius: BorderRadius.circular(28),
+                                              ),
+                                              child: Column(
+                                                mainAxisAlignment: MainAxisAlignment.center,
+                                                children: [
+                                                  Icon(tab == item.$1 ? item.$3 : item.$2, size: 22, color: tab == item.$1 ? cBlue : Theme.of(context).colorScheme.onSurface.withValues(alpha: .82)),
+                                                  const SizedBox(height: 3),
+                                                  Text(item.$4, maxLines: 1, overflow: TextOverflow.ellipsis, style: TextStyle(fontSize: 10, height: 1.1, fontWeight: tab == item.$1 ? FontWeight.w800 : FontWeight.w600, color: tab == item.$1 ? cBlue : Theme.of(context).colorScheme.onSurface.withValues(alpha: .82))),
+                                                ],
+                                              ),
+                                            ),
+                                          ),
+                                        ),
+                                      ),
+                                    ),
+                                ],
+                              ),
+                            ),
+                          ),
+                          const SizedBox(width: 9),
+                          BinerLiquidGlass(
+                            borderRadius: BorderRadius.circular(40),
+                            child: SizedBox(
+                              width: 66,
+                              height: 66,
+                              child: IconButton(
+                                tooltip: binerText('کاوش', en: 'Explore', ar: 'استكشاف', tr: 'Keşfet'),
+                                onPressed: () => selectTab(1),
+                                icon: Icon(CupertinoIcons.search, size: 25, color: tab == 1 ? cBlue : Theme.of(context).colorScheme.onSurface),
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
                     ),
                   )
                 : Padding(
